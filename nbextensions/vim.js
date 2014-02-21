@@ -174,8 +174,15 @@ var IPython = (function (IPython) {
         var cursor = cell.code_mirror.getCursor();
         if (cursor.line === 0) {
           that.select_prev();
+          var new_cell = that.get_selected_cell();
+          if(new_cell.code_mirror) { // bottom line, same ch position
+            var last_line = new_cell.code_mirror.lastLine();
+            // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
+            // https://github.com/marijnh/CodeMirror/issues/2289
+            new_cell.code_mirror.setCursor(last_line, cursor.ch);
+          }
           return true;
-        };
+        }
     } 
     // J: down cell
     if (event.which === 74 && (event.shiftKey || event.metaKey)) {
@@ -184,11 +191,18 @@ var IPython = (function (IPython) {
     }
     // j: down
     if (event.which === 74 && !event.shiftKey) {
-        var cursor = cell.code_mirror.getCursor();
-        if (cursor.line === (cell.code_mirror.lineCount()-1)) {
-            that.select_next();
-            return true;
-          };
+      var cursor = cell.code_mirror.getCursor();
+      var ch = cursor.ch;
+      if (cursor.line === (cell.code_mirror.lineCount()-1)) {
+        that.select_next();
+        var new_cell = that.get_selected_cell();
+        if(new_cell.code_mirror) { // bottom line, same ch position
+          // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
+          // https://github.com/marijnh/CodeMirror/issues/2289
+          new_cell.code_mirror.setCursor(0, cursor.ch);
+        }
+        return true;
+      };
     }
     // Y: copy cell
     if (event.which === 89 && event.shiftKey) {
