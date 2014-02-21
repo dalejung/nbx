@@ -163,15 +163,11 @@ var IPython = (function (IPython) {
     }
 
     // K: up cell
-    if (event.which === 75 && event.shiftKey) 
+    if (event.which === 75 && (event.shiftKey || event.metaKey))
     {
         that.select_prev();
         return true;
     } 
-      if (event.which === 75 && (event.metaKey)) {
-          that.select_prev();
-          return true;
-      }
     // k: up
     if (event.which === 75 && !event.shiftKey) 
     {
@@ -182,14 +178,10 @@ var IPython = (function (IPython) {
         };
     } 
     // J: down cell
-    if (event.which === 74 && event.shiftKey) {
+    if (event.which === 74 && (event.shiftKey || event.metaKey)) {
         that.select_next();
         return true;
     }
-      if (event.which === 74 && (event.metaKey)) {
-          that.select_next();
-          return true;
-      }
     // j: down
     if (event.which === 74 && !event.shiftKey) {
         var cursor = cell.code_mirror.getCursor();
