@@ -179,6 +179,9 @@ var IPython = (function (IPython) {
             var last_line = new_cell.code_mirror.lastLine();
             // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
             // https://github.com/marijnh/CodeMirror/issues/2289
+            if(new_cell.code_mirror.state.vim) {
+              new_cell.code_mirror.state.vim.lastHPos = cursor.ch;
+            }
             new_cell.code_mirror.setCursor(last_line, cursor.ch);
           }
           return true;
@@ -200,6 +203,9 @@ var IPython = (function (IPython) {
           // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
           // https://github.com/marijnh/CodeMirror/issues/2289
           new_cell.code_mirror.setCursor(0, cursor.ch);
+          if(new_cell.code_mirror.state.vim) {
+            new_cell.code_mirror.state.vim.lastHPos = cursor.ch;
+          }
         }
         return true;
       };
