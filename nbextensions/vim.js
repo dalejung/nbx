@@ -22,6 +22,11 @@ define( function () {
     };
 });
 
+// plug in so :w saves
+CodeMirror.commands.save = function(cm) {
+  IPython.notebook.save_notebook();
+}
+
 // Monkey patch: KeyboardManager.handle_keydown
 // Diff: disable this handler
 
