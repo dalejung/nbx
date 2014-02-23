@@ -162,6 +162,13 @@ var IPython = (function (IPython) {
       return true;
     }
 
+    // Meta S: save_notebook
+    if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
+      that.save_notebook();
+      event.preventDefault();
+      return false;
+    }
+
     // K: up cell
     if (event.which === 75 && (event.shiftKey || event.metaKey))
     {
@@ -297,10 +304,16 @@ var IPython = (function (IPython) {
         that.select_next();
         return true;
     }
-      if (event.which === 75 && (event.metaKey)) {
-          that.select_prev();
-          return true;
-      }
+    if (event.which === 75 && (event.metaKey)) {
+        that.select_prev();
+        return true;
+    }
+    // Meta S: save_notebook
+    if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
+      that.save_notebook();
+      event.preventDefault();
+      return false;
+    }
   };
 
   IPython.VIM = new VIM();
