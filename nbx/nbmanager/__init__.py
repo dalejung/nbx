@@ -30,6 +30,10 @@ class MetaManager(LoggingConfigurable):
         nbm = self.managers.get(manager_path)
         return nbm, local_path
 
+    def info_string(self):
+        infos = [nbm.info_string() for nbm in self.managers.values()]
+        return "\n".join(infos)
+
     def list_dirs(self, path):
         nbm, local_path = self._nbm_from_path(path)
         val = nbm.list_dirs(local_path)
@@ -129,3 +133,6 @@ class HomeManager(NotebookManager):
 
     def list_notebooks(self, path=''):
         return []
+
+    def info_string(self):
+        return ''
