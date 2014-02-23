@@ -80,7 +80,7 @@ class MetaManager(LoggingConfigurable):
 
     def list_checkpoints(self, name, path=''):
         nbm, local_path = self._nbm_from_path(path)
-        return nbm.list_checkpoint(name, local_path)
+        return nbm.list_checkpoints(name, local_path)
 
     def restore_checkpoint(self, checkpoint_id, name, path=''):
         nbm, local_path = self._nbm_from_path(path)
