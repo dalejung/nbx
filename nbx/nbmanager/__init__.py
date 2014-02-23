@@ -15,11 +15,6 @@ class MetaManager(LoggingConfigurable):
         self.root = HomeManager(meta_manager=self)
         super(MetaManager, self).__init__(*args, **kwargs)
 
-    def __getattr__(self, name):
-        print name
-        val = getattr(self.managers['file'], name)
-        return val
-
     def _nbm_from_path(self, path):
         # we are on root
         if not path:
@@ -59,7 +54,41 @@ class MetaManager(LoggingConfigurable):
 
     def get_notebook(self, name, path='', content=True):
         nbm, local_path = self._nbm_from_path(path)
-        return nbm.get_notebook(name, path=local_path, content=content)
+        model = nbm.get_notebook(name, path=local_path, content=content)
+        return model
+
+    def save_notebook(self, model, name='', path=''):
+        nbm, local_path = self._nbm_from_path(path)
+        # make sure path is local and doesn't include sub manager prefix
+        model['path'] = local_path
+        model = nbm.save_notebook(model=model, name=name, path=local_path)
+        return model
+
+    def update_notebook(self, model, name, path=''):
+        """Update the notebook and return the model with no content."""
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.update_notebook(model, name, local_path)
+
+    def delete_notebook(self, name, path=''):
+        """Delete notebook by name and path."""
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.delete_notebook(name, local_path)
+
+    def create_checkpoint(self, name, path=''):
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.create_checkpoint(name, local_path)
+
+    def list_checkpoints(self, name, path=''):
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.list_checkpoint(name, local_path)
+
+    def restore_checkpoint(self, checkpoint_id, name, path=''):
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.restore_checkpoint(checkpoint_id, name, local_path)
+
+    def delete_checkpoint(self, checkpoint_id, name, path=''):
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.delete_checkpoint(checkpoint_id, name, local_path)
 
 class HomeManager(NotebookManager):
     """
