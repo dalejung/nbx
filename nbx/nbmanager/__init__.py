@@ -30,6 +30,10 @@ class MetaManager(LoggingConfigurable):
         nbm = self.managers.get(manager_path)
         return nbm, local_path
 
+    @property
+    def notebook_dir(self):
+        return self.managers['file'].notebook_dir
+
     def info_string(self):
         infos = [nbm.info_string() for nbm in self.managers.values()]
         return "\n".join(infos)
