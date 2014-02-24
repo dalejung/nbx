@@ -8,57 +8,57 @@ require(["nbextensions/vim"], function (vim_extension) {
 });
 
 */
-define( function () {
+define(function() {
     var token_name = "vim_github_token";
 
-    var load_extension = function () {
-        $([IPython.events]).on("notebook_loaded.Notebook", function () {
-          console.log("notebook loaded event");
+    var load_extension = function() {
+        $([IPython.events]).on("notebook_loaded.Notebook", function() {
+            console.log("notebook loaded event");
         });
     };
 
     return {
-        load_extension : load_extension,
+        load_extension: load_extension,
     };
 });
 
 // plug in so :w saves
 CodeMirror.commands.save = function(cm) {
-  IPython.notebook.save_notebook();
+    IPython.notebook.save_notebook();
 }
 
 // Monkey patch: KeyboardManager.handle_keydown
 // Diff: disable this handler
 
-IPython.KeyboardManager.prototype.handle_keydown = function (event) {
-  var cell = IPython.notebook.get_selected_cell();
-  if(cell instanceof IPython.TextCell) {
-    if(cell.mode == 'command' && event.type == 'keydown') {
-      // switch IPython.notebook to this.notebook if Cells get notebook reference
-      ret = IPython.VIM.keyDown(IPython.notebook, event);
-      return ret;
+IPython.KeyboardManager.prototype.handle_keydown = function(event) {
+    var cell = IPython.notebook.get_selected_cell();
+    if (cell instanceof IPython.TextCell) {
+        if (cell.mode == 'command' && event.type == 'keydown') {
+            // switch IPython.notebook to this.notebook if Cells get notebook reference
+            ret = IPython.VIM.keyDown(IPython.notebook, event);
+            return ret;
+        }
     }
-  }
-  return;
+    return;
 }
 
 // Monkey patch: KeyboardManager.register_events
 // Diff: disable this handler
-IPython.KeyboardManager.prototype.register_events = function (e) {
-  return;
+IPython.KeyboardManager.prototype.register_events = function(e) {
+    return;
 }
 // Monkey patch insert_cell_below
 // Diff: Select cell after insert
-IPython.Notebook.prototype.insert_cell_below = function (type, index) {
+IPython.Notebook.prototype.insert_cell_below = function(type, index) {
     index = this.index_or_selected(index);
-    var cell = this.insert_cell_at_index(type, index+1);
+    var cell = this.insert_cell_at_index(type, index + 1);
     this.select(this.find_cell_index(cell));
     return cell;
 };
 
 // Monkey patch insert_cell_above
 // Diff: Select cell after insert
-IPython.Notebook.prototype.insert_cell_above = function (type, index) {
+IPython.Notebook.prototype.insert_cell_above = function(type, index) {
     index = this.index_or_selected(index);
     var cell = this.insert_cell_at_index(type, index);
     this.select(this.find_cell_index(cell));
@@ -67,7 +67,7 @@ IPython.Notebook.prototype.insert_cell_above = function (type, index) {
 
 // Monkey patch: execute_cell
 // Diff: don't switch to command mode
-IPython.Notebook.prototype.execute_cell = function () {
+IPython.Notebook.prototype.execute_cell = function() {
     var cell = this.get_selected_cell();
     var cell_index = this.find_cell_index(cell);
     cell.execute();
@@ -75,7 +75,7 @@ IPython.Notebook.prototype.execute_cell = function () {
 };
 
 // Focus editor on select
-IPython.CodeCell.prototype.select = function () {
+IPython.CodeCell.prototype.select = function() {
     var cont = IPython.Cell.prototype.select.apply(this);
     if (cont) {
         this.code_mirror.refresh();
@@ -85,258 +85,257 @@ IPython.CodeCell.prototype.select = function () {
     return cont;
 };
 
-IPython.CodeCell.prototype.handle_keyevent = function (editor, event) {
+IPython.CodeCell.prototype.handle_keyevent = function(editor, event) {
 
     // console.log('CM', this.mode, event.which, event.type)
-        var ret = this.handle_codemirror_keyevent(editor, event);
-        if(ret) {
-          return ret;
-        }
-        if(event.type == 'keydown') {
-          // switch IPython.notebook to this.notebook if Cells get notebook reference
-          ret = IPython.VIM.keyDown(IPython.notebook, event);
-          return ret;
-        }
-        return false;
+    var ret = this.handle_codemirror_keyevent(editor, event);
+    if (ret) {
+        return ret;
+    }
+    if (event.type == 'keydown') {
+        // switch IPython.notebook to this.notebook if Cells get notebook reference
+        ret = IPython.VIM.keyDown(IPython.notebook, event);
+        return ret;
+    }
+    return false;
 };
 
 // Override TextCell keydown
 // Really just here to handle the render/editing of text cells
 // Might need to consider also using codemirror keyevent
-IPython.TextCell.prototype.handle_keyevent = function (editor, event) {
-      var ret = this.handle_codemirror_keyevent(editor, event);
-      if(ret) {
+IPython.TextCell.prototype.handle_keyevent = function(editor, event) {
+    var ret = this.handle_codemirror_keyevent(editor, event);
+    if (ret) {
         return ret;
-      }
-      if( event.type == 'keydown') {
+    }
+    if (event.type == 'keydown') {
         ret = IPython.VIM.keyDown(IPython.notebook, event);
         return ret;
-      }
-      return false;
-}
-
-IPython.Notebook.prototype.setVIMode = function (mode) {
-  var cell = this.get_selected_cell();
-  cm = cell.code_mirror;
-  if(cm) {
-    if(mode == 'INSERT') {
-      CodeMirror.keyMap.vim.I(cm);
-    }
-  }
-}
-
-var IPython = (function (IPython) {
-
-  var NormalMode = {};
-  var InsertMode = {};
-
-  var VIM = function() {;};
-
-  VIM.prototype.keyDown = function(that, event) {
-    var cell = that.get_selected_cell();
-    var vim_mode = cell.code_mirror.getOption('keyMap');
-
-    ret = false;
-
-    if(vim_mode == 'vim') {
-      ret = NormalMode.keyDown(that, event);
-    }
-
-    if(vim_mode == 'vim-insert') {
-      ret = InsertMode.keyDown(that, event);
-    }
-
-    if(ret) {
-      event.preventDefault();
-      return true;
     }
     return false;
-  };
+}
 
-  NormalMode.keyDown = function(that, event) {
-    var cell = that.get_selected_cell();
-    var cell_type = cell.cell_type;
-    var textcell = cell instanceof IPython.TextCell;
-
-
-    // ` : enable console
-    if (event.which === 192) {
-      $(IPython.console_book.element).toggle();
-      IPython.console_book.focus_selected();
-      return true;
-    }
-
-    // Meta S: save_notebook
-    if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
-      that.save_notebook();
-      event.preventDefault();
-      return false;
-    }
-
-    // K: up cell
-    if (event.which === 75 && (event.shiftKey || event.metaKey))
-    {
-        that.select_prev();
-        return true;
-    } 
-    // k: up
-    if (event.which === 75 && !event.shiftKey) 
-    {
-      // textcell. Treat as one line item when not rendered
-      if(textcell && cell.rendered) {
-          that.select_prev();
-          return true;
-      }
-        var cursor = cell.code_mirror.getCursor();
-        if (cursor.line === 0) {
-          that.select_prev();
-          var new_cell = that.get_selected_cell();
-          if(new_cell.code_mirror) { // bottom line, same ch position
-            var last_line = new_cell.code_mirror.lastLine();
-            // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
-            // https://github.com/marijnh/CodeMirror/issues/2289
-            if(new_cell.code_mirror.state.vim) {
-              new_cell.code_mirror.state.vim.lastHPos = cursor.ch;
-            }
-            new_cell.code_mirror.setCursor(last_line, cursor.ch);
-          }
+IPython.Notebook.prototype.setVIMode = function(mode) {
+    var cell = this.get_selected_cell();
+    cm = cell.code_mirror;
+    if (cm) {
+        if (mode == 'INSERT') {
+            CodeMirror.keyMap.vim.I(cm);
         }
-        // right now textcell is handled via Document handler prevent the double call
-        event.preventDefault();
-        event.stopPropagation();
-        return true;
-    } 
-    // J: down cell
-    if (event.which === 74 && (event.shiftKey || event.metaKey)) {
-        that.select_next();
-        return true;
     }
-    // j: down
-    if (event.which === 74 && !event.shiftKey) {
-      // textcell. Treat as one line item when not rendered
-      if(textcell && cell.rendered) {
-          that.select_next();
-          return true;
-      }
-      var cursor = cell.code_mirror.getCursor();
-      var ch = cursor.ch;
-      if (cursor.line === (cell.code_mirror.lineCount()-1)) {
-        that.select_next();
-        var new_cell = that.get_selected_cell();
-        if(new_cell.code_mirror) { // bottom line, same ch position
-          // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
-          // https://github.com/marijnh/CodeMirror/issues/2289
-          new_cell.code_mirror.setCursor(0, cursor.ch);
-          if(new_cell.code_mirror.state.vim) {
-            new_cell.code_mirror.state.vim.lastHPos = cursor.ch;
-          }
-        }
-        // right now textcell is handled via Document handler prevent the double call
-        event.preventDefault();
-        event.stopPropagation();
-        return true;
-      };
-    }
-    // Y: copy cell
-    if (event.which === 89 && event.shiftKey) {
-        that.copy_cell();
-        return true;
-    }
-    // D: delete cell / cut
-    if (event.which === 68 && event.shiftKey) {
-        that.cut_cell();
-        return true;
-    }
-    // P: paste cell
-    if (event.which === 80 && event.shiftKey) {
-        that.paste_cell();
-        return true;
-    }
-    // B: open new cell below
-    if (event.which === 66 && event.shiftKey) {
-        that.insert_cell_below('code');
-        that.setVIMode('INSERT');
-        return true;
-    }
-    // shift+O or apple + O: open new cell below
-    // I know this is wrong but i hate hitting A
-    if (event.which === 79 && (event.metaKey || event.shiftKey)) {
-        that.insert_cell_below('code');
-        that.setVIMode('INSERT');
-        return true;
-    }
-    // A: open new cell above
-    if (event.which === 65 && event.shiftKey) {
-      that.insert_cell_above('code');
-      that.setVIMode('INSERT');
-      return true;
-    }
-    // control/apple E: execute (apple - E is easier than shift E)
-    if ((event.ctrlKey || event.metaKey) && event.keyCode==69) { 
-      that.execute_cell();
-      return true;
-    }
-    // E:  execute
-    if (event.which === 69 && event.shiftKey) {
-      that.execute_cell();
-      return true;
-    }
-    // F: toggle output
-    if (event.which === 70 && event.shiftKey) {
-      that.toggle_output();
-      return true;
-    }
-    // M: markdown
-    if (event.which === 77 && event.shiftKey) {
-      that.to_markdown();
-      return true;
-    }
-    // C: codecell
-    if (event.which === 77 && event.shiftKey) {
-      that.to_code();
-      return true;
-    }
-    // i: insert. only relevant on textcell
-    var rendered = cell.rendered;
-    if (textcell && rendered && event.which === 73 && !event.shiftKey) {
-      cell.edit_mode();
-      return false;
-    }
+}
 
-    // esc: get out of insert and render textcell
-    if (textcell && !rendered && event.which === 27 && !event.shiftKey) {
-        cell.render();
+var IPython = (function(IPython) {
+
+    var NormalMode = {};
+    var InsertMode = {};
+
+    var VIM = function() {;
+    };
+
+    VIM.prototype.keyDown = function(that, event) {
+        var cell = that.get_selected_cell();
+        var vim_mode = cell.code_mirror.getOption('keyMap');
+
+        ret = false;
+
+        if (vim_mode == 'vim') {
+            ret = NormalMode.keyDown(that, event);
+        }
+
+        if (vim_mode == 'vim-insert') {
+            ret = InsertMode.keyDown(that, event);
+        }
+
+        if (ret) {
+            event.preventDefault();
+            return true;
+        }
         return false;
-    } 
-  };
+    };
 
-  InsertMode.keyDown = function(that, event) {
-    var cell = that.get_selected_cell();
-    var cell_type = cell.cell_type;
-    var textcell = cell instanceof IPython.TextCell;
+    NormalMode.keyDown = function(that, event) {
+        var cell = that.get_selected_cell();
+        var cell_type = cell.cell_type;
+        var textcell = cell instanceof IPython.TextCell;
 
-    // control/apple E: execute (apple - E is easier than shift E)
-    if ((event.ctrlKey || event.metaKey) && event.keyCode==69) { 
-      that.execute_cell();
-      return true;
-    }
-    if (event.which === 74 && (event.metaKey)) {
-        that.select_next();
-        return true;
-    }
-    if (event.which === 75 && (event.metaKey)) {
-        that.select_prev();
-        return true;
-    }
-    // Meta S: save_notebook
-    if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
-      that.save_notebook();
-      event.preventDefault();
-      return false;
-    }
-  };
 
-  IPython.VIM = new VIM();
-  return IPython;
+        // ` : enable console
+        if (event.which === 192) {
+            $(IPython.console_book.element).toggle();
+            IPython.console_book.focus_selected();
+            return true;
+        }
+
+        // Meta S: save_notebook
+        if ((event.ctrlKey || event.metaKey) && event.keyCode == 83) {
+            that.save_notebook();
+            event.preventDefault();
+            return false;
+        }
+
+        // K: up cell
+        if (event.which === 75 && (event.shiftKey || event.metaKey)) {
+            that.select_prev();
+            return true;
+        }
+        // k: up
+        if (event.which === 75 && !event.shiftKey) {
+            // textcell. Treat as one line item when not rendered
+            if (textcell && cell.rendered) {
+                that.select_prev();
+                return true;
+            }
+            var cursor = cell.code_mirror.getCursor();
+            if (cursor.line === 0) {
+                that.select_prev();
+                var new_cell = that.get_selected_cell();
+                if (new_cell.code_mirror) { // bottom line, same ch position
+                    var last_line = new_cell.code_mirror.lastLine();
+                    // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
+                    // https://github.com/marijnh/CodeMirror/issues/2289
+                    if (new_cell.code_mirror.state.vim) {
+                        new_cell.code_mirror.state.vim.lastHPos = cursor.ch;
+                    }
+                    new_cell.code_mirror.setCursor(last_line, cursor.ch);
+                }
+            }
+            // right now textcell is handled via Document handler prevent the double call
+            event.preventDefault();
+            event.stopPropagation();
+            return true;
+        }
+        // J: down cell
+        if (event.which === 74 && (event.shiftKey || event.metaKey)) {
+            that.select_next();
+            return true;
+        }
+        // j: down
+        if (event.which === 74 && !event.shiftKey) {
+            // textcell. Treat as one line item when not rendered
+            if (textcell && cell.rendered) {
+                that.select_next();
+                return true;
+            }
+            var cursor = cell.code_mirror.getCursor();
+            var ch = cursor.ch;
+            if (cursor.line === (cell.code_mirror.lineCount() - 1)) {
+                that.select_next();
+                var new_cell = that.get_selected_cell();
+                if (new_cell.code_mirror) { // bottom line, same ch position
+                    // NOTE: a current code_mirror bug doesn't respect the new cursor opsition
+                    // https://github.com/marijnh/CodeMirror/issues/2289
+                    new_cell.code_mirror.setCursor(0, cursor.ch);
+                    if (new_cell.code_mirror.state.vim) {
+                        new_cell.code_mirror.state.vim.lastHPos = cursor.ch;
+                    }
+                }
+                // right now textcell is handled via Document handler prevent the double call
+                event.preventDefault();
+                event.stopPropagation();
+                return true;
+            };
+        }
+        // Y: copy cell
+        if (event.which === 89 && event.shiftKey) {
+            that.copy_cell();
+            return true;
+        }
+        // D: delete cell / cut
+        if (event.which === 68 && event.shiftKey) {
+            that.cut_cell();
+            return true;
+        }
+        // P: paste cell
+        if (event.which === 80 && event.shiftKey) {
+            that.paste_cell();
+            return true;
+        }
+        // B: open new cell below
+        if (event.which === 66 && event.shiftKey) {
+            that.insert_cell_below('code');
+            that.setVIMode('INSERT');
+            return true;
+        }
+        // shift+O or apple + O: open new cell below
+        // I know this is wrong but i hate hitting A
+        if (event.which === 79 && (event.metaKey || event.shiftKey)) {
+            that.insert_cell_below('code');
+            that.setVIMode('INSERT');
+            return true;
+        }
+        // A: open new cell above
+        if (event.which === 65 && event.shiftKey) {
+            that.insert_cell_above('code');
+            that.setVIMode('INSERT');
+            return true;
+        }
+        // control/apple E: execute (apple - E is easier than shift E)
+        if ((event.ctrlKey || event.metaKey) && event.keyCode == 69) {
+            that.execute_cell();
+            return true;
+        }
+        // E:  execute
+        if (event.which === 69 && event.shiftKey) {
+            that.execute_cell();
+            return true;
+        }
+        // F: toggle output
+        if (event.which === 70 && event.shiftKey) {
+            that.toggle_output();
+            return true;
+        }
+        // M: markdown
+        if (event.which === 77 && event.shiftKey) {
+            that.to_markdown();
+            return true;
+        }
+        // C: codecell
+        if (event.which === 77 && event.shiftKey) {
+            that.to_code();
+            return true;
+        }
+        // i: insert. only relevant on textcell
+        var rendered = cell.rendered;
+        if (textcell && rendered && event.which === 73 && !event.shiftKey) {
+            cell.edit_mode();
+            return false;
+        }
+
+        // esc: get out of insert and render textcell
+        if (textcell && !rendered && event.which === 27 && !event.shiftKey) {
+            cell.render();
+            return false;
+        }
+    };
+
+    InsertMode.keyDown = function(that, event) {
+        var cell = that.get_selected_cell();
+        var cell_type = cell.cell_type;
+        var textcell = cell instanceof IPython.TextCell;
+
+        // control/apple E: execute (apple - E is easier than shift E)
+        if ((event.ctrlKey || event.metaKey) && event.keyCode == 69) {
+            that.execute_cell();
+            return true;
+        }
+        if (event.which === 74 && (event.metaKey)) {
+            that.select_next();
+            return true;
+        }
+        if (event.which === 75 && (event.metaKey)) {
+            that.select_prev();
+            return true;
+        }
+        // Meta S: save_notebook
+        if ((event.ctrlKey || event.metaKey) && event.keyCode == 83) {
+            that.save_notebook();
+            event.preventDefault();
+            return false;
+        }
+    };
+
+    IPython.VIM = new VIM();
+    return IPython;
 
 }(IPython));
