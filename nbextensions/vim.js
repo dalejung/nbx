@@ -31,6 +31,14 @@ CodeMirror.commands.save = function(cm) {
 // Diff: disable this handler
 
 IPython.KeyboardManager.prototype.handle_keydown = function (event) {
+  var cell = IPython.notebook.get_selected_cell();
+  if(cell instanceof IPython.TextCell) {
+    if(cell.mode == 'command' && event.type == 'keydown') {
+      // switch IPython.notebook to this.notebook if Cells get notebook reference
+      ret = IPython.VIM.keyDown(IPython.notebook, event);
+      return ret;
+    }
+  }
   return;
 }
 
@@ -77,44 +85,34 @@ IPython.CodeCell.prototype.select = function () {
     return cont;
 };
 
-// Override CodeCell codemirror
-old_handle_keyevent = IPython.CodeCell.prototype._handle_codemirror_keyevent ;
-IPython.CodeCell.prototype._base_handle_codemirror_keyevent = old_handle_keyevent;
+IPython.CodeCell.prototype.handle_keyevent = function (editor, event) {
 
-IPython.CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-  var key   = IPython.utils.keycodes;
-  if (event.which !== key.ESC) {
-    var ret =  this._base_handle_codemirror_keyevent(editor, event);
-
-    if(ret != null) {
-      return ret;
-    }
-  }
-
-  if(event.type == 'keydown') {
-    ret = IPython.VIM.keyDown(this.notebook, event);
-    return ret;
-  }
-  return false;
-}
+    // console.log('CM', this.mode, event.which, event.type)
+        var ret = this.handle_codemirror_keyevent(editor, event);
+        if(ret) {
+          return ret;
+        }
+        if(event.type == 'keydown') {
+          // switch IPython.notebook to this.notebook if Cells get notebook reference
+          ret = IPython.VIM.keyDown(IPython.notebook, event);
+          return ret;
+        }
+        return false;
+};
 
 // Override TextCell keydown
 // Really just here to handle the render/editing of text cells
 // Might need to consider also using codemirror keyevent
-old_handle_keydown = IPython.TextCell.prototype.handle_keydown ;
-IPython.TextCell.prototype._base_handle_keydown = old_handle_keydown;
-
-IPython.TextCell.prototype.handle_keydown = function (event) {
-  var ret =  this._base_handle_keydown(event);
-  if(ret != null) {
-    return ret;
-  }
-
-  if( event.type == 'keydown') {
-    ret = IPython.VIM.keyDown(this.notebook, event);
-    return ret;
-  }
-  return false;
+IPython.TextCell.prototype.handle_keyevent = function (editor, event) {
+      var ret = this.handle_codemirror_keyevent(editor, event);
+      if(ret) {
+        return ret;
+      }
+      if( event.type == 'keydown') {
+        ret = IPython.VIM.keyDown(IPython.notebook, event);
+        return ret;
+      }
+      return false;
 }
 
 IPython.Notebook.prototype.setVIMode = function (mode) {
@@ -133,7 +131,7 @@ var IPython = (function (IPython) {
   var InsertMode = {};
 
   var VIM = function() {;};
-    
+
   VIM.prototype.keyDown = function(that, event) {
     var cell = that.get_selected_cell();
     var vim_mode = cell.code_mirror.getOption('keyMap');
@@ -152,6 +150,7 @@ var IPython = (function (IPython) {
       event.preventDefault();
       return true;
     }
+    return false;
   };
 
   NormalMode.keyDown = function(that, event) {
@@ -183,6 +182,11 @@ var IPython = (function (IPython) {
     // k: up
     if (event.which === 75 && !event.shiftKey) 
     {
+      // textcell. Treat as one line item when not rendered
+      if(textcell && cell.rendered) {
+          that.select_prev();
+          return true;
+      }
         var cursor = cell.code_mirror.getCursor();
         if (cursor.line === 0) {
           that.select_prev();
@@ -198,6 +202,9 @@ var IPython = (function (IPython) {
           }
           return true;
         }
+        // right now textcell is handled via Document handler prevent the double call
+        event.preventDefault();
+        event.stopPropagation();
     } 
     // J: down cell
     if (event.which === 74 && (event.shiftKey || event.metaKey)) {
@@ -206,6 +213,11 @@ var IPython = (function (IPython) {
     }
     // j: down
     if (event.which === 74 && !event.shiftKey) {
+      // textcell. Treat as one line item when not rendered
+      if(textcell && cell.rendered) {
+          that.select_next();
+          return true;
+      }
       var cursor = cell.code_mirror.getCursor();
       var ch = cursor.ch;
       if (cursor.line === (cell.code_mirror.lineCount()-1)) {
@@ -219,6 +231,9 @@ var IPython = (function (IPython) {
             new_cell.code_mirror.state.vim.lastHPos = cursor.ch;
           }
         }
+        // right now textcell is handled via Document handler prevent the double call
+        event.preventDefault();
+        event.stopPropagation();
         return true;
       };
     }
@@ -284,7 +299,7 @@ var IPython = (function (IPython) {
     // i: insert. only relevant on textcell
     var rendered = cell.rendered;
     if (textcell && rendered && event.which === 73 && !event.shiftKey) {
-      cell.edit();
+      cell.edit_mode();
       return false;
     }
 
