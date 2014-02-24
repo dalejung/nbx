@@ -200,11 +200,11 @@ var IPython = (function (IPython) {
             }
             new_cell.code_mirror.setCursor(last_line, cursor.ch);
           }
-          return true;
         }
         // right now textcell is handled via Document handler prevent the double call
         event.preventDefault();
         event.stopPropagation();
+        return true;
     } 
     // J: down cell
     if (event.which === 74 && (event.shiftKey || event.metaKey)) {
