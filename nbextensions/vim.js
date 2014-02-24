@@ -32,8 +32,10 @@ CodeMirror.commands.save = function(cm) {
 
 IPython.KeyboardManager.prototype.handle_keydown = function(event) {
     var cell = IPython.notebook.get_selected_cell();
+    var vim_mode = cell.code_mirror.getOption('keyMap');
     if (cell instanceof IPython.TextCell) {
-        if (cell.mode == 'command' && event.type == 'keydown') {
+        // when cell is rendered, we get no key events, so we capture here
+        if (cell.rendered && event.type == 'keydown') {
             // switch IPython.notebook to this.notebook if Cells get notebook reference
             ret = IPython.VIM.keyDown(IPython.notebook, event);
             return ret;
@@ -74,6 +76,14 @@ IPython.Notebook.prototype.execute_cell = function() {
     this.set_dirty(true);
 };
 
+IPython.Notebook.prototype.command_mode = function () {
+    return;
+}
+
+IPython.Notebook.prototype.edit_mode = function () {
+    return;
+}
+
 // Focus editor on select
 IPython.CodeCell.prototype.select = function() {
     var cont = IPython.Cell.prototype.select.apply(this);
@@ -83,6 +93,23 @@ IPython.CodeCell.prototype.select = function() {
         this.auto_highlight();
     }
     return cont;
+};
+
+// Focus editor on select
+IPython.TextCell.prototype.select = function() {
+    var cont = IPython.Cell.prototype.select.apply(this);
+    if (cont) {
+        if (this.mode === 'edit') {
+          this.code_mirror.refresh();
+        }
+        this.element.focus();
+    }
+    return cont;
+};
+
+IPython.TextCell.prototype.execute = function () {
+    this.render();
+    this.command_mode();
 };
 
 IPython.CodeCell.prototype.handle_keyevent = function(editor, event) {
@@ -199,11 +226,11 @@ var IPython = (function(IPython) {
                     }
                     new_cell.code_mirror.setCursor(last_line, cursor.ch);
                 }
+                // right now textcell is handled via Document handler prevent the double call
+                event.preventDefault();
+                event.stopPropagation();
+                return true;
             }
-            // right now textcell is handled via Document handler prevent the double call
-            event.preventDefault();
-            event.stopPropagation();
-            return true;
         }
         // J: down cell
         if (event.which === 74 && (event.shiftKey || event.metaKey)) {
