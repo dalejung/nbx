@@ -98,10 +98,10 @@ class GistHub(object):
         """
         tagged_gists = self._get_tagged_gists().values()
 
-        tagged_gists = self.filter_active(tagged_gists, active)
+        tagged_gists = self._filter_active(tagged_gists, active)
 
         filter_tag = self._normalize_tag(filter_tag)
-        if not filter_tag:
+        if filter_tag:
             tagged_gists = self._filter_tag(tagged_gists, filter_tag)
 
         if not drop_filter:
@@ -124,7 +124,7 @@ class GistHub(object):
         Filter out the gists that don't match all the filtered tags.
         """
         filter_tag = self._normalize_tag(filter_tag)
-        gists = filter(lambda gist: set(gist.tags).issubset(filter_tag), gists)
+        gists = filter(lambda gist: set(gist.tags).issuperset(filter_tag), gists)
         return gists
 
     def _select_tag(self, gists, select_tag, filter_tag=None):
@@ -151,16 +151,16 @@ class GistHub(object):
                 nb_list[gist.key_name] = gist
         return tagged
 
-    def filter_active(self, gists, active):
+    def _filter_active(self, gists, active):
         if active is None:
             return gists
-        gists = filter(lambda gist: gist.active, gists)
+        gists = filter(lambda gist: gist.active == active, gists)
         return gists
 
     def _get_tagged_gists(self):
         if self._tagged_gists is None:
             gists = self._get_gists()
-            tagged_gists = [(gist.id, TaggedGist.from_gist(gist)) 
+            tagged_gists = [(gist.id, TaggedGist.from_gist(gist))
                             for gist in gists if gist.description]
             tagged_gists = dict(tagged_gists)
             self._tagged_gists = tagged_gists
