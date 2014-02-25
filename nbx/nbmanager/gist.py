@@ -20,7 +20,13 @@ class TaggedGist(object):
         self.name = name
         self.tags = tags
         # unique identifier name
-        self.key_name = "{0} [{1}].ipynb".format(self.name, self.id)
+        self.suffix = " [{0}].ipynb".format(self.id)
+        self.key_name = self.name + self.suffix
+
+    def strip_gist_id(self, name):
+        suffix = " [{0}].ipynb".format(self.id)
+        # really we're assuming this will only match once, seems fine
+        return key_name.replace(suffix, '')
 
     @staticmethod
     def from_gist(gist):
@@ -52,12 +58,24 @@ class TaggedGist(object):
         return tags
 
     @property
+    def updated_at(self):
+        return self.gist.updated_at
+
+    @property
+    def created_at(self):
+        return self.gist.created_at
+
+    @property
     def public(self):
         return self.gist.public
 
     @property
     def id(self):
         return self.gist.id
+
+    @property
+    def files(self):
+        return self.gist.files
 
     def __repr__(self):
         out = "TaggedGist(name={name}, active={active}, public={public}, tags={tags})"
@@ -67,7 +85,7 @@ class GistHub(object):
     def __init__(self, hub):
         self.hub = hub
         self.user = hub.get_user()
-        self._cache = {}
+        self._tagged_gists = None
 
     def _get_gists(self):
         gists = self.user.get_gists()
@@ -78,7 +96,7 @@ class GistHub(object):
         Query gists by our tag format.
         Always returns gists grouped by tags.
         """
-        tagged_gists = self._get_tagged_gists()
+        tagged_gists = self._get_tagged_gists().values()
 
         tagged_gists = self.filter_active(tagged_gists, active)
 
@@ -140,11 +158,21 @@ class GistHub(object):
         return gists
 
     def _get_tagged_gists(self):
-        if self._cache.get('tagged_gists', None) is None:
+        if self._tagged_gists is None:
             gists = self._get_gists()
-            tagged_gists = [TaggedGist.from_gist(gist) for gist in gists if gist.description]
-            self._cache['tagged_gists'] = tagged_gists
-        return self._cache['tagged_gists']
+            tagged_gists = [(gist.id, TaggedGist.from_gist(gist)) 
+                            for gist in gists if gist.description]
+            tagged_gists = dict(tagged_gists)
+            self._tagged_gists = tagged_gists
+        return self._tagged_gists
+
+    def refresh_gist(self, gist_id):
+        if hasattr(gist_id, 'id'):
+            gist_id = gist_id.id
+        gist = self.hub.get_gist(gist_id)
+        tagged_gist = self._tagged_gists[gist_id]
+        tagged_gist.gist = gist
+        return tagged_gist
 
 
 def gisthub(user, password):
