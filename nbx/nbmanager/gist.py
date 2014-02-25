@@ -20,7 +20,7 @@ class TaggedGist(object):
         self.name = name
         self.tags = tags
         # unique identifier name
-        self.key_name = "{0} [{1}]".format(self.name, self.id)
+        self.key_name = "{0} [{1}].ipynb".format(self.name, self.id)
 
     @staticmethod
     def from_gist(gist):
