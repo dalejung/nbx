@@ -27,7 +27,7 @@ class GistNotebookManager(NotebookManager):
         return model
 
     def gist_query(self, tag=None):
-        tags = self.gisthub.query(tag, filter_tag='#notebook')
+        tags = self.gisthub.query(tag)
         return tags
 
     def gists_by_tag(self, tag):
@@ -63,6 +63,8 @@ class GistNotebookManager(NotebookManager):
     def _get_gist(self, name, path):
         # get notebooks by tag
         gists = self.gists_by_tag(path)
+        if name not in gists:
+            print gists.keys(), name, path
         return gists.get(name, None)
 
     def get_notebook_content(self, gist):

@@ -9,7 +9,7 @@ from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 
 from nbx.nbmanager.gistnbmanager import GistNotebookManager
-from nbx.nbmanager.gisthub import gisthub
+from nbx.nbmanager.notebook_gisthub import notebook_gisthub
 
 
 class MetaManager(LoggingConfigurable):
@@ -26,7 +26,7 @@ class MetaManager(LoggingConfigurable):
         self.managers['file'] = FileNotebookManager()
 
         for user, pw in self.github_accounts:
-            gh = gisthub(user, pw)
+            gh = notebook_gisthub(user, pw)
             gbm = GistNotebookManager(gisthub=gh)
             self.managers['gist:'+user] = gbm
 
