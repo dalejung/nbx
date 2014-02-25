@@ -13,7 +13,6 @@ define(function() {
 
     var load_extension = function() {
         $([IPython.events]).on("notebook_loaded.Notebook", function() {
-            console.log("notebook loaded event");
         });
     };
 
@@ -21,6 +20,21 @@ define(function() {
         load_extension: load_extension,
     };
 });
+
+
+$([IPython.events]).on('command_mode.Cell', function (event, data) {
+    console.log('dale', event);
+});
+
+IPython.Cell.prototype.base_bind_events = IPython.Cell.prototype.bind_events;
+IPython.Cell.prototype.bind_events = function () {
+    var that = this;
+    that.base_bind_events();
+    if (this.code_mirror) {
+        this.code_mirror.on('blur', function(cm, change) {
+        });
+    }
+}
 
 // plug in so :w saves
 CodeMirror.commands.save = function(cm) {
