@@ -16,6 +16,7 @@ shift + k :   Select cell above
 meta + e  :   Execute Cell
 shift + o :   Insert cell below and edit
 shift + a :   Insert cell above and edit
+shift + d :   Delete selected cell
 
 meta + s  :   Save notebook
 ```
