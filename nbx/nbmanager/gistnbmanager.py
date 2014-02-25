@@ -12,8 +12,10 @@ class GistNotebookManager(NotebookManager):
         return False
 
     def path_exists(self, path):
-        return True
-
+        if path == '':
+            return True
+        tags = self.gist_query()
+        return path in tags.keys()
 
     def get_dir_model(self, name):
         model ={}
@@ -55,7 +57,8 @@ class GistNotebookManager(NotebookManager):
     def notebook_exists(self, name, path=''):
         # get notebooks by tag
         gists = self.gists_by_tag(path)
-        return name in gists
+        ret = name in gists
+        return ret
 
     def get_notebook(self, name, path='', content=True):
         """ Takes a path and name for a notebook and returns its model
@@ -85,6 +88,7 @@ class GistNotebookManager(NotebookManager):
         #model['created'] = created
         model['type'] = 'notebook'
         if content:
+            print 'content', name
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
                     nb = current.read(f, u'json')
