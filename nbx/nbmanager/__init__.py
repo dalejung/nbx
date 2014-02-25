@@ -1,19 +1,36 @@
 import os
 
+from IPython.utils.traitlets import (
+    Dict, Unicode, Integer, List, Bool, Bytes,
+    DottedObjectName, TraitError, Tuple,
+)
 from IPython.config.configurable import LoggingConfigurable
 from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
+
+from nbx.nbmanager.gistnbmanager import GistNotebookManager
+from nbx.nbmanager.gist import gisthub
+
 
 class MetaManager(LoggingConfigurable):
     """
         Holds NotebookManager classes and routes calls to the appropiate
         manager.
     """
+    github_accounts = List(Tuple, config=True, 
+                           help="List of Tuple(github_account, github_password)")
+
     def __init__(self, *args, **kwargs):
+        super(MetaManager, self).__init__(*args, **kwargs)
         self.managers = {}
         self.managers['file'] = FileNotebookManager()
+
+        for user, pw in self.github_accounts:
+            gh = gisthub(user, pw)
+            gbm = GistNotebookManager(gisthub=gh)
+            self.managers['gist:'+user] = gbm
+
         self.root = HomeManager(meta_manager=self)
-        super(MetaManager, self).__init__(*args, **kwargs)
 
     def _nbm_from_path(self, path):
         # we are on root
