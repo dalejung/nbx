@@ -143,12 +143,12 @@ class GistHub(object):
                 gist_tags = gist_tags.difference(filter_tag)
 
             for gtag in gist_tags:
-                nb_list = tagged.setdefault(gtag, {})
+                nb_list = tagged.setdefault(gtag, [])
                 # should not get duplicate names since we use gist.id in
                 # key_name
                 if gist.key_name in nb_list:
                     raise Exception("{0} has duplciates for {1}".format(gtag, gist.key_name))
-                nb_list[gist.key_name] = gist
+                nb_list.append(gist)
         return tagged
 
     def _filter_active(self, gists, active):

@@ -142,7 +142,7 @@ class TestGistHub(unittest.TestCase):
         nt.assert_equals(len(test.keys()), 1)
         nt.assert_equals(len(test['#bob']), 1)
         valid = ['bob inactive']
-        test_names = [g.name for g in test['#bob'].values()]
+        test_names = [g.name for g in test['#bob']]
         nt.assert_items_equal(test_names, valid)
 
         # filtering inactive with bob, which shoudl return same as above
@@ -150,7 +150,7 @@ class TestGistHub(unittest.TestCase):
         nt.assert_equals(len(test.keys()), 1)
         nt.assert_equals(len(test['#bob']), 1)
         valid = ['bob inactive']
-        test_names = [g.name for g in test['#bob'].values()]
+        test_names = [g.name for g in test['#bob']]
         nt.assert_items_equal(test_names, valid)
 
         # query filer_tag
