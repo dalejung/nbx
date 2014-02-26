@@ -1,4 +1,5 @@
 from nbx.nbmanager.gisthub import gisthub
+from IPython.nbformat import current
 
 class NotebookGist(object):
     def __init__(self, gist, gisthub=None):
@@ -24,14 +25,33 @@ class NotebookGist(object):
     def key_name(self):
         return self.name + ' ' + self.suffix
 
-    def get_notebook_content(self):
+    def __getattr__(self, name):
+        if hasattr(self.gist, name):
+            return getattr(self.gist, name)
+        raise AttributeError()
+
+    _notebook_content = None
+    @property
+    def notebook_content(self):
         """
             Will return the first notebook in a gist
         """
-        # refresh and grab file contents
-        file = self.get_notebook_file()
-        if file:
-            return file.content
+        if self._notebook_content is None:
+            # refresh and grab file contents
+            file = self.get_notebook_file()
+            if file:
+                self._notebook_content = file.content
+        return self._notebook_content
+
+    @notebook_content.setter
+    def notebook_content(self, content):
+        if isinstance(content, basestring):
+            self._notebook_content = content
+        try:
+            content = current.writes(nb, format=u'json')
+            self._notebook_content = content
+        except: 
+            raise
 
     def get_notebook_file(self):
         # iterate in sorted order so this is stable
@@ -42,15 +62,22 @@ class NotebookGist(object):
             if file.filename.endswith(".ipynb"):
                 return file
 
+    def edit(self, desc=None, files=None):
+        if desc is None:
+            desc = self.description
+        self.gist.edit(desc, files)
+
+    def save(self):
+        gfile = self.get_notebook_file()
+        file = github.InputFileContent(self.notebook_content)
+        files = {gfile.filename: file}
+
+
+
     def strip_gist_id(self, key_name):
         " small util to remove gist_id suffix "
         # really we're assuming this will only match once, seems fine
         return key_name.replace(' '+self.suffix, '')
-
-    def __getattr__(self, name):
-        if hasattr(self.gist, name):
-            return getattr(self.gist, name)
-        raise AttributeError()
 
 class NotebookGistHub(object):
     def __init__(self, gisthub):

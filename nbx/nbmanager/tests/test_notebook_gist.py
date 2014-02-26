@@ -3,7 +3,9 @@ from mock import Mock
 import nose.tools as nt
 
 from nbx.nbmanager.notebook_gisthub import NotebookGistHub, NotebookGist
+from nbx.nbmanager.gisthub import GistHub
 from nbx.nbmanager.tests.test_gist import generate_gisthub
+from nbx.nbmanager.tests.common import hub, require_github
 
 def make_notebookgist():
     tg = Mock()
@@ -56,8 +58,9 @@ class TestNotebookGist(unittest.TestCase):
 
     def test_notebook_content(self):
         nb = make_notebookgist()
-        content = nb.get_notebook_content()
+        content = nb.notebook_content
         nt.assert_equal(content, "nb content")
+
 
 class TestNotebookGistHub(unittest.TestCase):
 
@@ -91,6 +94,12 @@ class TestNotebookGistHub(unittest.TestCase):
         # test that we always check for #notebook via filter_tag
         nt.assert_not_in('not a notebook', names)
         nt.assert_not_in('#notebook', results.keys())
+
+    @require_github
+    def test_live_query(self):
+        gisthub = GistHub(hub)
+        nbhub = NotebookGistHub(gisthub)
+        nbhub.query()
 
 if __name__ == '__main__':
     import nose
