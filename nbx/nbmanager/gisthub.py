@@ -76,6 +76,10 @@ class GistHub(object):
         gists = self.user.get_gists()
         return gists
 
+    def select(self, gist_id):
+        gist_id = str(gist_id)
+        return self._tagged_gists[gist_id]
+
     def query(self, tag=None, active=True, filter_tag=None, drop_filter=True):
         """
         Query gists by our tag format.
