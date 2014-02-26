@@ -1,17 +1,43 @@
 from nbx.nbmanager.gisthub import gisthub
 
 class NotebookGist(object):
-    def __init__(self, gist):
+    def __init__(self, gist, gisthub=None):
         self.gist = gist
+        self.gisthub = gisthub
         # unique identifier name
-        self.suffix = " [{0}].ipynb".format(self.id)
-        self.key_name = self.name + self.suffix
+        self.suffix = "[{0}].ipynb".format(self.id)
         super(NotebookGist, self).__init__()
 
-    def strip_gist_id(self, name):
-        suffix = " [{0}].ipynb".format(self.id)
+    _name = None
+    @property
+    def name(self):
+        if self._name is None:
+            self._name = self.gist.name
+        return self._name 
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+        # recompute keyname
+
+    @property
+    def key_name(self):
+        return self.name + ' ' + self.suffix
+
+    def get_notebook_content(self):
+        """
+            Will return the first notebook in a gist
+        """
+        # refresh and grab file contents
+        gist = self.gisthub.refresh_gist(self)
+        for file in gist.files.values():
+            if file.filename.endswith(".ipynb"):
+                return file.content
+
+    def strip_gist_id(self, key_name):
+        " small util to remove gist_id suffix "
         # really we're assuming this will only match once, seems fine
-        return key_name.replace(suffix, '')
+        return key_name.replace(' '+self.suffix, '')
 
     def __getattr__(self, name):
         if hasattr(self.gist, name):
@@ -26,7 +52,7 @@ class NotebookGistHub(object):
         wrapped = {}
         for key, gists in results.iteritems():
             # convert to NotebookGist
-            items = [NotebookGist(gist) for gist in gists]
+            items = [NotebookGist(gist, self) for gist in gists]
             # index by key_name
             items = dict([(gist.key_name, gist) for gist in items])
             wrapped[key] = items

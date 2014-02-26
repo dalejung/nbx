@@ -67,16 +67,6 @@ class GistNotebookManager(NotebookManager):
             print gists.keys(), name, path
         return gists.get(name, None)
 
-    def get_notebook_content(self, gist):
-        """
-            Will return the first notebook in a gist
-        """
-        # refresh and grab file contents
-        gist = self.gisthub.refresh_gist(gist)
-        for file in gist.files.values():
-            if file.filename.endswith(".ipynb"):
-                return file.content
-
     def get_notebook(self, name, path='', content=True):
         """ Takes a path and name for a notebook and returns its model
 
@@ -106,7 +96,7 @@ class GistNotebookManager(NotebookManager):
         model['created'] = gist.created_at
         model['type'] = 'notebook'
         if content:
-            notebook_content = self.get_notebook_content(gist)
+            notebook_content = gist.get_notebook_content()
             try:
                 nb = current.reads(notebook_content, u'json')
             except Exception as e:
