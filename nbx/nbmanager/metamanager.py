@@ -66,6 +66,11 @@ class MetaManager(LoggingConfigurable):
             return False
         return nbm.path_exists(local_path)
 
+    def create_notebook(self, model=None, path=''):
+        """Create a new notebook and return its model with no content."""
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.create_notebook(model=model, path=local_path)
+
     def list_notebooks(self, path=''):
         nbm, local_path = self._nbm_from_path(path)
         val = nbm.list_notebooks(local_path)
