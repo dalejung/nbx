@@ -2,8 +2,8 @@ import unittest
 from  mock import Mock
 import nose.tools as nt
 
-import nbx.nbmanager.GithubCredentials as GithubCredentials
 from nbx.nbmanager.gisthub import TaggedGist, GistHub
+from nbx.nbmanager.tests.common import hub, require_github
 
 def generate_tagged_gists(names):
     mocks = []
