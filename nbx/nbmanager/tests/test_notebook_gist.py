@@ -69,7 +69,7 @@ class TestNotebookGist(unittest.TestCase):
 
     def test_generate_payload(self):
         nb = make_notebookgist()
-        payload = nb.generate_payload()
+        payload = nb._generate_payload()
         nt.assert_items_equal(payload['files'].keys(), ['a.ipynb'])
 
         nb.notebook_content = 'new nb content'

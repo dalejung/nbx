@@ -42,7 +42,7 @@ class NotebookGist(object):
     def notebook_content(self):
         if self._notebook_content is None:
             # refresh and grab file contents
-            file = self.get_notebook_file()
+            file = self._get_notebook_file()
             if file:
                 self._notebook_content = file.content
         return self._notebook_content
@@ -60,43 +60,43 @@ class NotebookGist(object):
         except: 
             raise
 
-    def refresh(self):
+    def save(self):
+        payload = self._generate_payload()
+        self._edit(payload['description'], payload['files'])
+
+    def _refresh(self):
         self.gist = self.gisthub.refresh_gist(self)
 
-    def get_notebook_file(self):
+    def _get_notebook_file(self):
         """
             Will return the first notebook in a gist.
             Iterate in sorted order so this is stable
             don't know if the files order is defined per github api
         """
-        self.refresh()
+        self._refresh()
         for key in sorted(self.gist.files):
             file = self.gist.files[key]
             if file.filename.endswith(".ipynb"):
                 return file
 
-    def edit(self, desc=None, files=None):
+    def _edit(self, desc=None, files=None):
         if desc is None:
             desc = self.description
         self.gist.edit(desc, files)
 
-    def generate_payload(self):
+    def _generate_payload(self):
         " Gather payload to sent to Github. "
-        gfile = self.get_notebook_file()
+        gfile = self._get_notebook_file()
         file = github.InputFileContent(self.notebook_content)
         files = {gfile.filename: file}
-        description = self.generate_description()
+        description = self._generate_description()
         return {'files':files, 'description': description}
 
-    def generate_description(self):
+    def _generate_description(self):
         # TODO
         # Combine name, tags, etc and generate description
         # Needed if name or tags is changed.
         return self.description
-
-    def save(self):
-        payload = self.generate_payload()
-        self.edit(payload['description'], payload['files'])
 
     def __repr__(self):
         out = "NotebookGist(name={name}, active={active}, " + \
