@@ -1,7 +1,13 @@
+import github
+
 from nbx.nbmanager.gisthub import gisthub
 from IPython.nbformat import current
 
 class NotebookGist(object):
+    """
+    A single notebook abstraction over Gist. Normally a gist can have
+    mutliple files. A notebook gist pretends to be a single file.
+    """
     def __init__(self, gist, gisthub=None):
         self.gist = gist
         self.gisthub = gisthub
@@ -28,14 +34,12 @@ class NotebookGist(object):
     def __getattr__(self, name):
         if hasattr(self.gist, name):
             return getattr(self.gist, name)
-        raise AttributeError()
+        print self.gist
+        raise AttributeError("{name} not found on .gist".format(name=name))
 
     _notebook_content = None
     @property
     def notebook_content(self):
-        """
-            Will return the first notebook in a gist
-        """
         if self._notebook_content is None:
             # refresh and grab file contents
             file = self.get_notebook_file()
@@ -47,18 +51,27 @@ class NotebookGist(object):
     def notebook_content(self, content):
         if isinstance(content, basestring):
             self._notebook_content = content
+            return
+
         try:
-            content = current.writes(nb, format=u'json')
+            # maybe this is a notebook
+            content = current.writes(content, format=u'json')
             self._notebook_content = content
         except: 
             raise
 
+    def refresh(self):
+        self.gist = self.gisthub.refresh_gist(self)
+
     def get_notebook_file(self):
-        # iterate in sorted order so this is stable
-        # don't know if the files order is defined per github api
-        gist = self.gisthub.refresh_gist(self)
-        for key in sorted(gist.files):
-            file = gist.files[key]
+        """
+            Will return the first notebook in a gist.
+            Iterate in sorted order so this is stable
+            don't know if the files order is defined per github api
+        """
+        self.refresh()
+        for key in sorted(self.gist.files):
+            file = self.gist.files[key]
             if file.filename.endswith(".ipynb"):
                 return file
 
@@ -67,12 +80,29 @@ class NotebookGist(object):
             desc = self.description
         self.gist.edit(desc, files)
 
-    def save(self):
+    def generate_payload(self):
+        " Gather payload to sent to Github. "
         gfile = self.get_notebook_file()
         file = github.InputFileContent(self.notebook_content)
         files = {gfile.filename: file}
+        description = self.generate_description()
+        return {'files':files, 'description': description}
 
+    def generate_description(self):
+        # TODO
+        # Combine name, tags, etc and generate description
+        # Needed if name or tags is changed.
+        return self.description
 
+    def save(self):
+        payload = self.generate_payload()
+        self.edit(payload['description'], payload['files'])
+
+    def __repr__(self):
+        out = "NotebookGist(name={name}, active={active}, " + \
+               "public={public}, tags={tags})"
+        return out.format(public=self.public, name=self.name, 
+                          tags=self.tags, active=self.active)
 
     def strip_gist_id(self, key_name):
         " small util to remove gist_id suffix "

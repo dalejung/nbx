@@ -12,15 +12,18 @@ def make_notebookgist():
     tg.name = 'Test Notebook'
     tg.id = 123
     tg.tags = ['#dale']
+    tg.public = True
+    tg.active = True
     # fake files
     fi = Mock()
     fi.content = "nb content"
+    fi.filename = 'a.ipynb'
     fi2 = Mock()
     fi2.content = "nb content2"
     tg.files = {'a.ipynb': fi, 'test.ipynb': fi2, 'zz.ipynb': fi}
     # fake gisthub
     gisthub = Mock()
-    gisthub.refresh_gist = lambda x: x
+    gisthub.refresh_gist = lambda x: x.gist
     nb = NotebookGist(tg, gisthub)
     return nb
 
@@ -61,6 +64,19 @@ class TestNotebookGist(unittest.TestCase):
         content = nb.notebook_content
         nt.assert_equal(content, "nb content")
 
+        nb.notebook_content = 'new nb content'
+        nt.assert_equal(nb.notebook_content, 'new nb content')
+
+    def test_generate_payload(self):
+        nb = make_notebookgist()
+        payload = nb.generate_payload()
+        nt.assert_items_equal(payload['files'].keys(), ['a.ipynb'])
+
+        nb.notebook_content = 'new nb content'
+        nt.assert_equal(nb.notebook_content, 'new nb content')
+
+    def test_generate_description(self):
+        raise Exception("finish generate description")
 
 class TestNotebookGistHub(unittest.TestCase):
 
