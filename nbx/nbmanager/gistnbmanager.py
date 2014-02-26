@@ -123,6 +123,9 @@ class GistNotebookManager(NotebookManager):
         new_path = model.get('path', path).strip('/')
         new_name = model.get('name', name)
 
+        if path != new_path:
+            raise web.HTTPError(400, u'Gist backend does not support path change')
+
         if path != new_path or name != new_name:
             self.rename_notebook(name, path, new_name, new_path)
 
@@ -160,6 +163,29 @@ class GistNotebookManager(NotebookManager):
             self.rename_notebook(name, path, new_name, new_path)
         model = self.get_notebook(new_name, new_path, content=False)
         return model
+
+    def get_checkpoint_model(self, commit):
+        """construct the info dict for a given checkpoint"""
+        info = dict(
+            id = commit['id'],
+            last_modified = commit['commit_date'],
+        )
+        return info
+
+    def list_checkpoints(self, name, path=''):
+        " each commit is a checkpoint "
+        print 'checkpoint'
+        path = path.strip('/')
+        gist = self._get_gist(name, path)
+        revisions = gist.revisions
+        checkpoints = map(self.get_checkpoint_model, revisions)
+        return checkpoints
+
+    def restore_checkpoint(self, checkpoint_id, name, path=''):
+        """restore a notebook to a checkpointed state"""
+        path = path.strip('/')
+        self.log.info("restoring Notebook %s from checkpoint %s", name, checkpoint_id)
+        gist = self._get_gist(name, path)
 
     def info_string(self):
         return ''

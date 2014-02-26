@@ -34,7 +34,6 @@ class NotebookGist(object):
     def __getattr__(self, name):
         if hasattr(self.gist, name):
             return getattr(self.gist, name)
-        print self.gist
         raise AttributeError("{name} not found on .gist".format(name=name))
 
     _notebook_content = None
@@ -63,6 +62,29 @@ class NotebookGist(object):
     def save(self):
         payload = self._generate_payload()
         self._edit(payload['description'], payload['files'])
+
+    @property
+    def revisions(self):
+        revisions = []
+        fn = self._get_notebook_file()
+        for state in self.gist.history:
+            # only use commits that contain the gist file
+            if fn not in state.raw_data['files']:
+                continue
+
+            commit = {
+                'id': state.version,
+                'commit_date': state.committed_at
+            }
+            revisions.append(commit)
+        return revisions
+
+    def get_revision_content(self, commit_id):
+        fn = self._get_notebook_file()
+        for state in self.gist.history:
+            if commit_id == state.version:
+                # TODO split this out
+                return state.raw_date['files'][fn]['content']
 
     def _refresh(self):
         self.gist = self.gisthub.refresh_gist(self)
