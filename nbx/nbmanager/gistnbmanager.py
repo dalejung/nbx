@@ -96,7 +96,7 @@ class GistNotebookManager(NotebookManager):
         model['created'] = gist.created_at
         model['type'] = 'notebook'
         if content:
-            notebook_content = gist.get_notebook_content()
+            notebook_content = gist.notebook_content
             try:
                 nb = current.reads(notebook_content, u'json')
             except Exception as e:
