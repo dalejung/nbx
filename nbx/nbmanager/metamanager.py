@@ -62,6 +62,8 @@ class MetaManager(LoggingConfigurable):
 
     def path_exists(self, path):
         nbm, local_path = self._nbm_from_path(path)
+        if nbm is None:
+            return False
         return nbm.path_exists(local_path)
 
     def list_notebooks(self, path=''):
