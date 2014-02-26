@@ -13,7 +13,9 @@ def make_notebookgist():
     # fake files
     fi = Mock()
     fi.content = "nb content"
-    tg.files = {'test.ipynb': fi}
+    fi2 = Mock()
+    fi2.content = "nb content2"
+    tg.files = {'a.ipynb': fi, 'test.ipynb': fi2, 'zz.ipynb': fi}
     # fake gisthub
     gisthub = Mock()
     gisthub.refresh_gist = lambda x: x
@@ -37,7 +39,8 @@ class TestNotebookGist(unittest.TestCase):
         nt.assert_equal(nb.key_name, "Test Notebook [123].ipynb")
         # test pass through via __getattr__
         nt.assert_equal(nb.id, 123)
-        nt.assert_items_equal(nb.files.keys(), ['test.ipynb'])
+        nt.assert_items_equal(nb.files.keys(), 
+                              ['test.ipynb', 'a.ipynb', 'zz.ipynb'])
 
     def test_strip_gist_id(self):
         nb = make_notebookgist()

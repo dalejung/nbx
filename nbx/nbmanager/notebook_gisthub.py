@@ -13,7 +13,7 @@ class NotebookGist(object):
     def name(self):
         if self._name is None:
             self._name = self.gist.name
-        return self._name 
+        return self._name
 
     @name.setter
     def name(self, value):
@@ -29,10 +29,18 @@ class NotebookGist(object):
             Will return the first notebook in a gist
         """
         # refresh and grab file contents
+        file = self.get_notebook_file()
+        if file:
+            return file.content
+
+    def get_notebook_file(self):
+        # iterate in sorted order so this is stable
+        # don't know if the files order is defined per github api
         gist = self.gisthub.refresh_gist(self)
-        for file in gist.files.values():
+        for key in sorted(gist.files):
+            file = gist.files[key]
             if file.filename.endswith(".ipynb"):
-                return file.content
+                return file
 
     def strip_gist_id(self, key_name):
         " small util to remove gist_id suffix "
