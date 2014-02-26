@@ -57,25 +57,10 @@ class TaggedGist(object):
                 pass
         return tags
 
-    @property
-    def updated_at(self):
-        return self.gist.updated_at
-
-    @property
-    def created_at(self):
-        return self.gist.created_at
-
-    @property
-    def public(self):
-        return self.gist.public
-
-    @property
-    def id(self):
-        return self.gist.id
-
-    @property
-    def files(self):
-        return self.gist.files
+    def __getattr__(self, name):
+        if hasattr(self.gist, name):
+            return getattr(self.gist, name)
+        raise AttributeError()
 
     def __repr__(self):
         out = "TaggedGist(name={name}, active={active}, public={public}, tags={tags})"
