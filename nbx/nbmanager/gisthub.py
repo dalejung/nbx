@@ -57,6 +57,29 @@ class TaggedGist(object):
                 pass
         return tags
 
+    def revisions_for_file(self, filename):
+        " returns revisions applicable to file "
+        revisions = []
+        for state in self.gist.history:
+            # only use commits that contain the gist file
+            if filename not in state.raw_data['files']:
+                continue
+
+            revisions.append(state)
+        return revisions
+
+    def get_revision(self, commit_id):
+        " get revision by id "
+        for state in self.gist.history:
+            if commit_id == state.version:
+                return state
+
+    def get_revision_file(self, commit_id, filename):
+        " get the file object for a specific file"
+        state = self.get_revision(commit_id)
+        if state:
+            return state.raw_data['files'][filename]
+
     def __getattr__(self, name):
         if hasattr(self.gist, name):
             return getattr(self.gist, name)

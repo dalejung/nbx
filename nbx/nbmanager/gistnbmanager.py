@@ -174,7 +174,6 @@ class GistNotebookManager(NotebookManager):
 
     def list_checkpoints(self, name, path=''):
         " each commit is a checkpoint "
-        print 'checkpoint'
         path = path.strip('/')
         gist = self._get_gist(name, path)
         revisions = gist.revisions
@@ -186,6 +185,9 @@ class GistNotebookManager(NotebookManager):
         path = path.strip('/')
         self.log.info("restoring Notebook %s from checkpoint %s", name, checkpoint_id)
         gist = self._get_gist(name, path)
+        for commit in gist.history:
+            if checkpoint_id == commit['id']:
+                return commit
 
     def info_string(self):
         return ''

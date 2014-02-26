@@ -65,26 +65,24 @@ class NotebookGist(object):
 
     @property
     def revisions(self):
-        revisions = []
+        # only return revisions for the .ipynb file
         fn = self._get_notebook_file()
-        for state in self.gist.history:
-            # only use commits that contain the gist file
-            if fn not in state.raw_data['files']:
-                continue
-
+        revisions = self.gist.revisions_for_file(fn.filename)
+        # convert to basic commit log. Dont' want NotebookManager
+        # needing to know github.GistHistoryState internals
+        commits = []
+        for state in revisions:
             commit = {
                 'id': state.version,
                 'commit_date': state.committed_at
             }
-            revisions.append(commit)
-        return revisions
+            commits.append(commit)
+        return commits
 
     def get_revision_content(self, commit_id):
         fn = self._get_notebook_file()
-        for state in self.gist.history:
-            if commit_id == state.version:
-                # TODO split this out
-                return state.raw_date['files'][fn]['content']
+        fo = self.gist.get_revision_file(commit_file, fn)
+        return fo['content']
 
     def _refresh(self):
         self.gist = self.gisthub.refresh_gist(self)

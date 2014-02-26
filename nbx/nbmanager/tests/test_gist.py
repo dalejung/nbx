@@ -3,7 +3,7 @@ from  mock import Mock
 import nose.tools as nt
 
 from nbx.nbmanager.gisthub import TaggedGist, GistHub
-from nbx.nbmanager.tests.common import hub, require_github
+from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist
 
 def generate_tagged_gists(names):
     mocks = []
@@ -63,6 +63,24 @@ class TestTaggedGist(unittest.TestCase):
 
         tg = TaggedGist.from_gist(gist)
         nt.assert_is(tg.files, gist.files)
+
+    def test_revisions_for_file(self):
+        # TODO not a huge fan of how I mock github.Gist objects
+        gist = makeFakeGist()
+        tg = TaggedGist.from_gist(gist)
+        a_revs = tg.revisions_for_file('a.ipynb')
+        # should only have 2 revisions for a.ipynb
+        nt.assert_equal(len(a_revs), 2)
+        # make sure we got the right ones
+        for state in a_revs:
+            nt.assert_in('a.ipynb', state.raw_data['files'])
+
+    def test_get_revision_file(self): 
+        gist = makeFakeGist()
+        tg = TaggedGist.from_gist(gist)
+        fo = tg.get_revision_file(0, 'a.ipynb')
+        correct = "{fn}_{id}_revision_content".format(fn='a.ipynb', id=0)
+        nt.assert_equal(fo['content'], correct)
 
 class TestGistHub(unittest.TestCase):
 
