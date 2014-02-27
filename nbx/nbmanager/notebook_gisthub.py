@@ -114,10 +114,19 @@ class NotebookGist(object):
         return {'files':files, 'description': description}
 
     def _generate_description(self):
-        # TODO
-        # Combine name, tags, etc and generate description
-        # Needed if name or tags is changed.
-        return self.description
+        """ genrate the Gist description. """
+        name = self.name
+        # system type of tags
+        tags = ['#notebook']
+        if not self.active:
+            tags.append('#inactive')
+
+        # add the normal tags
+        tags += self.tags
+
+        tagstring = " ".join(tags)
+        description = "{name} {tags}".format(name=name, tags=tagstring)
+        return description
 
     def __repr__(self):
         out = "NotebookGist(name={name}, active={active}, " + \

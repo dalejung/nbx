@@ -76,7 +76,37 @@ class TestNotebookGist(unittest.TestCase):
         nt.assert_equal(nb.notebook_content, 'new nb content')
 
     def test_generate_description(self):
-        raise Exception("finish generate description")
+        """
+        NotebookGist._generate_description will generate a proper
+        description string to reflect name, active, and tags
+        """
+        tagged_gist = Mock()
+        tagged_gist.name = "Test Notebook"
+        tagged_gist.tags = ["#pandas", "#woo"]
+        tagged_gist.description = "Test Notebook #notebook #pandas #woo"
+        nb = NotebookGist(tagged_gist)
+        # make sure notebook isn't in tags
+        nt.assert_not_in('#notebook', nb.tags)
+        desc = nb._generate_description()
+        # the description should insert the #notebook tag
+        nt.assert_in('#notebook', desc)
+
+
+        # test that inactive gets added
+        nt.assert_not_in('#inactive', desc)
+        nb.active = False
+        test = nb._generate_description()
+        nt.assert_in('#inactive', test)
+
+        # change name
+        nb.name = "WOO"
+        test = nb._generate_description()
+        nt.assert_equal(test, "WOO #notebook #inactive #pandas #woo")
+
+        # change tags
+        nb.tags = ["#newtag"]
+        test = nb._generate_description()
+        nt.assert_equal(test, "WOO #notebook #inactive #newtag")
 
     def test_get_revision_content(self):
         gist = makeFakeGist()
@@ -88,8 +118,6 @@ class TestNotebookGist(unittest.TestCase):
         nt.assert_list_equal(keys, [0,1])
         nt.assert_equal(nb.get_revision_content(0), "a.ipynb_0_revision_content")
         nt.assert_equal(nb.get_revision_content(1), "a.ipynb_1_revision_content")
-
-
 
 class TestNotebookGistHub(unittest.TestCase):
 
