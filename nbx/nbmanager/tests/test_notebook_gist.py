@@ -3,9 +3,9 @@ from mock import Mock
 import nose.tools as nt
 
 from nbx.nbmanager.notebook_gisthub import NotebookGistHub, NotebookGist
-from nbx.nbmanager.gisthub import GistHub
+from nbx.nbmanager.gisthub import GistHub, TaggedGist
 from nbx.nbmanager.tests.test_gist import generate_gisthub
-from nbx.nbmanager.tests.common import hub, require_github
+from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist
 
 def make_notebookgist():
     tg = Mock()
@@ -78,6 +78,19 @@ class TestNotebookGist(unittest.TestCase):
     def test_generate_description(self):
         raise Exception("finish generate description")
 
+    def test_get_revision_content(self):
+        gist = makeFakeGist()
+        tagged_gist = TaggedGist.from_gist(gist)
+        nb = NotebookGist(tagged_gist)
+        revisions = nb.revisions
+        # a.ipynb is only revision 0 and 1
+        keys = map(lambda x: x['id'], revisions)
+        nt.assert_list_equal(keys, [0,1])
+        nt.assert_equal(nb.get_revision_content(0), "a.ipynb_0_revision_content")
+        nt.assert_equal(nb.get_revision_content(1), "a.ipynb_1_revision_content")
+
+
+
 class TestNotebookGistHub(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -119,5 +132,5 @@ class TestNotebookGistHub(unittest.TestCase):
 
 if __name__ == '__main__':
     import nose
-    nose.runmodule(argv=[__file__,'-vvs','-x','--pdb', '--pdb-failure'],
+    nose.runmodule(argv=[__file__,'-vvs','-x'],
                   exit=False)   

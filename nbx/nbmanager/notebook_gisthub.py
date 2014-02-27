@@ -80,12 +80,13 @@ class NotebookGist(object):
         return commits
 
     def get_revision_content(self, commit_id):
-        fn = self._get_notebook_file()
-        fo = self.gist.get_revision_file(commit_file, fn)
-        return fo['content']
+        fobj = self._get_notebook_file()
+        rev_fobj = self.gist.get_revision_file(commit_id, fobj.filename)
+        return rev_fobj['content']
 
     def _refresh(self):
-        self.gist = self.gisthub.refresh_gist(self)
+        if self.gisthub:
+            self.gist = self.gisthub.refresh_gist(self)
 
     def _get_notebook_file(self):
         """
