@@ -16,7 +16,7 @@ class TaggedGist(object):
     # instead of having a bunch of @property getters, define
     # attrs to grab from .gist here.
     _gist_attrs = ['id', 'tags', 'files', 'active', 'edit', 'updated_at', 
-                   'created_at']
+                   'created_at', 'public']
 
     system_tags = ['#inactive']
 
@@ -193,6 +193,15 @@ class GistHub(object):
         gist.update_from_gist()
         assert isinstance(gist, TaggedGist)
         self._tagged_gists[gist.id] = gist
+
+    def create_gist(self, name, tags, content='', public=True):
+        desc = "{name} #notebook {tags}".format(name=name, tags=" ".join(tags))
+        file = github.InputFileContent(content)
+        files = {"{name}.ipynb".format(name=name): file}
+        gist = self.hub.get_user().create_gist(public, files, desc)
+        tg = TaggedGist.from_gist(gist)
+        self._tagged_gists[tg.id] = tg
+        return tg
 
 def gisthub(user, password):
     g = github.Github(user, password, user_agent="nbx")

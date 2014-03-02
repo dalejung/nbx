@@ -1,7 +1,11 @@
+import itertools
+
 from tornado import web
 
 from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.nbformat import current
+
+from nbx.nbmanager.notebook_gisthub import parse_tags
 
 class GistNotebookManager(NotebookManager):
     """
@@ -33,6 +37,8 @@ class GistNotebookManager(NotebookManager):
     def gists_by_tag(self, tag):
         tagged = self.gist_query(tag)
         assert len(tagged) <= 1, "should only at most one tag"
+        if not tagged:
+            return {}
         gists = tagged.values()[0]
         return gists
 
@@ -64,7 +70,7 @@ class GistNotebookManager(NotebookManager):
         # get notebooks by tag
         gists = self.gists_by_tag(path)
         if name not in gists:
-            print gists.keys(), name, path
+            print 'gist not found', gists.keys(), name, path
         return gists.get(name, None)
 
     def get_notebook(self, name, path='', content=True):
@@ -108,13 +114,59 @@ class GistNotebookManager(NotebookManager):
             model['content'] = nb
         return model
 
+    def basename_exists(self, name, path):
+        """
+        notebook_exists checks notebook names in the form of:
+            Notebook Name [gistid]
+        basename_exists checks on names without suffix. i.e.:
+            Notebook Name
+        """
+        gists = self.gists_by_tag(path)
+        for key, gist in gists.iteritems():
+            if gist.name == name:
+                return True
+        return False
+
+    def increment_filename(self, basename, path=''):
+        """Increment a notebook filename without the .ipynb to make it unique.
+
+        Parameters
+        ----------
+        basename : unicode
+            The name of a notebook without the ``.ipynb`` file extension.
+        path : unicode
+            The URL path of the notebooks directory
+
+        Returns
+        -------
+        name : unicode
+            A notebook name (with the .ipynb extension) that starts
+            with basename and does not refer to any existing notebook.
+        """
+        path = path.strip('/')
+        for i in itertools.count():
+            name = u'{basename}{i}'.format(basename=basename, i=i)
+            if not self.basename_exists(name, path):
+                break
+        return name
+
     def save_notebook(self, model, name='', path=''):
         """Save the notebook model and return the model with no content."""
         path = path.strip('/')
 
-        gist = self._get_gist(name, path)
         if 'content' not in model:
             raise web.HTTPError(400, u'No notebook JSON data provided')
+
+        if not path:
+            raise web.HTTPError(400, u'We require path for saving.')
+
+        gist = self._get_gist(name, path)
+        if gist is None:
+            tags = parse_tags(name)
+            if path:
+                tags.append(path)
+            content = current.writes(model['content'], format=u'json')
+            gist = self.gisthub.create_gist(name, tags, content)
 
         # One checkpoint should always exist
         #if self.notebook_exists(name, path) and not self.list_checkpoints(name, path):

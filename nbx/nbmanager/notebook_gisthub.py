@@ -1,7 +1,16 @@
 import github
 
-from nbx.nbmanager.gisthub import gisthub
+from nbx.nbmanager.gisthub import gisthub, _hashtags
 from IPython.nbformat import current
+
+def parse_tags(desc):
+    # real tags and not system-like tags
+    tags = _hashtags(desc)
+    if '#notebook' in tags:
+        tags.remove('#notebook')
+    if '#inactive' in tags:
+        tags.remove('#inactive')
+    return tags
 
 class NotebookGist(object):
     """
@@ -11,7 +20,7 @@ class NotebookGist(object):
     # instead of having a bunch of @property getters, define 
     # attrs to grab from .gist here.
     _gist_attrs = ['id', 'files', 'active', 'edit', 'updated_at',
-                   'created_at']
+                   'created_at', 'public']
 
     def __init__(self, gist, gisthub):
         self.gist = gist
@@ -179,6 +188,10 @@ class NotebookGistHub(object):
         gist._edit(payload['description'], payload['files'])
         self.gisthub.update_gist(gist.gist)
 
+    def create_gist(self, name, tags, content='', public=True):
+        gist = self.gisthub.create_gist(name, tags, content, public)
+        nb = NotebookGist(gist, self)
+        return nb
 
 def notebook_gisthub(user, password):
     g = gisthub(user, password)
