@@ -15,7 +15,7 @@ def _hashtags(desc):
 class TaggedGist(object):
     # instead of having a bunch of @property getters, define
     # attrs to grab from .gist here.
-    _gist_attrs = ['id', 'tags', 'files', 'active', 'edit', 'updated_at', 
+    _gist_attrs = ['id', 'tags', 'files', 'active', 'edit', 'updated_at',
                    'created_at', 'public']
 
     system_tags = ['#inactive']
@@ -154,6 +154,12 @@ class GistHub(object):
         tagged = {}
         for gist in gists:
             gist_tags = set(gist.tags)
+
+            if not gist_tags:
+                gist_tags.add('#untagged')
+            if not gist.active:
+                gist_tags.add('#inactive')
+
             if select_tag:
                 gist_tags = gist_tags.intersection(select_tag)
             if filter_tag:
