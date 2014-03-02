@@ -24,6 +24,9 @@ class TestGistHub(object):
     def refresh_gist(self, gist):
         return gist.gist
 
+    def update_gist(self, gist):
+        pass
+
 def makeFakeGist():
     gist = Mock()
     gist.description = "Test Gist #notebook #pandas #woo"

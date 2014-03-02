@@ -20,11 +20,11 @@ class TaggedGist(object):
 
     system_tags = ['#inactive']
 
-    def __init__(self, gist, name, tags):
+    def __init__(self, gist, name, tags, active=True):
         self.gist = gist
         self.name = name
         self.tags = tags
-        # unique identifier name
+        self.active = active
 
     def update_from_gist(self):
         desc = self.gist.description
@@ -185,12 +185,14 @@ class GistHub(object):
         gist = self.hub.get_gist(gist_id)
         tagged_gist = self._tagged_gists[gist_id]
         tagged_gist.gist = gist
-        self.update_gist(gist)
+        self.update_gist(tagged_gist)
         return tagged_gist
 
     def update_gist(self, gist):
         assert gist.id in self._tagged_gists
-        self._tagged_gists = gist
+        gist.update_from_gist()
+        assert isinstance(gist, TaggedGist)
+        self._tagged_gists[gist.id] = gist
 
 def gisthub(user, password):
     g = github.Github(user, password, user_agent="nbx")

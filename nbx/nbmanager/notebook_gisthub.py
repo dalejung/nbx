@@ -164,6 +164,8 @@ class NotebookGistHub(object):
     def save(self, gist):
         payload = gist._generate_payload()
         gist._edit(payload['description'], payload['files'])
+        self.gisthub.update_gist(gist.gist)
+
 
 def notebook_gisthub(user, password):
     g = gisthub(user, password)

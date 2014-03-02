@@ -143,7 +143,9 @@ class GistNotebookManager(NotebookManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s %s' % (path, name, e))
 
-        model = self.get_notebook(new_name, new_path, content=False)
+        # NOTE: since gist.name might not have [gist_id] suffix on rename
+        # we use gist.key_name
+        model = self.get_notebook(gist.key_name, new_path, content=False)
         return model
 
     def update_notebook(self, model, name, path=''):
@@ -152,15 +154,33 @@ class GistNotebookManager(NotebookManager):
         gist = self._get_gist(name, path)
         new_name = model.get('name', name)
 
-        # normalize to get real names
-        new_name = gist.strip_gist_id(new_name)
-        name = gist.strip_gist_id(name)
-
         new_path = model.get('path', path).strip('/')
-        if path != new_path or name != new_name:
-            self.rename_notebook(name, path, new_name, new_path)
-        model = self.get_notebook(new_name, new_path, content=False)
+        if path != new_path :
+            raise web.HTTPError(400, u'Gist backend does not support path change')
+
+        # remove [gist_id] if we're being sent old key_name
+        gist.name = gist.strip_gist_id(new_name)
+
+        try:
+            self.log.debug("Renaming notebook %s->%s", name, new_name)
+            self.gisthub.save(gist)
+        except Exception as e:
+            raise web.HTTPError(400, u'Unexpected error while renaming notebook: %s %s %s' % (path, name, e))
+        # NOTE: since gist.name might not have [gist_id] suffix on rename
+        # we use gist.key_name
+        model = self.get_notebook(gist.key_name, new_path, content=False)
         return model
+
+    def delete_notebook(self, name, path=''):
+        """Delete notebook by name and path."""
+        path = path.strip('/')
+        gist = self._get_gist(name, path)
+        gist.active = False
+        try:
+            self.log.debug("Deleting notebook %s %s", path, name)
+            self.gisthub.save(gist)
+        except Exception as e:
+            raise web.HTTPError(400, u'Unexpected error while deleting notebook: %s %s %s' % (path, name, e))
 
     def get_checkpoint_model(self, commit):
         """construct the info dict for a given checkpoint"""
