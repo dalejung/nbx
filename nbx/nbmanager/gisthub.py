@@ -155,6 +155,9 @@ class GistHub(object):
         for gist in gists:
             gist_tags = set(gist.tags)
 
+            if filter_tag:
+                gist_tags = gist_tags.difference(filter_tag)
+
             if not gist_tags:
                 gist_tags.add('#untagged')
             if not gist.active:
@@ -162,8 +165,6 @@ class GistHub(object):
 
             if select_tag:
                 gist_tags = gist_tags.intersection(select_tag)
-            if filter_tag:
-                gist_tags = gist_tags.difference(filter_tag)
 
             for gtag in gist_tags:
                 nb_list = tagged.setdefault(gtag, [])

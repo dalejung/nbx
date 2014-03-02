@@ -32,9 +32,10 @@ class GistNotebookManager(NotebookManager):
 
     def gist_query(self, tag=None):
         tags = self.gisthub.query(tag)
-        # query and grab the inactive notebook. put them by themselves
-        inactive = self.gisthub.query('#inactive', active=False)
-        tags['#inactive'] = inactive['#inactive']
+        if tag is None:
+            # query and grab the inactive notebook. put them by themselves
+            inactive = self.gisthub.query('#inactive', active=False)
+            tags['#inactive'] = inactive['#inactive']
         return tags
 
     def gists_by_tag(self, tag):
