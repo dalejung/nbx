@@ -8,6 +8,10 @@ class NotebookGist(object):
     A single notebook abstraction over Gist. Normally a gist can have
     mutliple files. A notebook gist pretends to be a single file.
     """
+    # instead of having a bunch of @property getters, define 
+    # attrs to grab from .gist here.
+    _gist_attrs = ['id', 'tags', 'files', 'active']
+
     def __init__(self, gist, gisthub):
         self.gist = gist
         self.gisthub = gisthub
@@ -32,7 +36,7 @@ class NotebookGist(object):
         return self.name + ' ' + self.suffix
 
     def __getattr__(self, name):
-        if hasattr(self.gist, name):
+        if name in self._gist_attrs:
             return getattr(self.gist, name)
         raise AttributeError("{name} not found on .gist".format(name=name))
 

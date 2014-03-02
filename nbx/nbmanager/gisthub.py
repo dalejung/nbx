@@ -13,6 +13,10 @@ def _hashtags(desc):
     return tags
 
 class TaggedGist(object):
+    # instead of having a bunch of @property getters, define
+    # attrs to grab from .gist here.
+    _gist_attrs = ['id', 'tags', 'files', 'active']
+
     system_tags = ['#inactive']
 
     def __init__(self, gist, name, tags):
@@ -85,9 +89,9 @@ class TaggedGist(object):
         return self.gist.files
 
     def __getattr__(self, name):
-        if hasattr(self.gist, name):
+        if name in self._gist_attrs:
             return getattr(self.gist, name)
-        raise AttributeError()
+        raise AttributeError("{name} not found on .gist".format(name=name))
 
     def __repr__(self):
         out = "TaggedGist(name={name}, active={active}, public={public}, tags={tags})"
