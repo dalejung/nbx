@@ -109,8 +109,9 @@ class GistNotebookManager(NotebookManager):
                 raise web.HTTPError(400, u"Unreadable Notebook: %s %s %s" % (path, name, e))
             self.mark_trusted_cells(nb, path, name)
 
-            # save gist_id
-            # nb['metadata']['gist_id'] = gist.id
+            # add gist id if public.
+            if gist.public:
+                nb['metadata']['gist_id'] = gist.id
             model['content'] = nb
         return model
 
