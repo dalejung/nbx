@@ -6,6 +6,8 @@
 
 The `GistNotebookManager` supports `gist` backed notebooks. It supports the organization of notebook via tagging. We only support one notebook per gist and we use the `gist.description` for the `name` and `tags`. 
 
+![Gist Dashboard](https://www.evernote.com/shard/s9/sh/eed510fb-3f5e-4770-93c0-95806dde7837/35f824e1a5659f6165d080c085f321d3/deep/0/gist-3Afakedale-.png)
+
 ### Description Format
 
 The `gist.description` format that we support is:
