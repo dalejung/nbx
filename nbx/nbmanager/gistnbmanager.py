@@ -129,9 +129,8 @@ class GistNotebookManager(NotebookManager):
         # Save the notebook file
         nb = current.to_notebook_json(model['content'])
 
-        #if path != new_path or name != new_name:
-        #    self.rename_notebook(name, path, new_name, new_path)
-        gist.name = new_name
+        # remove [gist_id] if we're being sent old key_name
+        gist.name = gist.strip_gist_id(new_name)
         gist.notebook_content = nb
 
         self.check_and_sign(nb, new_path, new_name)
@@ -140,7 +139,7 @@ class GistNotebookManager(NotebookManager):
             nb['metadata']['name'] = u''
         try:
             self.log.debug("Autosaving notebook %s %s", path, name)
-            gist.save()
+            self.gisthub.save(gist)
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s %s' % (path, name, e))
 

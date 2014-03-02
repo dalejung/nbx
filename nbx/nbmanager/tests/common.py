@@ -2,7 +2,7 @@ import github
 import pandas as pd
 from mock import Mock
 
-from nbx.nbmanager.notebook_gisthub import NotebookGist
+from nbx.nbmanager.notebook_gisthub import NotebookGist, NotebookGistHub
 from nbx.nbmanager.gisthub import TaggedGist
 
 hub = None
@@ -69,7 +69,7 @@ def make_notebookgist():
     gist = makeFakeGist()
     tg = TaggedGist.from_gist(gist)
     # fake gisthub
-    gisthub = TestGistHub()
+    gisthub = NotebookGistHub(TestGistHub())
     nb = NotebookGist(tg, gisthub)
     nb.tags.remove("#notebook")
     return nb

@@ -96,9 +96,10 @@ class TestNotebookGist(unittest.TestCase):
 
     def test_save(self):
         nb = make_notebookgist()
+        gisthub = nb.gisthub
         nb.notebook_content = 'test'
         nb.name = "BOB"
-        nb.save()
+        gisthub.save(nb)
         nt.assert_equal(nb.gist.edit.call_count, 1)
         args = nb.gist.edit.call_args[0]
         fo = args[1]['a.ipynb']

@@ -64,10 +64,6 @@ class NotebookGist(object):
         except: 
             raise
 
-    def save(self):
-        payload = self._generate_payload()
-        self._edit(payload['description'], payload['files'])
-
     @property
     def revisions(self):
         # only return revisions for the .ipynb file
@@ -164,6 +160,10 @@ class NotebookGistHub(object):
 
     def refresh_gist(self, gist):
         return self.gisthub.refresh_gist(gist)
+
+    def save(self, gist):
+        payload = gist._generate_payload()
+        gist._edit(payload['description'], payload['files'])
 
 def notebook_gisthub(user, password):
     g = gisthub(user, password)
