@@ -100,7 +100,7 @@ class GistNotebookManager(NotebookManager):
             try:
                 nb = current.reads(notebook_content, u'json')
             except Exception as e:
-                raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
+                raise web.HTTPError(400, u"Unreadable Notebook: %s %s %s" % (path, name, e))
             self.mark_trusted_cells(nb, path, name)
 
             # save gist_id
@@ -126,24 +126,23 @@ class GistNotebookManager(NotebookManager):
         if path != new_path:
             raise web.HTTPError(400, u'Gist backend does not support path change')
 
-        if path != new_path or name != new_name:
-            self.rename_notebook(name, path, new_name, new_path)
-
         # Save the notebook file
         nb = current.to_notebook_json(model['content'])
 
-        return
+        #if path != new_path or name != new_name:
+        #    self.rename_notebook(name, path, new_name, new_path)
+        gist.name = new_name
+        gist.notebook_content = nb
 
         self.check_and_sign(nb, new_path, new_name)
 
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
         try:
-            self.log.debug("Autosaving notebook %s", os_path)
-            #with io.open(os_path, 'w', encoding='utf-8') as f:
-            #    current.write(nb, f, u'json')
+            self.log.debug("Autosaving notebook %s %s", path, name)
+            gist.save()
         except Exception as e:
-            raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s' % (os_path, e))
+            raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s %s' % (path, name, e))
 
         model = self.get_notebook(new_name, new_path, content=False)
         return model

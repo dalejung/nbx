@@ -10,7 +10,8 @@ class NotebookGist(object):
     """
     # instead of having a bunch of @property getters, define 
     # attrs to grab from .gist here.
-    _gist_attrs = ['id', 'tags', 'files', 'active', 'edit']
+    _gist_attrs = ['id', 'tags', 'files', 'active', 'edit', 'updated_at',
+                   'created_at']
 
     def __init__(self, gist, gisthub):
         self.gist = gist
