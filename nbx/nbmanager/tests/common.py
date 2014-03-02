@@ -74,5 +74,4 @@ def make_notebookgist():
     # fake gisthub
     gisthub = NotebookGistHub(TestGistHub())
     nb = NotebookGist(tg, gisthub)
-    nb.tags.remove("#notebook")
     return nb
