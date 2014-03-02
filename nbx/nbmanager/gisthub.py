@@ -25,25 +25,21 @@ class TaggedGist(object):
         self.name = name
         self.tags = tags
         # unique identifier name
-        self.suffix = " [{0}].ipynb".format(self.id)
-        self.key_name = self.name + self.suffix
 
-    def strip_gist_id(self, name):
-        suffix = " [{0}].ipynb".format(self.id)
-        # really we're assuming this will only match once, seems fine
-        return key_name.replace(suffix, '')
-
-    @staticmethod
-    def from_gist(gist):
-        desc = gist.description
+    def update_from_gist(self):
+        desc = self.gist.description
         if desc is None:
             desc = ''
         hashtags = _hashtags(desc)
-        name = TaggedGist._name(desc)
-        tags = TaggedGist._tags(hashtags)
-        tg = TaggedGist(gist, name, tags)
+        self.name = TaggedGist._name(desc)
+        self.tags = TaggedGist._tags(hashtags)
         active = "#inactive" not in hashtags
-        tg.active = active
+        self.active = active
+
+    @staticmethod
+    def from_gist(gist):
+        tg = TaggedGist(gist, None, None)
+        tg.update_from_gist()
         return tg
 
     @staticmethod
@@ -165,10 +161,6 @@ class GistHub(object):
 
             for gtag in gist_tags:
                 nb_list = tagged.setdefault(gtag, [])
-                # should not get duplicate names since we use gist.id in
-                # key_name
-                if gist.key_name in nb_list:
-                    raise Exception("{0} has duplciates for {1}".format(gtag, gist.key_name))
                 nb_list.append(gist)
         return tagged
 
