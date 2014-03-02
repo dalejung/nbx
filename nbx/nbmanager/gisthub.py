@@ -15,7 +15,7 @@ def _hashtags(desc):
 class TaggedGist(object):
     # instead of having a bunch of @property getters, define
     # attrs to grab from .gist here.
-    _gist_attrs = ['id', 'tags', 'files', 'active']
+    _gist_attrs = ['id', 'tags', 'files', 'active', 'edit']
 
     system_tags = ['#inactive']
 
