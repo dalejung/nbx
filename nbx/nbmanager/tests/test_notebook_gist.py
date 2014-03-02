@@ -95,6 +95,7 @@ class TestNotebookGist(unittest.TestCase):
         nt.assert_equal(nb.get_revision_content(1), "a.ipynb_1_revision_content")
 
     def test_save(self):
+        # test content/name change
         nb = make_notebookgist()
         gisthub = nb.gisthub
         nb.notebook_content = 'test'
@@ -105,6 +106,14 @@ class TestNotebookGist(unittest.TestCase):
         fo = args[1]['a.ipynb']
         nt.assert_equal(fo._InputFileContent__content, 'test')
         nt.assert_equal(args[0], "BOB #notebook #pandas #woo")
+
+        nb.active = False
+        gisthub.save(nb)
+        nt.assert_equal(nb.gist.edit.call_count, 2)
+        args = nb.gist.edit.call_args[0]
+        fo = args[1]['a.ipynb']
+        nt.assert_equal(fo._InputFileContent__content, 'test')
+        nt.assert_equal(args[0], "BOB #notebook #inactive #pandas #woo")
 
 class TestNotebookGistHub(unittest.TestCase):
 
@@ -146,7 +155,6 @@ class TestNotebookGistHub(unittest.TestCase):
         nbhub.query()
 
 if __name__ == '__main__':
-    import sys;sys.exit(0)
     import nose
     nose.runmodule(argv=[__file__,'-vvs','-x', '--pdb'],
                   exit=False)
