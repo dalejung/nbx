@@ -185,8 +185,12 @@ class GistHub(object):
         gist = self.hub.get_gist(gist_id)
         tagged_gist = self._tagged_gists[gist_id]
         tagged_gist.gist = gist
+        self.update_gist(gist)
         return tagged_gist
 
+    def update_gist(self, gist):
+        assert gist.id in self._tagged_gists
+        self._tagged_gists = gist
 
 def gisthub(user, password):
     g = github.Github(user, password, user_agent="nbx")
