@@ -1,31 +1,12 @@
 import unittest
-from mock import Mock
 import nose.tools as nt
 
 from nbx.nbmanager.notebook_gisthub import NotebookGistHub, NotebookGist
 from nbx.nbmanager.gisthub import GistHub, TaggedGist
 from nbx.nbmanager.tests.test_gist import generate_gisthub
-from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist
+from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist,\
+                                       make_notebookgist, TestGistHub
 
-def make_notebookgist():
-    tg = Mock()
-    tg.name = 'Test Notebook'
-    tg.id = 123
-    tg.tags = ['#dale']
-    tg.public = True
-    tg.active = True
-    # fake files
-    fi = Mock()
-    fi.content = "nb content"
-    fi.filename = 'a.ipynb'
-    fi2 = Mock()
-    fi2.content = "nb content2"
-    tg.files = {'a.ipynb': fi, 'test.ipynb': fi2, 'zz.ipynb': fi}
-    # fake gisthub
-    gisthub = Mock()
-    gisthub.refresh_gist = lambda x: x.gist
-    nb = NotebookGist(tg, gisthub)
-    return nb
 
 class TestNotebookGist(unittest.TestCase):
 
@@ -41,11 +22,11 @@ class TestNotebookGist(unittest.TestCase):
     def test_notebookgist(self):
         nb = make_notebookgist()
         nt.assert_equal(nb.suffix, "[123].ipynb")
-        nt.assert_equal(nb.key_name, "Test Notebook [123].ipynb")
+        nt.assert_equal(nb.key_name, "Test Gist [123].ipynb")
         # test pass through via __getattr__
         nt.assert_equal(nb.id, 123)
-        nt.assert_items_equal(nb.files.keys(), 
-                              ['test.ipynb', 'a.ipynb', 'zz.ipynb'])
+        nt.assert_items_equal(nb.files.keys(),
+                              ['a.ipynb', 'b.ipynb', 'test.txt'])
 
     def test_strip_gist_id(self):
         nb = make_notebookgist()
@@ -62,7 +43,7 @@ class TestNotebookGist(unittest.TestCase):
     def test_notebook_content(self):
         nb = make_notebookgist()
         content = nb.notebook_content
-        nt.assert_equal(content, "nb content")
+        nt.assert_equal(content, "a.ipynb content")
 
         nb.notebook_content = 'new nb content'
         nt.assert_equal(nb.notebook_content, 'new nb content')
@@ -80,11 +61,7 @@ class TestNotebookGist(unittest.TestCase):
         NotebookGist._generate_description will generate a proper
         description string to reflect name, active, and tags
         """
-        tagged_gist = Mock()
-        tagged_gist.name = "Test Notebook"
-        tagged_gist.tags = ["#pandas", "#woo"]
-        tagged_gist.description = "Test Notebook #notebook #pandas #woo"
-        nb = NotebookGist(tagged_gist)
+        nb = make_notebookgist()
         # make sure notebook isn't in tags
         nt.assert_not_in('#notebook', nb.tags)
         desc = nb._generate_description()
@@ -109,15 +86,16 @@ class TestNotebookGist(unittest.TestCase):
         nt.assert_equal(test, "WOO #notebook #inactive #newtag")
 
     def test_get_revision_content(self):
-        gist = makeFakeGist()
-        tagged_gist = TaggedGist.from_gist(gist)
-        nb = NotebookGist(tagged_gist)
+        nb = make_notebookgist()
         revisions = nb.revisions
         # a.ipynb is only revision 0 and 1
         keys = map(lambda x: x['id'], revisions)
         nt.assert_list_equal(keys, [0,1])
         nt.assert_equal(nb.get_revision_content(0), "a.ipynb_0_revision_content")
         nt.assert_equal(nb.get_revision_content(1), "a.ipynb_1_revision_content")
+
+    def test_save(self):
+        pass
 
 class TestNotebookGistHub(unittest.TestCase):
 
@@ -129,8 +107,8 @@ class TestNotebookGistHub(unittest.TestCase):
 
     def setUp(self):
         names = [
-            "Test gist #frank #notebook", 
-            "Frank bob number 2 #frank #bob #notebook", 
+            "Test gist #frank #notebook",
+            "Frank bob number 2 #frank #bob #notebook",
             "bob inactive #bob #inactive #notebook",
             "bob twin #bob #twin #notebook",
             "bob twin #bob #twin #notebook",
@@ -158,7 +136,9 @@ class TestNotebookGistHub(unittest.TestCase):
         nbhub = NotebookGistHub(gisthub)
         nbhub.query()
 
+nb = make_notebookgist()
 if __name__ == '__main__':
+    import sys;sys.exit(0)
     import nose
-    nose.runmodule(argv=[__file__,'-vvs','-x'],
-                  exit=False)   
+    nose.runmodule(argv=[__file__,'-vvs','-x', '--pdb'],
+                  exit=False)

@@ -80,6 +80,10 @@ class TaggedGist(object):
         if state:
             return state.raw_data['files'][filename]
 
+    @property
+    def files(self):
+        return self.gist.files
+
     def __getattr__(self, name):
         if hasattr(self.gist, name):
             return getattr(self.gist, name)

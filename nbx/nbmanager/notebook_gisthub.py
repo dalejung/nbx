@@ -8,7 +8,7 @@ class NotebookGist(object):
     A single notebook abstraction over Gist. Normally a gist can have
     mutliple files. A notebook gist pretends to be a single file.
     """
-    def __init__(self, gist, gisthub=None):
+    def __init__(self, gist, gisthub):
         self.gist = gist
         self.gisthub = gisthub
         # unique identifier name
@@ -85,8 +85,7 @@ class NotebookGist(object):
         return rev_fobj['content']
 
     def _refresh(self):
-        if self.gisthub:
-            self.gist = self.gisthub.refresh_gist(self)
+        self.gist = self.gisthub.refresh_gist(self)
 
     def _get_notebook_file(self):
         """

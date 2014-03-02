@@ -2,6 +2,9 @@ import github
 import pandas as pd
 from mock import Mock
 
+from nbx.nbmanager.notebook_gisthub import NotebookGist
+from nbx.nbmanager.gisthub import TaggedGist
+
 hub = None
 try:
     import GithubCredentials
@@ -17,10 +20,14 @@ def require_github(func):
         return lambda s: None
     return func
 
+class TestGistHub(object):
+    def refresh_gist(self, gist):
+        return gist.gist
+
 def makeFakeGist():
     gist = Mock()
-    gist.description = "Test Gist #notebook #pandas"
-    gist.id = 1
+    gist.description = "Test Gist #notebook #pandas #woo"
+    gist.id = 123
     # fake files
     filenames = ['a.ipynb', 'b.ipynb', 'test.txt']
     files = {}
@@ -57,3 +64,12 @@ def makeFakeGist():
     gist.history = history
 
     return gist
+
+def make_notebookgist():
+    gist = makeFakeGist()
+    tg = TaggedGist.from_gist(gist)
+    # fake gisthub
+    gisthub = TestGistHub()
+    nb = NotebookGist(tg, gisthub)
+    nb.tags.remove("#notebook")
+    return nb
