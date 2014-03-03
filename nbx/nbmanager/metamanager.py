@@ -11,6 +11,36 @@ from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 from nbx.nbmanager.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.notebook_gisthub import notebook_gisthub
 
+from IPython.html.notebookapp import NotebookWebApplication
+
+"""
+Figured out a trojan horse to enable the following PR.
+https://github.com/ipython/ipython/pull/5190
+Just in case it doesn't go through.
+"""
+def load_handlers(name):
+    """Load the (URL pattern, handler) tuples for each component."""
+    if name.startswith('.'):
+        name = 'IPython.html' + name
+    mod = __import__(name, fromlist=['default_handlers'])
+    return mod.default_handlers
+
+old_init_handlers = NotebookWebApplication.init_handlers
+
+def init_handlers(self, settings):
+    handlers = old_init_handlers(self, settings)
+
+    # Allow for custom handlers via config
+    custom_handlers = settings.get("custom_handlers", {})
+    for mname in custom_handlers:
+        try:
+            handlers.extend(load_handlers(mname))
+        except:
+            # TODO what to on error?
+            raise
+    return handlers
+
+NotebookWebApplication.init_handlers = init_handlers
 
 class MetaManager(LoggingConfigurable):
     """
@@ -22,6 +52,8 @@ class MetaManager(LoggingConfigurable):
 
     def __init__(self, *args, **kwargs):
         super(MetaManager, self).__init__(*args, **kwargs)
+        self.app = kwargs['parent']
+
         self.managers = {}
         self.managers['file'] = FileNotebookManager()
 
