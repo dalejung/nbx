@@ -28,8 +28,8 @@ def load_handlers(name):
 old_init_handlers = NotebookWebApplication.init_handlers
 
 def init_handlers(self, settings):
-    handlers = old_init_handlers(self, settings)
 
+    handlers = []
     # Allow for custom handlers via config
     custom_handlers = settings.get("custom_handlers", {})
     for mname in custom_handlers:
@@ -38,6 +38,9 @@ def init_handlers(self, settings):
         except:
             # TODO what to on error?
             raise
+    # note that the base init_handlers has a 404 catch all
+    # it needs to always be last
+    handlers.extend(old_init_handlers(self, settings))
     return handlers
 
 NotebookWebApplication.init_handlers = init_handlers
