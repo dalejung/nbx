@@ -1,4 +1,11 @@
+import os.path
+
+from jinja2 import Environment, FileSystemLoader
+
+from IPython.html.base.handlers import IPythonHandler
 from IPython.html.notebookapp import NotebookWebApplication
+
+NBX_HANDLERS = []
 
 def load_handlers(name):
     """Load the (URL pattern, handler) tuples for each component."""
@@ -19,7 +26,8 @@ def enable_custom_handlers():
 
         handlers = []
         # Allow for custom handlers via config
-        custom_handlers = settings.get("custom_handlers", {})
+        custom_handlers = settings.get("custom_handlers", [])
+        custom_handlers.extend(NBX_HANDLERS)
         for mname in custom_handlers:
             try:
                 handlers.extend(load_handlers(mname))
@@ -32,3 +40,18 @@ def enable_custom_handlers():
         return handlers
 
     NotebookWebApplication.init_handlers = init_handlers
+
+
+template_path = os.path.join(os.path.dirname(__file__), "templates")
+env = Environment(loader=FileSystemLoader(template_path))
+
+class NBXHandler(IPythonHandler):
+    def get_template(self, name):
+        """Return the jinja template object for a given name"""
+        try:
+            template = env.get_template(name)
+        except:
+            template = IPythonHandler.get_template(self, name)
+        return template
+
+
