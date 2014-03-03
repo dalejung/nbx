@@ -5,7 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 from IPython.html.base.handlers import IPythonHandler
 from IPython.html.notebookapp import NotebookWebApplication
 
-NBX_HANDLERS = []
+NBX_HANDLERS = ['nbx.handlers.standalone']
 
 def load_handlers(name):
     """Load the (URL pattern, handler) tuples for each component."""
