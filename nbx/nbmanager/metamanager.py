@@ -13,7 +13,9 @@ from nbx.nbmanager.notebook_gisthub import notebook_gisthub
 
 from nbx.handlers import enable_custom_handlers
 
-enable_custom_handlers()
+from IPython.html.base.zmqhandlers import ZMQStreamHandler
+
+ZMQStreamHandler.same_origin = lambda self: True
 
 class MetaManager(LoggingConfigurable):
     """
