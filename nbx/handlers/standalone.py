@@ -2,6 +2,7 @@ import os.path
 
 from tornado import web
 
+import IPython
 from nbx.handlers import NBXHandler
 import nbx.kernel_client as kernel_client
 
@@ -9,6 +10,41 @@ CODE_FMT = """
 from nbx.handlers.standalone import get_html
 get_html({html_obj}, "{attr}")
 """
+
+def autolink(obj):
+    """
+    Output a standalone link to a named variable bound to this object
+    """
+    name = get_varname(obj)
+    return link(name)
+
+def link(html_obj, link_name=None):
+    """
+    Use a Javascript Object so we can output the link using href and not onclick
+    """
+    from IPython.core.display import Javascript
+    if link_name is None:
+        link_name = html_obj
+    js = """
+    (function() {{
+        var notebook_path = encodeURIComponent(IPython.notebook.notebook_path);
+        var notebook_name = encodeURIComponent(IPython.notebook.notebook_name);
+        var link_href = '/standalone/'+ notebook_path+'/'+notebook_name+'/{html_obj}';
+        element.append('<a target="_new" href="'+link_href+'">{link_name}</a>');
+        container.show()
+    }})()
+    """.format(html_obj=html_obj, link_name=link_name)
+    return Javascript(data=js)
+
+def get_varname(obj):
+    """
+    Try to get the variable that this object is
+    bound to in the IPython kernel
+    """
+    inst = IPython.InteractiveShell._instance
+    for k,v in inst.user_ns.iteritems():
+        if v is obj and not k.startswith('_'):
+            return k
 
 def get_html(html_obj, attr):
     if hasattr(html_obj, 'html_obj'):
@@ -71,24 +107,6 @@ class StandaloneHandler(NBXHandler):
             html = eval(data['text/plain'])
 
         self.finish(html)
-
-def link(html_obj, link_name=None):
-    """
-    Use a Javascript Object so we can output the link using href and not onclick
-    """
-    from IPython.core.display import Javascript
-    if link_name is None:
-        link_name = html_obj
-    js = """
-    (function() {{
-        var notebook_path = encodeURIComponent(IPython.notebook.notebook_path);
-        var notebook_name = encodeURIComponent(IPython.notebook.notebook_name);
-        var link_href = '/standalone/'+ notebook_path+'/'+notebook_name+'/{html_obj}';
-        element.append('<a target="_new" href="'+link_href+'">{link_name}</a>');
-        container.show()
-    }})()
-    """.format(html_obj=html_obj, link_name=link_name)
-    return Javascript(data=js)
 
 default_handlers = [
     (r"/standalone/(.*)/(.*)/(.*)/(.*)", StandaloneHandler),
