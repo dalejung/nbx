@@ -31,7 +31,6 @@ def link(html_obj, link_name=None):
         var notebook_name = encodeURIComponent(IPython.notebook.notebook_name);
         var link_href = '/standalone/'+ notebook_path+'/'+notebook_name+'/{html_obj}';
         element.append('<a target="_new" href="'+link_href+'">{link_name}</a>');
-        container.show()
     }})()
     """.format(html_obj=html_obj, link_name=link_name)
     return Javascript(data=js)
