@@ -20,6 +20,8 @@ class MetaManager(LoggingConfigurable):
         Holds NotebookManager classes and routes calls to the appropiate
         manager.
     """
+    file_dirs = Dict(config=True,
+                           help="Dict of alias, path")
     github_accounts = List(Tuple, config=True,
                            help="List of Tuple(github_account, github_password)")
 
@@ -31,11 +33,16 @@ class MetaManager(LoggingConfigurable):
         self.app = kwargs['parent']
 
         self.managers = {}
-        self.managers['file'] = FileNotebookManager()
+        self.managers['server-home'] = FileNotebookManager()
 
         if self.enable_custom_handlers:
             from nbx.handlers import enable_custom_handlers
             enable_custom_handlers()
+
+        for alias, path in self.file_dirs.items():
+            fb = FileNotebookManager()
+            fb.notebook_dir = path
+            self.managers[alias] = fb
 
         for user, pw in self.github_accounts:
             gh = notebook_gisthub(user, pw)
@@ -61,7 +68,7 @@ class MetaManager(LoggingConfigurable):
 
     @property
     def notebook_dir(self):
-        return self.managers['file'].notebook_dir
+        return self.managers['server-home'].notebook_dir
 
     def info_string(self):
         infos = [nbm.info_string() for nbm in self.managers.values()]
