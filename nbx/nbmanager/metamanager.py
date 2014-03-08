@@ -11,8 +11,6 @@ from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 from nbx.nbmanager.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.notebook_gisthub import notebook_gisthub
 
-from nbx.handlers import enable_custom_handlers
-
 from IPython.html.base.zmqhandlers import ZMQStreamHandler
 
 ZMQStreamHandler.same_origin = lambda self: True
@@ -25,12 +23,19 @@ class MetaManager(LoggingConfigurable):
     github_accounts = List(Tuple, config=True,
                            help="List of Tuple(github_account, github_password)")
 
+    # Not sure if this should be optional. For now, make it configurable
+    enable_custom_handlers = Bool(True, config=True, help="Enable Custom Handlers")
+
     def __init__(self, *args, **kwargs):
         super(MetaManager, self).__init__(*args, **kwargs)
         self.app = kwargs['parent']
 
         self.managers = {}
         self.managers['file'] = FileNotebookManager()
+
+        if self.enable_custom_handlers:
+            from nbx.handlers import enable_custom_handlers
+            enable_custom_handlers()
 
         for user, pw in self.github_accounts:
             gh = notebook_gisthub(user, pw)
