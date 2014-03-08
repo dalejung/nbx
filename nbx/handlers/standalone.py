@@ -5,6 +5,7 @@ from tornado import web
 import IPython
 from nbx.handlers import NBXHandler
 import nbx.kernel_client as kernel_client
+from IPython.html.base.handlers import notebook_path_regex
 
 CODE_FMT = """
 from nbx.handlers.standalone import get_html
@@ -31,9 +32,17 @@ def link(html_obj, link_name=None):
         if(typeof(toinsert) != 'undefined') {{
             element = toinsert;
         }}
-        var notebook_path = encodeURIComponent(IPython.notebook.notebook_path);
-        var notebook_name = encodeURIComponent(IPython.notebook.notebook_name);
-        var link_href = '/standalone/'+ notebook_path+'/'+notebook_name+'/{html_obj}';
+        var notebook = IPython.notebook;
+        var utils = IPython.utils;
+        var path = notebook.notebook_path;
+        var nbname = notebook.notebook_name;
+        var link_href = utils.url_join_encode(
+            notebook.base_url,
+            "standalone",
+            path,
+            nbname,
+            "{html_obj}"
+        )
         toinsert.append('<a target="_new" href="'+link_href+'">{link_name}</a>');
     }})()
     """.format(html_obj=html_obj, link_name=link_name)
@@ -93,6 +102,10 @@ class StandaloneHandler(NBXHandler):
             self.redirect(self.request.path + '/to_html')
             return
 
+        # path shouldn't have preceding /.
+        # session.js creates session with notebook model.
+        if path.startswith('/'):
+            path = path[1:]
         sm = self.session_manager
         session = sm.get_session(path=path, name=name)
         kernel_id = session['kernel']['id']
@@ -111,7 +124,10 @@ class StandaloneHandler(NBXHandler):
 
         self.finish(html)
 
+_html_obj = r"(?P<html_obj>[\w-]+)"
+_attr = r"(?P<attr>[\w-]+)"
+
 default_handlers = [
-    (r"/standalone/(.*)/(.*)/(.*)/(.*)", StandaloneHandler),
-    (r"/standalone/(.*)/(.*)/(.*)", StandaloneHandler),
+    (r"/standalone%s/%s" % (notebook_path_regex, _html_obj), StandaloneHandler),
+    (r"/standalone%s/%s/%s" % (notebook_path_regex, _html_obj, _attr), StandaloneHandler),
 ]
