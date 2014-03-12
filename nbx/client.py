@@ -18,6 +18,9 @@ class IPythonService(object):
     def sessions(self):
         return self._get('api/sessions')
 
+    def server_info(self):
+        return self._get('server-info')
+
 class IPythonClient(object):
     def __init__(self, service):
         self.service = service
@@ -40,18 +43,20 @@ class IPythonClient(object):
         return "[{i}] {name}".format(i=i, name=session['notebook']['name'])
 
     def attach(self, pos):
+        info = self.service.server_info()
+        profile = info['profile']
         pos = int(pos)
         session = self.sessions_cache[pos]
-        return attach_session(session)
+        return attach_session(session, profile=profile)
 
-def attach_session(session):
+def attach_session(session, profile='default'):
     """
         Start a terminal app attached to a notebook
     """
     from IPython.terminal.ipapp import launch_new_instance
     kernel = 'kernel-{0}.json'.format(session['kernel']['id'])
     # TODO support other submodules like qtconsole
-    argv = ['console', '--existing', kernel]
+    argv = ['console', '--existing', kernel, '--profile={0}'.format(profile)]
     return launch_new_instance(argv=argv)
 
 def client(host="127.0.0.1", port="8888"):
