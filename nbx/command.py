@@ -4,60 +4,41 @@ import nbx.client as client
 import urllib2
 import urllib
 
-PORT = 8888
-HOST = "127.0.0.1"
+def list_sessions(cl):
+    cl.list_sessions()
 
-def open_notebook(fullpath):
-    if os.path.isfile(fullpath):
-        print 'found file'
-        open_url(fullpath)
-        return
-
-    path, file = os.path.split(fullpath)
-    if not file.endswith('ipynb'):
-        file = file + '.ipynb'
-
-    print 'opening new notebook'
-    fullpath = os.path.join(path, file)
-    new_url(fullpath)
-
-def add_notebooks(action, filepath, cwd):
-    fullpath = os.path.join(cwd, filepath)
-    if action == "notebook":
-        open_notebook(fullpath)
-    elif action == "add-dir":
-        add_dir(fullpath)
-
-def list_sessions():
-    client.client(HOST, PORT).list_sessions()
-
-def attach_session(target):
-    cl = client.client(HOST, PORT)
+def attach_session(cl, target):
     cl._list_sessions()
     cl.attach(target)
 
 def main():
     import argparse
     import os
-    parser = argparse.ArgumentParser(description="Start a notebook");
+    parser = argparse.ArgumentParser(description="");
 
     parser.add_argument('action', nargs="?", action="store", default=None)
     parser.add_argument('target', nargs="?", action="store")
+    parser.add_argument('--host', default="127.0.0.1")
+    parser.add_argument('--port', default="8888")
 
     args = parser.parse_args()
 
+    host = args.host
+    port = args.port
     target = args.target
     action = args.action
     cwd = os.getcwd()
+
+    cl = client.client(host, port)
 
     if not action and not target:
         action = 'list'
 
     if action in ['list']:
-        list_sessions()
+        list_sessions(cl)
 
     if action in ['attach']:
-        attach_session(target)
+        attach_session(cl, target)
 
 if __name__ == '__main__':
     main()
