@@ -1,11 +1,15 @@
-
+import json
 from tornado import web
 from nbx.handlers import NBXHandler
 
-class TestHandler(NBXHandler):
+class ServerInfoHandler(NBXHandler):
     @web.authenticated
     def get(self, path='', name=None):
-        self.write(self.render_template('test.html'))
+        nbm = self.notebook_manager
+        app = nbm.parent
+        data = {}
+        data['profile'] = app.profile
+        self.finish(json.dumps(data))
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
@@ -13,5 +17,5 @@ class TestHandler(NBXHandler):
 
 
 default_handlers = [
-    (r"/test", TestHandler),
+    (r"/server-info", ServerInfoHandler),
     ]
