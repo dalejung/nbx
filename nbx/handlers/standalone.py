@@ -102,6 +102,7 @@ class StandaloneHandler(NBXHandler):
             self.redirect(self.request.path + '/to_html')
             return
 
+        print path, html_obj, attr
         # path shouldn't have preceding /.
         # session.js creates session with notebook model.
         if path.startswith('/'):
@@ -125,7 +126,7 @@ class StandaloneHandler(NBXHandler):
         self.finish(html)
 
 _html_obj = r"(?P<html_obj>[\w-]+)"
-_attr = r"(?P<attr>[\w-]+)"
+_attr = r"(?P<attr>[.\w-]+)"
 
 default_handlers = [
     (r"/standalone%s/%s" % (notebook_path_regex, _html_obj), StandaloneHandler),
