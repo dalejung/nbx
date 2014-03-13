@@ -53,7 +53,7 @@ class TestTaggedGist(unittest.TestCase):
 
         # explicitly test system tags
         nt.assert_in('#inactive', TaggedGist.system_tags)
-        nt.assert_not_in('#inactive', tg.tags) 
+        nt.assert_not_in('#inactive', tg.tags)
         nt.assert_false(tg.active)
 
     def test_files(self):
@@ -75,7 +75,7 @@ class TestTaggedGist(unittest.TestCase):
         for state in a_revs:
             nt.assert_in('a.ipynb', state.raw_data['files'])
 
-    def test_get_revision_file(self): 
+    def test_get_revision_file(self):
         gist = makeFakeGist()
         tg = TaggedGist.from_gist(gist)
         fo = tg.get_revision_file(0, 'a.ipynb')
@@ -95,8 +95,8 @@ class TestGistHub(unittest.TestCase):
 
     def test_filter_active(self):
         names = [
-            "Test gist #frank", 
-            "Frank bob number 2 #frank #bob", 
+            "Test gist #frank",
+            "Frank bob number 2 #frank #bob",
             "bob inactive #bob #inactive",
             "bob twin #bob #twin",
             "bob twin #bob #twin",
@@ -108,7 +108,7 @@ class TestGistHub(unittest.TestCase):
         active = gh._filter_active(gists, None)
         nt.assert_equals(len(active), 5)
         test_names = [g.name for g in active]
-        valid = ['Test gist', 'Frank bob number 2', 
+        valid = ['Test gist', 'Frank bob number 2',
                 'bob twin', 'bob twin', 'bob inactive']
         nt.assert_items_equal(test_names, valid)
 
@@ -128,8 +128,8 @@ class TestGistHub(unittest.TestCase):
 
     def test_filter_tag(self):
         names = [
-            "Test gist #frank", 
-            "Frank bob number 2 #frank #bob", 
+            "Test gist #frank",
+            "Frank bob number 2 #frank #bob",
             "bob inactive #bob #inactive",
             "bob twin #bob #twin",
             "bob twin #bob #twin",
@@ -146,8 +146,8 @@ class TestGistHub(unittest.TestCase):
 
     def test_query(self):
         names = [
-            "Test gist #frank", 
-            "Frank bob number 2 #frank #bob", 
+            "Test gist #frank",
+            "Frank bob number 2 #frank #bob",
             "bob inactive #bob #inactive",
             "bob twin #bob #twin",
             "bob twin #bob #twin",
@@ -157,7 +157,8 @@ class TestGistHub(unittest.TestCase):
 
         # inactive
         test = gh.query(active=False)
-        nt.assert_equals(len(test.keys()), 1)
+        # will return both #inactive and #bob
+        nt.assert_equals(len(test.keys()), 2)
         nt.assert_equals(len(test['#bob']), 1)
         valid = ['bob inactive']
         test_names = [g.name for g in test['#bob']]
@@ -165,7 +166,7 @@ class TestGistHub(unittest.TestCase):
 
         # filtering inactive with bob, which shoudl return same as above
         test = gh.query(active=False, filter_tag='bob', drop_filter=False)
-        nt.assert_equals(len(test.keys()), 1)
+        nt.assert_equals(len(test.keys()), 2)
         nt.assert_equals(len(test['#bob']), 1)
         valid = ['bob inactive']
         test_names = [g.name for g in test['#bob']]
@@ -173,8 +174,8 @@ class TestGistHub(unittest.TestCase):
 
         # query filer_tag
         names = [
-            "Test gist #frank", 
-            "Frank bob number 2 #frank #bob", 
+            "Test gist #frank",
+            "Frank bob number 2 #frank #bob",
             "bob inactive #bob #inactive",
             "bob twin #bob #twin",
             "bob twin #bob #twin",
@@ -190,4 +191,4 @@ class TestGistHub(unittest.TestCase):
 if __name__ == '__main__':
     import nose
     nose.runmodule(argv=[__file__,'-vvs','-x','--pdb', '--pdb-failure'],
-                  exit=False)   
+                  exit=False)
