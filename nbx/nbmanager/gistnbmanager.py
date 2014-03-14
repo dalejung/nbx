@@ -64,6 +64,8 @@ class GistNotebookManager(NotebookManager):
         # get notebooks by tag
         gists = self.gists_by_tag(path)
         notebooks = [self.get_notebook(gist.key_name, path, content=False) for gist in gists.values()]
+        # sort by date, descending
+        notebooks = sorted(notebooks, key=lambda x: x['last_modified'], reverse=True)
         return notebooks
 
     def notebook_exists(self, name, path=''):
