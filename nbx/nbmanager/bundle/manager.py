@@ -106,7 +106,7 @@ class BundleManager(object):
         print name, path, new_name, new_path
 
     def get_notebook(self, name, path):
-        bundle = NotebookBundle(name, path)
+        bundle = self.bundle_class(name, path)
         return bundle
 
     def get_bundles(self, path):
