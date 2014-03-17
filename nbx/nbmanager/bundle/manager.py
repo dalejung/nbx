@@ -14,15 +14,10 @@ def is_notebook(name, path):
     has_file = os.path.isfile(file_path)
     return has_file
 
-def _list_bundles(path, func=None):
+def _list_bundles(path):
     root, dirs, files = next(os.walk(path))
-    dirs = filter(lambda d: func(d, root), dirs)
+    dirs = filter(lambda d: is_notebook(d, root), dirs)
     return dirs
-
-def list_bundles(path):
-    """ Notebook specific bundle list """
-    bundles = _list_bundles(path, is_notebook)
-    return bundles
 
 class BundleManager(object):
     bundle_class = NotebookBundle
@@ -74,13 +69,6 @@ class BundleManager(object):
         except Exception as e:
             raise Exception(u'Unexpected error while autosaving notebook: %s %s' % (nb_path, e))
 
-    def delete_files(self, bundle_path, model):
-        """
-        Delete the top level files of the bundle dir. Don't delete the notebook
-        file itself
-        """
-        pass
-
     def write_files(self, bundle_path, model):
         # write files
         files = model.get('__files')
@@ -109,9 +97,12 @@ class BundleManager(object):
         bundle = self.bundle_class(name, path)
         return bundle
 
-    def get_bundles(self, path):
+    def list_bundles(self, path):
+        """
+        Get list of bundles in a certain path
+        """
         cls = self.bundle_class
-        bundles = list_bundles(path)
+        bundles = _list_bundles(path)
         bundles = dict([(name, cls(name, path)) for name in bundles])
         return bundles
 

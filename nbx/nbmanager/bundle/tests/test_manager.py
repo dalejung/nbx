@@ -23,7 +23,7 @@ class TestManager(unittest.TestCase):
         """
         with fake_file_system() as td:
             correct = ['test.ipynb', 'second.ipynb']
-            nt.assert_items_equal(correct, mmod.list_bundles(td))
+            nt.assert_items_equal(correct, mmod._list_bundles(td))
 
 class TestBundleManager(unittest.TestCase):
 
@@ -36,21 +36,23 @@ class TestBundleManager(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_get_bundles(self):
+    def test_list_bundles(self):
         """
         Make sure we skip empty.ipynb
         """
         with fake_file_system() as td:
             bm = mmod.BundleManager()
             correct = ['test.ipynb', 'second.ipynb']
-            bundles = bm.get_bundles(td)
+            bundles = bm.list_bundles(td)
             nt.assert_items_equal(correct, bundles)
 
     def test_get_model(self):
+        """
+        """
         with fake_file_system() as td:
             bm = mmod.BundleManager()
             correct = ['test.ipynb', 'second.ipynb']
-            bundles = bm.get_bundles(td)
+            bundles = bm.list_bundles(td)
 
             # test model and files
             second = bundles['second.ipynb']
@@ -88,9 +90,17 @@ class TestBundleManager(unittest.TestCase):
                 nt.assert_equal(f.read(), 'pandas.txt content')
 
             # now test against the bundle
-            bundles = bm.get_bundles(td)
+            bundles = bm.list_bundles(td)
             bundle = bundles['new-name.ipynb']
             nt.assert_items_equal(['test.txt', 'pandas.txt'], bundle.files)
+
+            # assert that saving with different files does not delete the
+            # local files
+            del model['__files']['test.txt']
+            model['__files']['test2.txt'] = 'test2.txt content'
+            bm.save_notebook(model, model['name'], model['path'])
+            # assert that we don't delete previous file
+            nt.assert_items_equal(['test2.txt', 'test.txt', 'pandas.txt'], bundle.files)
 
 
 fd = fake_file_system()
@@ -105,7 +115,7 @@ model['__files'] = files
 
 bm.save_notebook(model, model['name'], model['path'])
 
-bundles = bm.get_bundles(td)
+bundles = bm.list_bundles(td)
 
 if __name__ == '__main__':
     import nose
