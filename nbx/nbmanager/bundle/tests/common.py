@@ -49,5 +49,10 @@ def fake_file_system():
         os.mkdir(os.path.join(td, 'not_notebook'))
         os.mkdir(os.path.join(td, 'testing'))
 
+        nb_dir = os.path.join(td, 'testing', 'subtest.ipynb')
+        os.mkdir(nb_dir)
+        metadata = {'filename':'subtest.ipynb'}
+        new_notebook(metadata, os.path.join(nb_dir, 'subtest.ipynb'))
+
         yield td
 
