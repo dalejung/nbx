@@ -36,6 +36,15 @@ class TestBundleManager(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_list_dirs(self):
+        """
+        List the non notebook dirs.
+        """
+        with fake_file_system() as td:
+            bm = mmod.BundleManager()
+            dirs = bm.list_dirs(td)
+            nt.assert_items_equal(dirs, ['empty.ipynb', 'not_notebook', 'testing'])
+
     def test_list_bundles(self):
         """
         Make sure we skip empty.ipynb
@@ -106,16 +115,8 @@ class TestBundleManager(unittest.TestCase):
 fd = fake_file_system()
 td = fd.__enter__()
 bm = mmod.BundleManager()
-model = bm.new_notebook()
-model['name'] = 'new-name.ipynb'
-model['path'] = td
-files = {}
-files['test.txt'] = 'test.txt content'
-model['__files'] = files
 
-bm.save_notebook(model, model['name'], model['path'])
-
-bundles = bm.list_bundles(td)
+dirs = bm.list_dirs(td)
 
 if __name__ == '__main__':
     import nose

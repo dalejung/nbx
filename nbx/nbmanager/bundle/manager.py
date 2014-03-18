@@ -91,7 +91,7 @@ class BundleManager(object):
         return False
 
     def rename_notebook(self, name, path, new_name, new_path):
-        print name, path, new_name, new_path
+        raise NotImplementedError('TODO')
 
     def get_notebook(self, name, path):
         bundle = self.bundle_class(name, path)
@@ -106,3 +106,13 @@ class BundleManager(object):
         bundles = dict([(name, cls(name, path)) for name in bundles])
         return bundles
 
+    def list_dirs(self, path):
+        """
+        Return list of dir names
+        """
+        if not os.path.isdir(path):
+            raise Exception("{path} is not a directory".format(path=path))
+        root, dirs, files = next(os.walk(path))
+        # remove dirs that are notebooks
+        dirs = filter(lambda name: not is_notebook(name, path), dirs)
+        return dirs
