@@ -33,28 +33,28 @@ class BundleManager(object):
         return model
 
     def save_notebook(self, model, name='', path=''):
-        new_path = model.get('path', path)
-        new_name = model.get('name', name)
+        """
+        Save notebook model to file system.
 
-        if not self.is_writable(new_name, new_path):
+        Note: This differs from the NotebookManager.save_notebook in that
+        it doesn't have a rename check.
+        """
+        if not self.is_writable(name, path):
             raise Exception("Notebook target is not writable")
 
-        if path != new_path or name != new_name:
-            self.rename_notebook(name, path, new_name, new_path)
-
-        bundle_path = os.path.join(new_path, new_name)
+        bundle_path = os.path.join(path, name)
         if not os.path.exists(bundle_path):
             os.mkdir(bundle_path)
 
         # Save the notebook file
         nb = current.to_notebook_json(model['content'])
 
-        #self.check_and_sign(nb, new_name, new_path)
+        #self.check_and_sign(nb, name, path)
         notary = sign.NotebookNotary()
         if notary.check_cells(nb):
             notary.sign(nb)
 
-        self.write_notebook(bundle_path, new_name, nb)
+        self.write_notebook(bundle_path, name, nb)
 
         if '__files' in model:
             self.write_files(bundle_path, model)
