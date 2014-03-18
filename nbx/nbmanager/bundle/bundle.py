@@ -44,7 +44,7 @@ class NotebookBundle(Bundle):
         assert self.name not in files
         return files
 
-    def get_model(self, content=True):
+    def get_model(self, content=True, file_content=True):
         os_path = os.path.join(self.bundle_path, self.name)
         info = os.stat(os_path)
         last_modified = tz.utcfromtimestamp(info.st_mtime)
@@ -61,6 +61,9 @@ class NotebookBundle(Bundle):
         files = {}
         for fn in self.files:
             with open(os.path.join(self.bundle_path, fn)) as f:
-                files[fn] = f.read()
+                data = None
+                if file_content:
+                    data = f.read()
+                files[fn] = data
         model['__files'] = files
         return model
