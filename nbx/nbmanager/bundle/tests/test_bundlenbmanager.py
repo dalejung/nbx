@@ -59,6 +59,13 @@ class TestBundleNotebookManager(unittest.TestCase):
         model['__files'] = {}
         model['__files']['file1.txt'] = 'file1.txt content'
         new_model = mgr.save_notebook(model, 'new-name.ipynb', 'testing')
+        # save second time to trigger checkpoint creation
+        new_model = mgr.save_notebook(model, 'new-name.ipynb', 'testing')
+
+        # verify that we create a checkpoint if notebook exists and no
+        # checkpoint exists
+        checkpoints = mgr.list_checkpoints('new-name.ipynb', 'testing')
+        nt.assert_equal(len(checkpoints), 1)
 
         # check that files were saved
         nb_dir = os.path.join(mgr.notebook_dir, 'testing', 'new-name.ipynb')
@@ -112,11 +119,29 @@ class TestBundleNotebookManager(unittest.TestCase):
 
     @bundletest
     def test_list_checkpoints(self, mgr):
+        checkpoints = mgr.list_checkpoints('second.ipynb')
+        # start with no checkpoints
+        nt.assert_equal(len(checkpoints), 0)
         model = mgr.create_checkpoint('second.ipynb', '')
         checkpoints = mgr.list_checkpoints('second.ipynb')
         nt.assert_equal(len(checkpoints), 1)
         checkpoint = checkpoints[0]
         nt.assert_equal(checkpoint['id'], 'checkpoint')
+
+fm = fake_manager()
+mgr = fm.__enter__()
+model = mgr.bundler.new_notebook()
+model['name'] = 'new-name.ipynb'
+model['path'] = 'testing'
+model['__files'] = {}
+model['__files']['file1.txt'] = 'file1.txt content'
+new_model = mgr.save_notebook(model, 'new-name.ipynb', 'testing')
+new_model = mgr.save_notebook(model, 'new-name.ipynb', 'testing')
+
+checkpoints = mgr.list_checkpoints('new-name.ipynb', 'testing')
+nt.assert_equal(len(checkpoints), 1)
+print mgr.list_notebooks('testing')
+print mgr.notebook_exists('new-name.ipynb', 'testing')
 
 if __name__ == '__main__':
     import nose

@@ -116,9 +116,9 @@ class BundleNotebookManager(NotebookManager):
         if 'content' not in model:
             raise Exception(u'No notebook JSON data provided')
 
-        # One checkpoint should always exist
-        # if self.notebook_exists(name, path) and not self.list_checkpoints(name, path):
-        #     self.create_checkpoint(name, path)
+        if self.notebook_exists(name, path) and not self.list_checkpoints(name, path):
+            self.create_checkpoint(name, path)
+
         abspath = self._get_os_path(name=None, path=path)
         self.bundler.save_notebook(model, name=name, path=abspath)
 
