@@ -132,14 +132,26 @@ class TestBundleManager(unittest.TestCase):
             test_func = lambda: bm.rename_notebook('second.ipynb', td, 'second.ipynb', os.path.join(td, 'testing'))
             nt.assert_raises_regexp(NotImplementedError, "Moving directories not", test_func)
 
+    def test_copy_notebook_file(self):
+        with fake_file_system() as td:
+            bm = mmod.BundleManager()
+            notebooks = bm.list_bundles(td)
+            copy_path = os.path.join(td, 'bob.ipynb')
+            bm.copy_notebook_file('second.ipynb', td, copy_path)
+            nt.assert_true(os.path.isfile(copy_path))
+            nb_path = os.path.join(td, 'second.ipynb', 'second.ipynb')
+            with open(nb_path) as orig, open(copy_path) as cp:
+                orig_content = orig.read()
+                copy_content = cp.read()
+                nt.assert_equal(orig_content, copy_content)
+
 
 fd = fake_file_system()
 td = fd.__enter__()
 bm = mmod.BundleManager()
 
 notebooks = bm.list_bundles(td)
-test_func = lambda: bm.rename_notebook('second.ipynb', td, 'second.ipynb', os.path.join(td, 'testing'))
-nt.assert_raises_regexp(Exception, "Moving directories not", test_func)
+bm.copy_notebook_file('second.ipynb', td, os.path.join(td, 'bob.ipynb'))
 
 if __name__ == '__main__':
     import nose

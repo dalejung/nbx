@@ -145,3 +145,70 @@ class BundleNotebookManager(NotebookManager):
             self.bundler.rename_notebook(name, os_path, new_name, new_os_path)
         model = self.get_notebook(new_name, new_path, content=False)
         return model
+
+    # Checkpoint-related utilities
+    def _get_checkpoint_dir(self, name, path=''):
+        checkpoint_dir = os.path.join(path, name, '.ipynb_checkpoints')
+        return checkpoint_dir
+
+    def get_checkpoint_path(self, checkpoint_id, name, path=''):
+        """find the path to a checkpoint"""
+        path = path.strip('/')
+        checkpoint_dir = self._get_checkpoint_dir(name, path)
+        basename, _ = os.path.splitext(name)
+        filename = u"{name}-{checkpoint_id}{ext}".format(
+            name=basename,
+            checkpoint_id=checkpoint_id,
+            ext=self.filename_ext,
+        )
+        cp_path = os.path.join(checkpoint_dir, filename)
+        return cp_path
+
+    def get_checkpoint_model(self, checkpoint_id, name, path=''):
+        """construct the info dict for a given checkpoint"""
+        path = path.strip('/')
+        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        os_cp_path = self._get_os_path(path=cp_path)
+        stats = os.stat(os_cp_path)
+        last_modified = tz.utcfromtimestamp(stats.st_mtime)
+        info = dict(
+            id = checkpoint_id,
+            last_modified = last_modified,
+        )
+        return info
+
+    # checkpoint stuff
+    def create_checkpoint(self, name, path=''):
+        checkpoint_id = u"checkpoint"
+        checkpoint_dir = self._get_checkpoint_dir(name, path)
+        os_checkpoint_dir = self._get_os_path(path=checkpoint_dir)
+        if not os.path.exists(os_checkpoint_dir):
+            os.mkdir(os_checkpoint_dir)
+
+        os_path = self._get_os_path(path=path)
+        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        os_cp_path = self._get_os_path(cp_path)
+        self.bundler.copy_notebook_file(name, os_path, os_cp_path)
+
+        # return the checkpoint info
+        return self.get_checkpoint_model(checkpoint_id, name, path)
+
+    def list_checkpoints(self, name, path=''):
+        """Return a list of checkpoints for a given notebook"""
+        path = path.strip('/')
+        checkpoint_id = "checkpoint"
+        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        os_path = self._get_os_path(cp_path)
+        if not os.path.exists(os_path):
+            return []
+        else:
+            return [self.get_checkpoint_model(checkpoint_id, name, path)]
+
+    def restore_checkpoint(self, checkpoint_id, name, path=''):
+        """Restore a notebook from one of its checkpoints"""
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def delete_checkpoint(self, checkpoint_id, name, path=''):
+        """delete a checkpoint for a notebook"""
+        raise NotImplementedError("must be implemented in a subclass")
+    

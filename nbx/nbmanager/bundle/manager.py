@@ -1,5 +1,6 @@
 import os
 import io
+import shutil
 
 from nbx.nbmanager.bundle.bundle import NotebookBundle
 
@@ -32,6 +33,15 @@ class BundleManager(object):
         model['content'] = current.new_notebook(metadata=metadata)
         return model
 
+    def _get_bundle_path(self, name, path):
+        bundle_path = os.path.join(path, name)
+        return bundle_path
+
+    def _get_nb_path(self, name, path):
+        bundle_path = self._get_bundle_path(name, path)
+        nb_path = os.path.join(bundle_path, name)
+        return nb_path
+
     def save_notebook(self, model, name='', path=''):
         """
         Save notebook model to file system.
@@ -42,7 +52,7 @@ class BundleManager(object):
         if not self.is_writable(name, path):
             raise Exception("Notebook target is not writable")
 
-        bundle_path = os.path.join(path, name)
+        bundle_path = self._get_bundle_path(name, path)
         if not os.path.exists(bundle_path):
             os.mkdir(bundle_path)
 
@@ -137,3 +147,7 @@ class BundleManager(object):
         # remove dirs that are notebooks
         dirs = filter(lambda name: not is_notebook(name, path), dirs)
         return dirs
+
+    def copy_notebook_file(self, name, path, cp_path=None):
+        nb_path = self._get_nb_path(name, path)
+        shutil.copy2(nb_path, cp_path)

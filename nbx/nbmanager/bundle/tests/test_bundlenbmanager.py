@@ -14,6 +14,12 @@ def fake_manager():
         manager.notebook_dir = td
         yield manager
 
+def bundletest(func):
+    def test_func(self):
+        with fake_manager() as mgr:
+            func(self, mgr)
+    return test_func
+
 class TestBundleNotebookManager(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -91,15 +97,30 @@ class TestBundleNotebookManager(unittest.TestCase):
             new_model = mgr.get_notebook('second_changed.ipynb')
             nt.assert_equal(new_model['name'], 'second_changed.ipynb')
 
+    def test_get_checkpoint_path(self):
+        with fake_manager() as mgr:
+            checkpoint_path = mgr.get_checkpoint_path('cpid', 'dale.ipynb', 'subdir')
+            nt.assert_equal(checkpoint_dir, 'subdir/dale.ipynb/.ipynb_checkpoints/dale-cpid.ipynb')
+
+    def test_create_checkpoint(self):
+        with fake_manager() as mgr:
+            model = mgr.create_checkpoint('second.ipynb', '')
+            cp_path = 'second.ipynb/.ipynb_checkpoints/second-checkpoint.ipynb'
+            os_cp_path = mgr._get_os_path(cp_path)
+            # see that checkpoint was created
+            nt.assert_true(os.path.isfile(os_cp_path))
+
+    def test_list_checkpoints(self):
+        with fake_manager() as mgr:
+            model = mgr.create_checkpoint('second.ipynb', '')
+            checkpoints = mgr.list_checkpoints('second.ipynb')
+            nt.assert_equal(len(checkpoints), 1)
+            checkpoint = checkpoints[0]
+            nt.assert_equal(checkpoint['id'], 'checkpoint')
+
 
 fm = fake_manager()
 mgr = fm.__enter__()
-notebooks = mgr.list_notebooks('')
-model = mgr.get_notebook('second.ipynb')
-model['name'] = 'second_changed.ipynb'
-mgr.update_notebook(model, 'second.ipynb')
-new_model = mgr.get_notebook('second_changed.ipynb')
-nt.assert_equal(new_model['name'], 'second_changed.ipynb')
 
 if __name__ == '__main__':
     import nose
