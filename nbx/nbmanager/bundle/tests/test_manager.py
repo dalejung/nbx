@@ -111,12 +111,35 @@ class TestBundleManager(unittest.TestCase):
             # assert that we don't delete previous file
             nt.assert_items_equal(['test2.txt', 'test.txt', 'pandas.txt'], bundle.files)
 
+    def test_rename_notebook(self):
+        with fake_file_system() as td:
+            bm = mmod.BundleManager()
+            notebooks = bm.list_bundles(td)
+            nt.assert_items_equal(['second.ipynb', 'test.ipynb'], notebooks)
+            bm.rename_notebook('second.ipynb', td, 'second_changed.ipynb', td)
+            notebooks_after = bm.list_bundles(td)
+            nt.assert_items_equal(['second_changed.ipynb', 'test.ipynb'], notebooks_after)
+
+        # existing notebook error
+        with fake_file_system() as td:
+            bm = mmod.BundleManager()
+            test_func = lambda: bm.rename_notebook('second.ipynb', td, 'test.ipynb', td)
+            nt.assert_raises_regexp(Exception, "Notebook bundle already exists", test_func)
+
+        # don't support moving errors
+        with fake_file_system() as td:
+            bm = mmod.BundleManager()
+            test_func = lambda: bm.rename_notebook('second.ipynb', td, 'second.ipynb', os.path.join(td, 'testing'))
+            nt.assert_raises_regexp(NotImplementedError, "Moving directories not", test_func)
+
 
 fd = fake_file_system()
 td = fd.__enter__()
 bm = mmod.BundleManager()
 
-dirs = bm.list_dirs(td)
+notebooks = bm.list_bundles(td)
+test_func = lambda: bm.rename_notebook('second.ipynb', td, 'second.ipynb', os.path.join(td, 'testing'))
+nt.assert_raises_regexp(Exception, "Moving directories not", test_func)
 
 if __name__ == '__main__':
     import nose

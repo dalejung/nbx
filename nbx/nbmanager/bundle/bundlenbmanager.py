@@ -75,11 +75,14 @@ class BundleNotebookManager(NotebookManager):
         bundles = self.bundler.list_bundles(os_path)
         notebooks = []
         for name, bundle in bundles.items():
-            model = self.get_notebook(name, path, content=False)
+            model = bundle.get_model(content=False)
+            # the model returned from BundleManager is absolute
+            # set back to relative
+            model['path'] = path
             notebooks.append(model)
         return notebooks
 
-    def get_notebook(self, name, path='', content=True):
+    def get_notebook(self, name, path='', content=True, file_content=False):
         """ Takes a path and name for a notebook and returns its model
 
         Parameters
@@ -100,25 +103,10 @@ class BundleNotebookManager(NotebookManager):
         if not self.notebook_exists(name=name, path=path):
             raise Exception('Notebook does not exist {name} {path}'.format(name=name,
                                                                            path=path))
-        os_path = self._get_os_path(name, path)
-        info = os.stat(os_path)
-        last_modified = tz.utcfromtimestamp(info.st_mtime)
-        created = tz.utcfromtimestamp(info.st_ctime)
-        # Create the notebook model.
-        model ={}
-        model['name'] = name
+        os_path = self._get_os_path(name=None, path=path)
+        bundle = self.bundler.get_notebook(name, os_path)
+        model = bundle.get_model(content=content, file_content=file_content)
         model['path'] = path
-        model['last_modified'] = last_modified
-        model['created'] = created
-        model['type'] = 'notebook'
-        if content:
-            with io.open(os_path, 'r', encoding='utf-8') as f:
-                try:
-                    nb = current.read(f, u'json')
-                except Exception as e:
-                    raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
-            self.mark_trusted_cells(nb, name, path)
-            model['content'] = nb
         return model
 
     def save_notebook(self, model, name='', path=''):
@@ -134,5 +122,26 @@ class BundleNotebookManager(NotebookManager):
         abspath = self._get_os_path(name=None, path=path)
         self.bundler.save_notebook(model, name=name, path=abspath)
 
-        #model = self.get_notebook(new_name, new_path, content=False)
+        model = self.get_notebook(name, path, content=False)
+        return model
+
+    def update_notebook(self, model, name, path=''):
+        """Update the notebook's path and/or name"""
+        path = path.strip('/')
+        new_name = model.get('name', name)
+        new_path = model.get('path', path).strip('/')
+        if path != new_path or name != new_name:
+            self.rename_notebook(name, path, new_name, new_path)
+
+        model = self.get_notebook(new_name, new_path, content=False)
+        return model
+
+    def rename_notebook(self, name, path, new_name, new_path):
+        """Update the notebook's path and/or name"""
+        os_path = self._get_os_path(path=path)
+        new_os_path = self._get_os_path(path=new_path)
+
+        if path != new_path or name != new_name:
+            self.bundler.rename_notebook(name, os_path, new_name, new_os_path)
+        model = self.get_notebook(new_name, new_path, content=False)
         return model

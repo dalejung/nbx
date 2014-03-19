@@ -91,7 +91,28 @@ class BundleManager(object):
         return False
 
     def rename_notebook(self, name, path, new_name, new_path):
-        raise NotImplementedError('TODO')
+        if path != new_path :
+            raise NotImplementedError('Moving directories not supported')
+
+        bundle_path = os.path.join(path, name)
+        new_bundle_path = os.path.join(new_path, new_name)
+        # Should we proceed with the move?
+        if os.path.exists(new_bundle_path):
+            raise Exception("Notebook bundle already exists")
+
+        old_notebook_file = os.path.join(bundle_path, name)
+        new_notebook_file = os.path.join(bundle_path, new_name)
+        # first move the notebook file
+        try:
+            os.rename(old_notebook_file, new_notebook_file)
+        except Exception as e:
+            raise Exception(u'Unknown error renaming notebook: %s %s' % (bundle_path, e))
+
+        # finally move the bundle folder
+        try:
+            os.rename(bundle_path, new_bundle_path)
+        except Exception as e:
+            raise Exception(u'Unknown error renaming notebook: %s %s' % (bundle_path, e))
 
     def get_notebook(self, name, path):
         bundle = self.bundle_class(name, path)
