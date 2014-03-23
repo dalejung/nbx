@@ -22,135 +22,143 @@ define(function() {
     };
 });
 
-// plug in so :w saves
-CodeMirror.commands.save = function(cm) {
-    IPython.notebook.save_notebook();
-}
 
-// Monkey patch: KeyboardManager.handle_keydown
-// Diff: disable this handler
+(function () {
+    // only monkey patch on notebook page
+    if(!IPython.Cell) {
+        return;
+    }
 
-IPython.KeyboardManager.prototype.handle_keydown = function(event) {
-    var cell = IPython.notebook.get_selected_cell();
-    var vim_mode = cell.code_mirror.getOption('keyMap');
-    if (cell instanceof IPython.TextCell) {
-        // when cell is rendered, we get no key events, so we capture here
-        if (cell.rendered && event.type == 'keydown') {
+    // plug in so :w saves
+    CodeMirror.commands.save = function(cm) {
+        IPython.notebook.save_notebook();
+    }
+
+    // Monkey patch: KeyboardManager.handle_keydown
+    // Diff: disable this handler
+
+    IPython.KeyboardManager.prototype.handle_keydown = function(event) {
+        var cell = IPython.notebook.get_selected_cell();
+        var vim_mode = cell.code_mirror.getOption('keyMap');
+        if (cell instanceof IPython.TextCell) {
+            // when cell is rendered, we get no key events, so we capture here
+            if (cell.rendered && event.type == 'keydown') {
+                // switch IPython.notebook to this.notebook if Cells get notebook reference
+                ret = IPython.VIM.keyDown(IPython.notebook, event);
+                return ret;
+            }
+        }
+        return;
+    }
+
+    // Monkey patch: KeyboardManager.register_events
+    // Diff: disable this handler
+    IPython.KeyboardManager.prototype.register_events = function(e) {
+        return;
+    }
+    // Monkey patch insert_cell_below
+    // Diff: Select cell after insert
+    IPython.Notebook.prototype.insert_cell_below = function(type, index) {
+        index = this.index_or_selected(index);
+        var cell = this.insert_cell_at_index(type, index + 1);
+        this.select(this.find_cell_index(cell));
+        return cell;
+    };
+
+    // Monkey patch insert_cell_above
+    // Diff: Select cell after insert
+    IPython.Notebook.prototype.insert_cell_above = function(type, index) {
+        index = this.index_or_selected(index);
+        var cell = this.insert_cell_at_index(type, index);
+        this.select(this.find_cell_index(cell));
+        return cell;
+    };
+
+    // Monkey patch: execute_cell
+    // Diff: don't switch to command mode
+    IPython.Notebook.prototype.execute_cell = function() {
+        var cell = this.get_selected_cell();
+        var cell_index = this.find_cell_index(cell);
+        cell.execute();
+        this.set_dirty(true);
+    };
+
+    IPython.Notebook.prototype.command_mode = function () {
+        return;
+    }
+
+    IPython.Notebook.prototype.edit_mode = function () {
+        return;
+    }
+
+    // Focus editor on select
+    IPython.CodeCell.prototype.select = function() {
+        var cont = IPython.Cell.prototype.select.apply(this);
+        if (cont) {
+            this.code_mirror.refresh();
+            this.focus_editor();
+            this.auto_highlight();
+        }
+        return cont;
+    };
+
+    // Focus editor on select
+    IPython.TextCell.prototype.select = function() {
+        var cont = IPython.Cell.prototype.select.apply(this);
+        if (cont) {
+            if (this.mode === 'edit') {
+              this.code_mirror.refresh();
+            }
+            this.element.focus();
+        }
+        return cont;
+    };
+
+    IPython.TextCell.prototype.execute = function () {
+        this.render();
+        this.command_mode();
+    };
+
+    IPython.CodeCell.prototype.handle_keyevent = function(editor, event) {
+
+        // console.log('CM', this.mode, event.which, event.type)
+        var ret = this.handle_codemirror_keyevent(editor, event);
+        if (ret) {
+            return ret;
+        }
+        if (event.type == 'keydown') {
             // switch IPython.notebook to this.notebook if Cells get notebook reference
             ret = IPython.VIM.keyDown(IPython.notebook, event);
             return ret;
         }
-    }
-    return;
-}
+        return false;
+    };
 
-// Monkey patch: KeyboardManager.register_events
-// Diff: disable this handler
-IPython.KeyboardManager.prototype.register_events = function(e) {
-    return;
-}
-// Monkey patch insert_cell_below
-// Diff: Select cell after insert
-IPython.Notebook.prototype.insert_cell_below = function(type, index) {
-    index = this.index_or_selected(index);
-    var cell = this.insert_cell_at_index(type, index + 1);
-    this.select(this.find_cell_index(cell));
-    return cell;
-};
-
-// Monkey patch insert_cell_above
-// Diff: Select cell after insert
-IPython.Notebook.prototype.insert_cell_above = function(type, index) {
-    index = this.index_or_selected(index);
-    var cell = this.insert_cell_at_index(type, index);
-    this.select(this.find_cell_index(cell));
-    return cell;
-};
-
-// Monkey patch: execute_cell
-// Diff: don't switch to command mode
-IPython.Notebook.prototype.execute_cell = function() {
-    var cell = this.get_selected_cell();
-    var cell_index = this.find_cell_index(cell);
-    cell.execute();
-    this.set_dirty(true);
-};
-
-IPython.Notebook.prototype.command_mode = function () {
-    return;
-}
-
-IPython.Notebook.prototype.edit_mode = function () {
-    return;
-}
-
-// Focus editor on select
-IPython.CodeCell.prototype.select = function() {
-    var cont = IPython.Cell.prototype.select.apply(this);
-    if (cont) {
-        this.code_mirror.refresh();
-        this.focus_editor();
-        this.auto_highlight();
-    }
-    return cont;
-};
-
-// Focus editor on select
-IPython.TextCell.prototype.select = function() {
-    var cont = IPython.Cell.prototype.select.apply(this);
-    if (cont) {
-        if (this.mode === 'edit') {
-          this.code_mirror.refresh();
+    // Override TextCell keydown
+    // Really just here to handle the render/editing of text cells
+    // Might need to consider also using codemirror keyevent
+    IPython.TextCell.prototype.handle_keyevent = function(editor, event) {
+        var ret = this.handle_codemirror_keyevent(editor, event);
+        if (ret) {
+            return ret;
         }
-        this.element.focus();
+        if (event.type == 'keydown') {
+            ret = IPython.VIM.keyDown(IPython.notebook, event);
+            return ret;
+        }
+        return false;
     }
-    return cont;
-};
 
-IPython.TextCell.prototype.execute = function () {
-    this.render();
-    this.command_mode();
-};
-
-IPython.CodeCell.prototype.handle_keyevent = function(editor, event) {
-
-    // console.log('CM', this.mode, event.which, event.type)
-    var ret = this.handle_codemirror_keyevent(editor, event);
-    if (ret) {
-        return ret;
-    }
-    if (event.type == 'keydown') {
-        // switch IPython.notebook to this.notebook if Cells get notebook reference
-        ret = IPython.VIM.keyDown(IPython.notebook, event);
-        return ret;
-    }
-    return false;
-};
-
-// Override TextCell keydown
-// Really just here to handle the render/editing of text cells
-// Might need to consider also using codemirror keyevent
-IPython.TextCell.prototype.handle_keyevent = function(editor, event) {
-    var ret = this.handle_codemirror_keyevent(editor, event);
-    if (ret) {
-        return ret;
-    }
-    if (event.type == 'keydown') {
-        ret = IPython.VIM.keyDown(IPython.notebook, event);
-        return ret;
-    }
-    return false;
-}
-
-IPython.Notebook.prototype.setVIMode = function(mode) {
-    var cell = this.get_selected_cell();
-    cm = cell.code_mirror;
-    if (cm) {
-        if (mode == 'INSERT') {
-            CodeMirror.keyMap.vim.I(cm);
+    IPython.Notebook.prototype.setVIMode = function(mode) {
+        var cell = this.get_selected_cell();
+        cm = cell.code_mirror;
+        if (cm) {
+            if (mode == 'INSERT') {
+                CodeMirror.keyMap.vim.I(cm);
+            }
         }
     }
-}
+})();
 
 var IPython = (function(IPython) {
 
