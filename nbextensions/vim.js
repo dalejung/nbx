@@ -36,10 +36,19 @@ define(function() {
 
     // Monkey patch: KeyboardManager.handle_keydown
     // Diff: disable this handler
+    var keycodes = IPython.keyboard.keycodes;
 
     IPython.KeyboardManager.prototype.handle_keydown = function(event) {
         var cell = IPython.notebook.get_selected_cell();
         var vim_mode = cell.code_mirror.getOption('keyMap');
+        var notebook = IPython.notebook;
+
+        if (event.which === keycodes.esc) {
+            // ESC
+            notebook.command_mode();
+            return false;
+        }
+
         if (cell instanceof IPython.TextCell) {
             // when cell is rendered, we get no key events, so we capture here
             if (cell.rendered && event.type == 'keydown') {
@@ -48,6 +57,17 @@ define(function() {
                 return ret;
             }
         }
+        return;
+    }
+
+    // the new ipython refactor was screwing up key handling
+    IPython.Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
+        return false;
+    }
+
+    // For VIM, focusing the element makes no sense. We want editor focused
+    IPython.CodeCell.prototype.focus_cell = function () {
+        this.focus_editor();
         return;
     }
 
@@ -121,7 +141,6 @@ define(function() {
 
     IPython.CodeCell.prototype.handle_keyevent = function(editor, event) {
 
-        // console.log('CM', this.mode, event.which, event.type)
         var ret = this.handle_codemirror_keyevent(editor, event);
         if (ret) {
             return ret;
@@ -154,7 +173,7 @@ define(function() {
         cm = cell.code_mirror;
         if (cm) {
             if (mode == 'INSERT') {
-                CodeMirror.keyMap.vim.I(cm);
+                CodeMirror.keyMap.vim["'I'"](cm);
             }
         }
     }
@@ -283,7 +302,7 @@ var IPython = (function(IPython) {
         }
         // P: paste cell
         if (event.which === 80 && event.shiftKey) {
-            that.paste_cell();
+            that.paste_cell_below();
             return true;
         }
         // B: open new cell below
