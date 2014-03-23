@@ -10,6 +10,7 @@ from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 
 from nbx.nbmanager.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.notebook_gisthub import notebook_gisthub
+from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
 
 from IPython.html.base.zmqhandlers import ZMQStreamHandler
 
@@ -22,6 +23,8 @@ class MetaManager(LoggingConfigurable):
     """
     file_dirs = Dict(config=True,
                            help="Dict of alias, path")
+    bundle_dirs = Dict(config=True,
+                           help="BundleNBManager. Dict of alias, path")
     github_accounts = List(Tuple, config=True,
                            help="List of Tuple(github_account, github_password)")
 
@@ -41,6 +44,11 @@ class MetaManager(LoggingConfigurable):
 
         for alias, path in self.file_dirs.items():
             fb = FileNotebookManager()
+            fb.notebook_dir = path
+            self.managers[alias] = fb
+
+        for alias, path in self.bundle_dirs.items():
+            fb = BundleNotebookManager()
             fb.notebook_dir = path
             self.managers[alias] = fb
 
