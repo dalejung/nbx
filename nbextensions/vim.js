@@ -119,11 +119,12 @@ define(function() {
     // Focus editor on select
     IPython.TextCell.prototype.select = function() {
         var cont = IPython.Cell.prototype.select.apply(this);
-        if (this.mode === 'edit') {
-          this.code_mirror.refresh();
+        if(this.rendered) {
+            this.element.focus();
+        } else {
+            this.code_mirror.refresh();
+            this.focus_editor();
         }
-        this.element.focus();
-        this.focus_editor();
         return cont;
     };
 
@@ -347,7 +348,7 @@ var IPython = (function(IPython) {
         if (textcell && rendered && event.which === 73 && !event.shiftKey) {
             cell.unrender();
             cell.focus_editor();
-            return false;
+            return true;
         }
 
         // esc: get out of insert and render textcell
