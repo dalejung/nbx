@@ -43,12 +43,6 @@ define(function() {
         var vim_mode = cell.code_mirror.getOption('keyMap');
         var notebook = IPython.notebook;
 
-        if (event.which === keycodes.esc) {
-            // ESC
-            notebook.command_mode();
-            return false;
-        }
-
         if (cell instanceof IPython.TextCell) {
             // when cell is rendered, we get no key events, so we capture here
             if (cell.rendered && event.type == 'keydown') {
@@ -66,8 +60,8 @@ define(function() {
     }
 
     // For VIM, focusing the element makes no sense. We want editor focused
-    IPython.CodeCell.prototype.focus_cell = function () {
-        this.focus_editor();
+    IPython.Cell.prototype.focus_cell = function () {
+        //this.focus_editor();
         return;
     }
 
@@ -125,12 +119,11 @@ define(function() {
     // Focus editor on select
     IPython.TextCell.prototype.select = function() {
         var cont = IPython.Cell.prototype.select.apply(this);
-        if (cont) {
-            if (this.mode === 'edit') {
-              this.code_mirror.refresh();
-            }
-            this.element.focus();
+        if (this.mode === 'edit') {
+          this.code_mirror.refresh();
         }
+        this.element.focus();
+        this.focus_editor();
         return cont;
     };
 
@@ -352,7 +345,8 @@ var IPython = (function(IPython) {
         // i: insert. only relevant on textcell
         var rendered = cell.rendered;
         if (textcell && rendered && event.which === 73 && !event.shiftKey) {
-            cell.edit_mode();
+            cell.unrender();
+            cell.focus_editor();
             return false;
         }
 
