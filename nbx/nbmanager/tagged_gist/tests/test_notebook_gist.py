@@ -1,8 +1,8 @@
 import unittest
 import nose.tools as nt
 
-from nbx.nbmanager.tagged_gist.notebook_gisthub import NotebookGistHub, NotebookGist
-from nbx.nbmanager.tagged_gist.gisthub import GistHub, TaggedGist
+from ..notebook_gisthub import NotebookGistHub, NotebookGist
+from ..gisthub import GistHub, TaggedGist
 from .test_gist import generate_gisthub
 from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist,\
                                        make_notebookgist, TestGistHub

@@ -1,6 +1,6 @@
 import github
 
-from nbx.nbmanager.tagged_gist.gisthub import gisthub, _hashtags
+from .gisthub import gisthub, _hashtags
 from IPython.nbformat import current
 
 def parse_tags(desc):
