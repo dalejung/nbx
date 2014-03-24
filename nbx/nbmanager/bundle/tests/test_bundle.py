@@ -2,8 +2,8 @@ import os
 import unittest
 import nose.tools as nt
 
-import nbx.nbmanager.bundle.bundle as bmod
-from common import *
+from .. import bundle as bmod
+from .common import *
 
 def wrap_bundles(path, cls):
     bundles = ['second.ipynb', 'test.ipynb']

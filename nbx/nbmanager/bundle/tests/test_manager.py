@@ -2,8 +2,7 @@ import os
 import unittest
 import nose.tools as nt
 
-import nbx.nbmanager.bundle.manager as mmod
-reload(mmod)
+from .. import manager as mmod
 from common import *
 
 class TestManager(unittest.TestCase):

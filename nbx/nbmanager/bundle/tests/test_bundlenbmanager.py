@@ -4,8 +4,8 @@ from contextlib import contextmanager
 
 import nose.tools as nt
 
-from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
-from common import *
+from ..bundlenbmanager import BundleNotebookManager
+from .common import *
 
 @contextmanager
 def fake_manager():

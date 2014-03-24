@@ -2,7 +2,7 @@ import os
 import io
 import shutil
 
-from nbx.nbmanager.bundle.bundle import NotebookBundle
+from .bundle import NotebookBundle
 
 from IPython.nbformat import current, sign
 

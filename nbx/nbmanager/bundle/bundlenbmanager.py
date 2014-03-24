@@ -10,7 +10,7 @@ from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 from IPython.nbformat import current
 from IPython.html.utils import is_hidden, to_os_path
 
-from nbx.nbmanager.bundle.manager import BundleManager
+from .manager import BundleManager
 
 class BundleNotebookManager(NotebookManager):
     """
