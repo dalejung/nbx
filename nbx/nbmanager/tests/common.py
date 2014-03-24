@@ -2,8 +2,8 @@ import github
 import pandas as pd
 from mock import Mock
 
-from nbx.nbmanager.notebook_gisthub import NotebookGist, NotebookGistHub
-from nbx.nbmanager.gisthub import TaggedGist
+from nbx.nbmanager.tagged_gist.notebook_gisthub import NotebookGist, NotebookGistHub
+from nbx.nbmanager.tagged_gist.gisthub import TaggedGist
 
 hub = None
 try:

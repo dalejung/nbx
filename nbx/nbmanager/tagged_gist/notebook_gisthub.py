@@ -1,6 +1,6 @@
 import github
 
-from nbx.nbmanager.gisthub import gisthub, _hashtags
+from nbx.nbmanager.tagged_gist.gisthub import gisthub, _hashtags
 from IPython.nbformat import current
 
 def parse_tags(desc):
@@ -17,7 +17,7 @@ class NotebookGist(object):
     A single notebook abstraction over Gist. Normally a gist can have
     mutliple files. A notebook gist pretends to be a single file.
     """
-    # instead of having a bunch of @property getters, define 
+    # instead of having a bunch of @property getters, define
     # attrs to grab from .gist here.
     _gist_attrs = ['id', 'files', 'active', 'edit', 'updated_at',
                    'created_at', 'public']
@@ -83,7 +83,7 @@ class NotebookGist(object):
             # maybe this is a notebook
             content = current.writes(content, format=u'json')
             self._notebook_content = content
-        except: 
+        except:
             raise
 
     @property
@@ -153,7 +153,7 @@ class NotebookGist(object):
     def __repr__(self):
         out = "NotebookGist(name={name}, active={active}, " + \
                "public={public}, tags={tags})"
-        return out.format(public=self.public, name=self.name, 
+        return out.format(public=self.public, name=self.name,
                           tags=self.tags, active=self.active)
 
     def strip_gist_id(self, key_name):

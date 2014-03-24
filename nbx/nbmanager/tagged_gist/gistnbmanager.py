@@ -5,7 +5,7 @@ from tornado import web
 from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.nbformat import current
 
-from nbx.nbmanager.notebook_gisthub import parse_tags
+from nbx.nbmanager.tagged_gist.notebook_gisthub import parse_tags
 
 class GistNotebookManager(NotebookManager):
     """

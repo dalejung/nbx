@@ -8,8 +8,8 @@ from IPython.config.configurable import LoggingConfigurable
 from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 
-from nbx.nbmanager.gistnbmanager import GistNotebookManager
-from nbx.nbmanager.notebook_gisthub import notebook_gisthub
+from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
+from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
 from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
 
 from IPython.html.base.zmqhandlers import ZMQStreamHandler

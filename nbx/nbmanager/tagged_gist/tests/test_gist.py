@@ -2,7 +2,7 @@ import unittest
 from  mock import Mock
 import nose.tools as nt
 
-from nbx.nbmanager.gisthub import TaggedGist, GistHub
+from nbx.nbmanager.tagged_gist.gisthub import TaggedGist, GistHub
 from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist
 
 def generate_tagged_gists(names):
