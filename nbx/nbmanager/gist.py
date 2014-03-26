@@ -145,7 +145,7 @@ class Gister(object):
         we will not save unless `force` is true.
         """
         if description is None:
-            description = self.gist.description
+            description = self.description
         if files is None:
             files = {}
 

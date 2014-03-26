@@ -1,9 +1,12 @@
 import os
+import functools
+import inspect
 
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
     DottedObjectName, TraitError, Tuple,
 )
+from IPython.utils.importstring import import_item
 from IPython.config.configurable import LoggingConfigurable
 from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
@@ -11,10 +14,30 @@ from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
 from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
+from nbx.nbmanager.middleware import ManagerMiddleware
 
 from IPython.html.base.zmqhandlers import ZMQStreamHandler
 
 ZMQStreamHandler.same_origin = lambda self: True
+
+def manager_hook(func):
+    func_name = func.__name__
+    argspec = inspect.getargspec(func)
+    path_index = argspec.args.index('path') 
+    path_index -= 1 # skip self
+    @functools.wraps(func)
+    def _wrapped(self, *args, **kwargs):
+        # grab path based on argspec
+        if len(args) > path_index:
+            path = args[path_index]
+        else:
+            path = kwargs.get('path')
+        nbm, local_path = self._nbm_from_path(path)
+        self.dispatch_middleware('pre_'+func_name, nbm, local_path, *args, **kwargs)
+        res = func(self, *args, **kwargs)
+        self.dispatch_middleware('post_'+func_name, nbm, local_path, *args, **kwargs)
+        return res
+    return _wrapped
 
 class MetaManager(LoggingConfigurable):
     """
@@ -27,6 +50,9 @@ class MetaManager(LoggingConfigurable):
                            help="BundleNBManager. Dict of alias, path")
     github_accounts = List(Tuple, config=True,
                            help="List of Tuple(github_account, github_password)")
+
+    manager_middleware = Dict(config=True,
+                           help="Dict of Middleware")
 
     # Not sure if this should be optional. For now, make it configurable
     enable_custom_handlers = Bool(True, config=True, help="Enable Custom Handlers")
@@ -57,7 +83,21 @@ class MetaManager(LoggingConfigurable):
             gbm = GistNotebookManager(gisthub=gh)
             self.managers['gist:'+user] = gbm
 
+        self.middleware = {}
+        for name, middleware in self.manager_middleware.items():
+            cls = import_item(middleware)
+            self.middleware[name] = cls(parent=self, log=self.log)
+
         self.root = HomeManager(meta_manager=self)
+
+    def dispatch_middleware(self, hook_name, *args, **kwargs):
+        """
+        dispatch hook calls to middleware
+        """
+        for name, middleware in self.middleware.items():
+            method = getattr(middleware, hook_name, None)
+            if method is not None:
+                method(*args, **kwargs)
 
     def _nbm_from_path(self, path):
         # we are on root
@@ -116,6 +156,7 @@ class MetaManager(LoggingConfigurable):
         model = nbm.get_notebook(name, path=local_path, content=content)
         return model
 
+    @manager_hook
     def save_notebook(self, model, name='', path=''):
         nbm, local_path = self._nbm_from_path(path)
         # make sure path is local and doesn't include sub manager prefix
