@@ -65,7 +65,7 @@ class TestGistService(unittest.TestCase):
     def test_get_gist(self):
         gs = GistService()
         gs.login(login, password)
-        gist_id = '9751912'
+        gist_id = '6705707'
         gist = gs.get_gist(gist_id)
         nt.assert_equal(gist.user.login, 'dalejung')
 
@@ -126,7 +126,7 @@ class TestGistService(unittest.TestCase):
         """ check whether gist is owned by local account """
         gs = GistService()
         gs.login(login, password)
-        gist_id = '9751912'
+        gist_id = '6705707'
         gist = gs.get_gist(gist_id)
         if login != 'dalejung':
             nt.assert_false(gs.is_owned(gist))
