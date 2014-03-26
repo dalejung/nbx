@@ -35,14 +35,24 @@ class GistService(object):
     Keeps track of github accounts and gists.
     """
     def __init__(self):
-        self.hub = github.Github()
         self.accounts = {}
         self.default = None
         self.gist_cache = {}
 
+    @property
+    def hub(self):
+        """
+        This is for non-user requests. We use a default logged hub
+        due to the Rate Limit imposed on anonymous hubs
+        """
+        return self.accounts[self.default]
+
     def login(self, login, password):
+        if self.default is None:
+            self.default = login
         # if account already
         if login in self.accounts:
+            print "Alredy logged in"
             return
         hub = github.Github(login, password, user_agent="nbx")
         self.accounts[login] = hub
@@ -59,9 +69,9 @@ class GistService(object):
         Gist. Otherwise return a read-only Gist.
         """
         gist = self.hub.get_gist(gist_id)
-        # if we're
         owner = self.get_owner(gist)
-        if owner is not None:
+        if owner is not None and owner is not self.hub:
+            print 'grabbed from hub'
             gist = owner.get_gist(gist_id)
         gist = Gister(gist, self)
         return gist
@@ -78,6 +88,9 @@ class GistService(object):
         return self.accounts.get(login, None)
 
 class Gister(object):
+    """
+    Gister is just to differentiate from github.Gist
+    """
     def __init__(self, gist, service):
         self.gist = gist
         self.service = service

@@ -47,18 +47,23 @@ class TestGistService(unittest.TestCase):
     def setUp(self):
         pass
 
+    @require_github
     def test_get_gist(self):
         gs = GistService()
+        gs.login(login, password)
         gist_id = '9751912'
         gist = gs.get_gist(gist_id)
         nt.assert_equal(gist.user.login, 'dalejung')
 
+    @require_github
     def test_is_owned(self):
         """ check whether gist is owned by local account """
         gs = GistService()
+        gs.login(login, password)
         gist_id = '9751912'
         gist = gs.get_gist(gist_id)
-        nt.assert_false(gs.is_owned(gist))
+        if login != 'dalejung':
+            nt.assert_false(gs.is_owned(gist))
         # note, until we do something that requires auth
         # it won't error
         gs.login('dalejung', 'fakepw')
@@ -111,15 +116,9 @@ with TemporaryDirectory() as td:
 
 gs = GistService()
 gist_id = '9751912'
-gist = gs.get_gist(gist_id)
 gs.login(login, password)
+gist = gs.get_gist(gist_id)
 hub = gs.accounts['dalejung']
-
-gist = makeFakeGist()
-gister = Gister(gist, None)
-gister.save(files={'new.txt':'new.txt content'})
-args = gist.edit.call_args[0]
-description, files = args
 
 if __name__ == '__main__':
     import nose
