@@ -107,6 +107,13 @@ class TestGister(unittest.TestCase):
             else:
                 nt.assert_is_none(f)
 
+    @require_github
+    def test_save_gist_live(self):
+        gs = GistService()
+        gs.login(login, password)
+        gist_id = '9751912'
+        gist = gs.get_gist(gist_id)
+
     def test_is_dirty(self):
         old_desc = 'Test Gist #notebook #pandas #woo'
         gist = makeFakeGist()
@@ -139,7 +146,10 @@ gs = GistService()
 gs.login(login, password)
 gist_id = '9751912'
 gist = gs.get_gist(gist_id)
-gist.edit(files={'bob.txt':'bob'})
+gist.edit(files={'bob.txt':'bob2'})
+
+g2 = gs.create_gist()
+g2.delete()
 
 if __name__ == '__main__':
     import nose

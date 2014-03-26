@@ -84,6 +84,21 @@ class GistService(object):
         gist = Gister(gist, self)
         return gist
 
+    def create_gist(self, description=None, files=None, public=True, login=None):
+        if login is None:
+            login = self.default
+        if description is None:
+            description = "nbx created gist"
+        if files is None:
+            files = {'empty.txt':'empty file created by nbx'}
+
+        hub = self.accounts[login]
+        files = _github_files(files)
+        gist = hub.get_user().create_gist(public, files, description)
+        assert gist.user.login == login
+        gist = self.get_gist(gist.id)
+        return gist
+
     def is_owned(self, gist):
         """
         Checks if the gist is ownd by an account we manage.
@@ -95,6 +110,9 @@ class GistService(object):
         login = gist.user.login
         return self.accounts.get(login, None)
 
+    def gist_deleted(self, gist):
+        del self.gist_cache[gist.id]
+
 class Gister(object):
     """
     Gister is just to differentiate from github.Gist
@@ -102,6 +120,8 @@ class Gister(object):
     def __init__(self, gist, service):
         self.gist = gist
         self.service = service
+
+        self.id = gist.id
 
     @property
     def user(self):
@@ -121,6 +141,10 @@ class Gister(object):
         files = _github_files(files)
         if dirty or force:
             self.gist.edit(description, files)
+
+    def delete(self):
+        self.gist.delete()
+        self.service.gist_deleted(self)
 
     def _is_dirty(self, description, files):
         """
