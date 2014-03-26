@@ -124,6 +124,18 @@ class Gister(object):
         self.id = gist.id
 
     @property
+    def public(self):
+        return self.gist.public
+
+    @property
+    def description(self):
+        return self.gist.description
+
+    @property
+    def files(self):
+        return self.gist.files
+
+    @property
     def user(self):
         return self.gist.user
 
