@@ -15,20 +15,28 @@ def model_to_files(model):
     Returns
     -------
     files : dict
-        {filename: github.InputFileContent(file_content)}
+        {filename: content}
+        Note: changed files dict values to be strings.
     """
     files = {}
     name = model['name']
     content = current.writes(model['content'], format=u'json')
-    f = github.InputFileContent(content)
-    files[name] = f
+    files[name] = content
 
 
     __files = model.get('__files', {})
-    for fn, fn_content in __files.iteritems():
-        f = github.InputFileContent(fn_content)
-        files[fn] = f
+    for fn, content in __files.iteritems():
+        files[fn] = content
     return files
+
+def _github_files(files):
+    """ wrap basestring content into github.InputFilecontent """
+    new_files = {}
+    for fn, content in files.items():
+        if isinstance(content, basestring):
+            content = github.InputFileContent(content)
+        new_files[fn] = content
+    return new_files
 
 class GistService(object):
     """
@@ -106,20 +114,31 @@ class Gister(object):
         """
         if description is None:
             description = self.gist.description
-        dirty = False
-        for fn, fobj in self.gist.files.iteritems():
-            # if file is missing, means we leave it alone
-            if fn not in files:
-                continue
-            new_content = files[fn]
-            if new_content != fobj.content:
-                dirty = True
-                break
-        if description != self.gist.description:
-            dirty = True
-        #
+        if files is None:
+            files = {}
+
+        dirty = self._is_dirty(description, files)
+        files = _github_files(files)
         if dirty or force:
             self.gist.edit(description, files)
+
+    def _is_dirty(self, description, files):
+        """
+        Check whether the description/files would change the current
+        gist
+        """
+        if description != self.gist.description:
+            return True
+
+        for fn, content in files.items():
+            # new file
+            if fn not in self.gist.files:
+                return True
+
+            old_content = self.gist.files[fn].content
+            if content != old_content:
+                return True
+        return False
 
     def save(self, description=None, files=_missing, force=False):
         """

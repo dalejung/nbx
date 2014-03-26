@@ -33,7 +33,7 @@ class TestGist(unittest.TestCase):
             model['__files'] = {'file1.txt': 'file1txt content'}
             files = model_to_files(model)
             nt.assert_items_equal(files, [name, 'file1.txt'])
-            nt.assert_equal(files['file1.txt']._InputFileContent__content,
+            nt.assert_equal(files['file1.txt'],
                             'file1txt content')
 
 class TestGistService(unittest.TestCase):
@@ -99,12 +99,33 @@ class TestGister(unittest.TestCase):
         nt.assert_items_equal(files, ['new.txt', 'a.ipynb', 'b.ipynb', 'test.txt'])
 
         for fn in files:
+            f = files[fn]
             if fn == 'new.txt':
-                nt.assert_equal(files[fn], 'new.txt content')
+                nt.assert_equal(f._InputFileContent__content, 'new.txt content')
             elif fn == 'a.ipynb':
-                nt.assert_equal(files[fn], 'new content')
+                nt.assert_equal(f._InputFileContent__content, 'new content')
             else:
-                nt.assert_is_none(files[fn])
+                nt.assert_is_none(f)
+
+    def test_is_dirty(self):
+        old_desc = 'Test Gist #notebook #pandas #woo'
+        gist = makeFakeGist()
+        gister = Gister(gist, None)
+
+        # change desc
+        nt.assert_true(gister._is_dirty('changed desc', files={}))
+
+        # no change
+        nt.assert_false(gister._is_dirty(old_desc, files={}))
+
+        # new file
+        nt.assert_true(gister._is_dirty(old_desc, files={'new file.txt': 'ewn'}))
+
+        # change existing
+        nt.assert_true(gister._is_dirty(old_desc, files={'a.ipynb': 'ewn'}))
+
+        # same as previous file content
+        nt.assert_false(gister._is_dirty(old_desc, files={'a.ipynb': 'a.ipynb content'}))
 
 with TemporaryDirectory() as td:
     fm = FileNotebookManager(notebook_dir=td)
@@ -115,10 +136,10 @@ with TemporaryDirectory() as td:
     files = model_to_files(model)
 
 gs = GistService()
-gist_id = '9751912'
 gs.login(login, password)
+gist_id = '9751912'
 gist = gs.get_gist(gist_id)
-hub = gs.accounts['dalejung']
+gist.edit(files={'bob.txt':'bob'})
 
 if __name__ == '__main__':
     import nose
