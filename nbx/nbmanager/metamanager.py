@@ -1,6 +1,4 @@
 import os
-import functools
-import inspect
 
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
@@ -14,30 +12,12 @@ from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
 from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
 from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
-from nbx.nbmanager.middleware import ManagerMiddleware
 
 from IPython.html.base.zmqhandlers import ZMQStreamHandler
 
-ZMQStreamHandler.same_origin = lambda self: True
+from .middleware import manager_hook
 
-def manager_hook(func):
-    func_name = func.__name__
-    argspec = inspect.getargspec(func)
-    path_index = argspec.args.index('path') 
-    path_index -= 1 # skip self
-    @functools.wraps(func)
-    def _wrapped(self, *args, **kwargs):
-        # grab path based on argspec
-        if len(args) > path_index:
-            path = args[path_index]
-        else:
-            path = kwargs.get('path')
-        nbm, local_path = self._nbm_from_path(path)
-        self.dispatch_middleware('pre_'+func_name, nbm, local_path, *args, **kwargs)
-        res = func(self, *args, **kwargs)
-        self.dispatch_middleware('post_'+func_name, nbm, local_path, *args, **kwargs)
-        return res
-    return _wrapped
+ZMQStreamHandler.same_origin = lambda self: True
 
 class MetaManager(LoggingConfigurable):
     """
