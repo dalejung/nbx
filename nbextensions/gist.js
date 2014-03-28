@@ -62,9 +62,8 @@ define( function () {
         return token;
     };
 
-    var gist_notebook = function () {
+    var gist_notebook = function (public) {
         var gist_id = IPython.notebook.metadata.gist_id;
-        console.log(gist_id);
         var token = get_github_token();
         if (!token) {
             // dialog's are async, so we can't do anything yet.
@@ -87,7 +86,7 @@ define( function () {
             type : method,
             headers : { Authorization: "token " + token },
             data : JSON.stringify({
-                public : true,
+                public : public,
                 files : filedata,
             }),
             success : function (data, status) {
@@ -95,6 +94,7 @@ define( function () {
                 IPython.notebook.metadata.gist_id = data.id;
                 update_gist_link(data.id);
                 IPython.notification_area.get_widget("notebook").set_message("gist succeeded: " + data.id, 1500);
+                IPython.notebook.save_notebook();
             },
             error : function (jqXHR, status, err) {
                 console.log(jqXHR);
@@ -131,6 +131,9 @@ define( function () {
     
         link.attr("href", "http://nbviewer.ipython.org/" + gist_id);
         link.text("http://nbviewer.ipython.org/" + gist_id);
+
+        // hide buttons 
+        toolbar.find('.gist-button').hide();
     };
 
     var gist_button = function () {
@@ -139,17 +142,20 @@ define( function () {
             return;
         }
         if ($("#gist_notebook").length === 0) {
-            IPython.toolbar.add_buttons_group([
-                {
-                    'label'   : 'Share Notebook as gist',
-                    'icon'    : 'icon-share',
-                    'callback': gist_notebook,
-                    'id'      : 'gist_notebook'
-                },
-            ]);
+            toolbar_button("Public Gist", function() {gist_notebook(true);});
+            toolbar_button("Private Gist", function() {gist_notebook(false);});
         }
         update_gist_link();
     };
+
+    var toolbar_button = function(text, func) {
+        var btn_group = $('<div/>').addClass("btn-group gist-button");
+        var button  = $('<button/>')
+        button.html(text);
+        button.click(func);
+        btn_group.append(button);
+        $(IPython.toolbar.selector).append(btn_group)
+    }
     
     var load_extension = function () {
         gist_button();
