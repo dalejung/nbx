@@ -170,6 +170,10 @@ class MetaManager(LoggingConfigurable):
         nbm, local_path = self._nbm_from_path(path)
         return nbm.delete_checkpoint(checkpoint_id, name, local_path)
 
+    def get_kernel_path(self, name, path=''):
+        nbm, local_path = self._nbm_from_path(path)
+        return nbm.get_kernel_path(name, local_path)
+
 class HomeManager(NotebookManager):
     """
     Handle the root path "/"

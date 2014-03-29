@@ -44,6 +44,11 @@ class BundleNotebookManager(NotebookManager):
             path = path + '/' + name
         return to_os_path(path, self.notebook_dir)
 
+    def get_kernel_path(self, name, path='', model=None):
+        # get into bundle dir
+        bundle_path = self.bundler._get_bundle_path(name, path)
+        return os.path.join(self.notebook_dir, bundle_path)
+
     def path_exists(self, path):
         path = path.strip('/')
         os_path = self._get_os_path(path=path)
@@ -96,7 +101,7 @@ class BundleNotebookManager(NotebookManager):
         Returns
         -------
         model : dict
-            the notebook model. If contents=True, returns the 'contents' 
+            the notebook model. If contents=True, returns the 'contents'
             dict in the model as well.
         """
         path = path.strip('/')
@@ -211,4 +216,4 @@ class BundleNotebookManager(NotebookManager):
     def delete_checkpoint(self, checkpoint_id, name, path=''):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")
-    
+
