@@ -9,7 +9,9 @@ setup(
     packages=['nbx'],
     entry_points={
         'console_scripts':
-            ['nbx = nbx.command:main',
+            [
+                'nbx = nbx.command:main',
+                'nbx-gist = nbx.gist_upload:main',
             ]
     }
 )
