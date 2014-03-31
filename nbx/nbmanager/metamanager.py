@@ -17,6 +17,9 @@ from IPython.html.base.zmqhandlers import ZMQStreamHandler
 
 from .middleware import manager_hook
 
+# monkey patch
+import nbx.hack
+
 ZMQStreamHandler.same_origin = lambda self: True
 
 class MetaManager(LoggingConfigurable):
