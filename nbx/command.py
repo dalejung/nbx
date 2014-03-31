@@ -11,7 +11,7 @@ def attach_session(cl, target):
     cl._list_sessions()
     cl.attach(target)
 
-def cd_to_cwd(cl, target):
+def kernel_pwd(cl, target):
     cl._list_sessions()
     return cl.kernel_path(target)
 
@@ -44,9 +44,9 @@ def main():
     if action in ['attach']:
         attach_session(cl, target)
 
-    if action in ['cd']:
+    if action in ['pwd']:
         import pipes
-        print cd_to_cwd(cl, target)
+        print kernel_pwd(cl, target)
 
 if __name__ == '__main__':
     main()
