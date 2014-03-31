@@ -11,6 +11,10 @@ def attach_session(cl, target):
     cl._list_sessions()
     cl.attach(target)
 
+def kernel_pwd(cl, target):
+    cl._list_sessions()
+    return cl.kernel_path(target)
+
 def main():
     import argparse
     import os
@@ -39,6 +43,10 @@ def main():
 
     if action in ['attach']:
         attach_session(cl, target)
+
+    if action in ['pwd']:
+        import pipes
+        print kernel_pwd(cl, target)
 
 if __name__ == '__main__':
     main()
