@@ -21,6 +21,9 @@ class IPythonService(object):
     def server_info(self):
         return self._get('server-info')
 
+    def kernel_info(self, kernel_id):
+        return self._get('api/kernel-info/{kernel_id}'.format(kernel_id=kernel_id))
+
 class IPythonClient(object):
     def __init__(self, service):
         self.service = service
@@ -55,6 +58,16 @@ class IPythonClient(object):
         print "Attaching to {name}".format(name=session['notebook']['name'])
         print "=" * 80
         return attach_session(session, profile=profile)
+
+    def kernel_path(self, pos):
+        info = self.service.server_info()
+        profile = info['profile']
+        pos = int(pos)
+        session = self._get_session(pos)
+        kernel_id = session['kernel']['id']
+        kernel_info = self.service.kernel_info(kernel_id)
+        kernel_path = kernel_info['kernel_path']
+        return kernel_path
 
 def attach_session(session, profile='default'):
     """
