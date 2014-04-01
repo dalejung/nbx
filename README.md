@@ -7,6 +7,11 @@
 * `standalone` handler Allows ipython to serve pages that connect to kernel but don't exist within the notebook interface. 
 * vim keymapping
 
+# nbextensions
+
+* vim key bindings [vim docs](nbextensions/README.md)
+* gist.js (modified from minK's that allows private gists)
+
 # Setup
 
 Install the github package.
