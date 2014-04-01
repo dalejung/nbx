@@ -38,7 +38,7 @@ c.NotebookApp.notebook_manager_class = "nbx.nbmanager.metamanager.MetaManager"
 
 # github accounts for gist backend
 c.MetaManager.github_accounts = []
-c.MetaManager.github_accounts.append(('user', 'password
+c.MetaManager.github_accounts.append(('user', 'password'))
 
 # Add additional file based notebook dirs
 c.MetaManager.file_dirs = {}
