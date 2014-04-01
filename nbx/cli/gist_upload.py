@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os.path
 from IPython.config.loader import (
     KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound, JSONFileConfigLoader

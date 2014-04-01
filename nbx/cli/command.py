@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-import nbx.client as client
+from . import client
 import urllib2
 import urllib
 
