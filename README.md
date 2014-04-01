@@ -11,4 +11,4 @@ So far this is a port of `ipycli` to work with the newest ipython master. For th
 
 # nbx cli tools
 
-[docs](cli/README.md)
+[docs](nbx/cli/README.md)
