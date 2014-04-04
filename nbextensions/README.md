@@ -5,6 +5,22 @@ I've had to largely disable dual mode. Having a command/edit mode for both IPyth
 
 Not sure if the dual mode will mesh well with what I want for vim bindings. However, that might be due to my inexperience with it. We will see. 
 
+## Install
+
+1. Download the `nbx/nbextensions/vim.js` to your `$IPYTHON_DIR/nbextensions` directory.
+2. Edit your `$IPYTHON_DIR/$PROFILE_NAME/static/custom/custom.js` and add
+```javascript
+// add this to <profile>/static/custom/custom.js to load vim keybindings:
+$.getScript("/static/components/codemirror/keymap/vim.js", function() {
+    if (! IPython.Cell) return;
+    IPython.Cell.options_default.cm_config.keyMap = "vim";
+});
+
+require(["nbextensions/vim"], function (vim_extension) {
+    vim_extension.load_extension();
+});
+```
+
 ## Shortcuts:
 
 Normal Mode:
