@@ -67,7 +67,7 @@ class TestGistService(unittest.TestCase):
         gs.login(login, password)
         gist_id = '6705707'
         gist = gs.get_gist(gist_id)
-        nt.assert_equal(gist.user.login, 'dalejung')
+        nt.assert_equal(gist.owner.login, 'dalejung')
 
     @require_github
     def test_create_gist(self):
@@ -80,7 +80,7 @@ class TestGistService(unittest.TestCase):
         with create_gist_context(public=False, description="nbx test") as gist:
             nt.assert_equal(gist.public, False)
             nt.assert_equal(gist.description, "nbx test")
-            nt.assert_equal(gist.user.login, login)
+            nt.assert_equal(gist.owner.login, login)
 
         files = {'bob2.txt': 'bob2.txt content'}
         with create_gist_context(public=False, files=files) as gist:

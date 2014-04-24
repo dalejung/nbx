@@ -95,7 +95,7 @@ class GistService(object):
         hub = self.accounts[login]
         files = _github_files(files)
         gist = hub.get_user().create_gist(public, files, description)
-        assert gist.user.login == login
+        assert gist.owner.login == login
         gist = self.get_gist(gist.id)
         return gist
 
@@ -107,7 +107,7 @@ class GistService(object):
         return owner is not None
 
     def get_owner(self, gist):
-        login = gist.user.login
+        login = gist.owner.login
         return self.accounts.get(login, None)
 
     def gist_deleted(self, gist):
@@ -136,8 +136,8 @@ class Gister(object):
         return self.gist.files
 
     @property
-    def user(self):
-        return self.gist.user
+    def owner(self):
+        return self.gist.owner
 
     def edit(self, description=None, files=None, force=False):
         """
