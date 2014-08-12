@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
@@ -8,6 +9,7 @@ from IPython.utils.importstring import import_item
 from IPython.config.configurable import LoggingConfigurable
 from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
+from IPython.html.services.contents.manager import ContentsManager
 
 from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
@@ -22,7 +24,7 @@ import nbx.hack
 
 ZMQStreamHandler.same_origin = lambda self: True
 
-class MetaManager(LoggingConfigurable):
+class MetaManager(ContentsManager):
     """
         Holds NotebookManager classes and routes calls to the appropiate
         manager.
@@ -139,6 +141,21 @@ class MetaManager(LoggingConfigurable):
         model = nbm.get_notebook(name, path=local_path, content=content)
         return model
 
+    def get_model(self, name, path='', content=True):
+        nbm, local_path = self._nbm_from_path(path)
+        model = nbm.get_model(name, path=local_path, content=content)
+        return model
+
+    def _get_model(self, name, path='', content=True):
+        nbm, local_path = self._nbm_from_path(path)
+        if os.path.isdir(os_path):
+            model = self._dir_model(name, path, content)
+        elif name.endswith('.ipynb'):
+            model = nbm.get_notebook(name, path=local_path, content=content)
+        else:
+            model = self._file_model(name, path, content)
+        return model
+
     @manager_hook
     def save_notebook(self, model, name='', path=''):
         nbm, local_path = self._nbm_from_path(path)
@@ -219,3 +236,24 @@ class HomeManager(NotebookManager):
 
     def info_string(self):
         return ''
+
+    def _base_model(self, name, path=''):
+        """Build the common base of a contents model"""
+        # Create the base model.
+        model = {}
+        model['name'] = name
+        model['path'] = path
+        model['created'] = datetime.datetime.now()
+        model['last_modified'] = datetime.datetime.now()
+        model['content'] = None
+        model['format'] = None
+        return model
+
+    def get_model(self, name, path='', content=True):
+        """ retrofit to use old list_dirs. No notebooks """
+        model = self._base_model(name, path)
+        model['type'] = 'directory'
+        dirs = self.list_dirs(path)
+        model['content'] = dirs
+        return model
+
