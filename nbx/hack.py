@@ -5,8 +5,8 @@ from IPython.html.base.handlers import IPythonHandler, json_errors
 from IPython.html.services.kernels.kernelmanager import MappingKernelManager
 from IPython.html.services.sessions.handlers import SessionRootHandler, \
                                 url_path_join, url_escape, json, date_default
-from IPython.html.services.notebooks.nbmanager import NotebookManager
-from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
+from IPython.html.services.contents.manager import ContentsManager
+from IPython.html.services.contents.filemanager import FileContentsManager
 
 # monkey patch alternative to  https://github.com/ipython/ipython/pull/5469
 
@@ -63,10 +63,10 @@ def get_kernel_path(self, name, path='', model=None):
     """ Return the path to start kernel in """
     return path
 
-NotebookManager.get_kernel_path = get_kernel_path
+ContentsManager.get_kernel_path = get_kernel_path
 
 def get_kernel_path(self, name, path='', model=None):
     """ Return the path to start kernel in """
     return os.path.join(self.notebook_dir, path)
 
-FileNotebookManager.get_kernel_path = get_kernel_path
+FileContentsManager.get_kernel_path = get_kernel_path

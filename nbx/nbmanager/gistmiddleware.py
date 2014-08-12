@@ -6,7 +6,7 @@ from IPython.utils.traitlets import (
 
 from .gist import GistService, model_to_files
 from .bundle.bundlenbmanager import BundleNotebookManager
-from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
+from IPython.html.services.contents.filemanager import FileContentsManager
 
 class GistMiddleware(LoggingConfigurable):
     """
@@ -27,7 +27,7 @@ class GistMiddleware(LoggingConfigurable):
 
     def post_save_notebook(self, nbm, local_path, model, name, path):
         # for now only support bundlenbmanager
-        if not isinstance(nbm, (BundleNotebookManager, FileNotebookManager)):
+        if not isinstance(nbm, (BundleNotebookManager, FileContentsManager)):
             return
 
         gist_id = model['content']['metadata'].get('gist_id', None)

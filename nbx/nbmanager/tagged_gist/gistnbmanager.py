@@ -2,12 +2,12 @@ import itertools
 
 from tornado import web
 
-from IPython.html.services.notebooks.nbmanager import NotebookManager
+from IPython.html.services.contents.manager import ContentsManager
 from IPython.nbformat import current
 
 from .notebook_gisthub import parse_tags
 
-class GistNotebookManager(NotebookManager):
+class GistNotebookManager(ContentsManager):
     """
     """
     def __init__(self, *args, **kwargs):
