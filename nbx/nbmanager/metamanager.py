@@ -20,9 +20,6 @@ from IPython.html.utils import is_hidden, to_os_path, url_path_join
 
 from .middleware import manager_hook
 
-# monkey patch
-import nbx.hack
-
 ZMQStreamHandler.same_origin = lambda self: True
 
 class ManagerMeta(object):
