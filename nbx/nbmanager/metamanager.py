@@ -6,6 +6,7 @@ from IPython.utils.traitlets import (
     DottedObjectName, TraitError, Tuple,
 )
 from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import getcwd
 from IPython.config.configurable import LoggingConfigurable
 from IPython.html.services.contents.manager import ContentsManager
 from IPython.html.services.contents.filemanager import FileContentsManager
@@ -23,6 +24,17 @@ from .middleware import manager_hook
 import nbx.hack
 
 ZMQStreamHandler.same_origin = lambda self: True
+
+class ManagerMeta(object):
+    """
+    """
+    # the original request path, include the nbm alias
+    request_path = None
+    nbm_path = None
+
+    # local name and path
+    path = None
+    name = None
 
 class MetaManager(ContentsManager):
     """
@@ -42,12 +54,16 @@ class MetaManager(ContentsManager):
     # Not sure if this should be optional. For now, make it configurable
     enable_custom_handlers = Bool(True, config=True, help="Enable Custom Handlers")
 
+    root_dir = Unicode(getcwd())
+
     def __init__(self, *args, **kwargs):
         super(MetaManager, self).__init__(*args, **kwargs)
         self.app = kwargs['parent']
 
         self.managers = {}
-        self.managers['server-home'] = FileContentsManager()
+        server_home = FileContentsManager()
+        server_home.root_dir = self.root_dir
+        self.managers['server-home'] = server_home
 
         if self.enable_custom_handlers:
             from nbx.handlers import enable_custom_handlers
@@ -85,10 +101,18 @@ class MetaManager(ContentsManager):
                 method(*args, **kwargs)
 
     def _nbm_from_path(self, path, name=None):
+        meta = ManagerMeta()
+        meta.request_path = self._get_fullpath(name, path)
+        # get the nbm root path i.e. manager alias
+        bits = os.path.split(meta.request_path)
+        meta.nbm_path = bits and bits[0] or ''
+
         # we are on root
         if not path and not name:
+            meta.path = ''
+            meta.name = ''
             # assume this call won't need name.
-            return self.root, '', ''
+            return self.root, meta
 
         # not sure where the semantic changed. But /blah now has
         # shows up as name='blah, path=''
@@ -102,13 +126,15 @@ class MetaManager(ContentsManager):
             path = path[1:]
         bits = path.split(os.sep)
         manager_path = bits[0]
-        local_path = os.sep.join(bits[1:])
+        meta.path = os.sep.join(bits[1:])
 
         nbm = self.managers.get(manager_path)
 
-        return nbm, local_path, name
+        meta.name = name
+        meta.path = meta.path
+        return nbm, meta
 
-    def _get_full_path(self, name=None, path=''):
+    def _get_fullpath(self, name=None, path=''):
         if name is not None:
             path = url_path_join(path, name)
         return path
@@ -122,93 +148,102 @@ class MetaManager(ContentsManager):
         return "\n".join(infos)
 
     def list_dirs(self, path):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        val = nbm.list_dirs(local_path)
+        nbm, meta = self._nbm_from_path(path)
+        val = nbm.list_dirs(meta.path)
         return val
 
+    # TODO remove?
     def path_exists(self, path):
-        nbm, local_path, local_name = self._nbm_from_path(path)
+        nbm, meta = self._nbm_from_path(path)
         if nbm is None:
             return False
-        exists = nbm.path_exists(local_path)
+        exists = nbm.path_exists(meta.path)
+        return exists
+
+    def exists(self, name, path):
+        nbm, meta = self._nbm_from_path(path, name)
+        if nbm is None:
+            return False
+        exists = nbm.exists(meta.name, meta.path)
         return exists
 
     def create_notebook(self, model=None, path=''):
         """Create a new notebook and return its model with no content."""
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.create_notebook(model=model, path=local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.create_notebook(model=model, path=meta.path)
 
     def list_notebooks(self, path=''):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        val = nbm.list_notebooks(local_path)
+        nbm, meta = self._nbm_from_path(path)
+        val = nbm.list_notebooks(meta.path)
         return val
 
     def is_hidden(self, path):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.is_hidden(local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.is_hidden(meta.path)
 
+    # TODO remove?
     def notebook_exists(self, name, path):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.notebook_exists(name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.notebook_exists(name, meta.path)
+
+    def file_exists(self, name, path):
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.file_exists(name, meta.path)
 
     def get_notebook(self, name, path='', content=True):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        model = nbm.get_notebook(name, path=local_path, content=content)
+        nbm, meta = self._nbm_from_path(path)
+        model = nbm.get_notebook(name, path=meta.path, content=content)
         return model
 
     def get_model(self, name, path='', content=True):
-        nbm, local_path, local_name = self._nbm_from_path(path, name)
-        model = nbm.get_model(local_name, path=local_path, content=content)
-        return model
+        nbm, meta = self._nbm_from_path(path, name)
+        model = nbm.get_model(meta.name, path=meta.path, content=content)
 
-    def _get_model(self, name, path='', content=True):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        if os.path.isdir(os_path):
-            model = self._dir_model(name, path, content)
-        elif name.endswith('.ipynb'):
-            model = nbm.get_notebook(name, path=local_path, content=content)
-        else:
-            model = self._file_model(name, path, content)
+        # while the local manager doesn't know its nbm_path,
+        # we have to add it back in for the metamanager.
+        if model['type'] == 'directory':
+            content = model.get("content", [])
+            for m in content:
+                m['path'] = meta.request_path
         return model
 
     @manager_hook
     def save_notebook(self, model, name='', path=''):
-        nbm, local_path, local_name = self._nbm_from_path(path)
+        nbm, meta = self._nbm_from_path(path)
         # make sure path is local and doesn't include sub manager prefix
-        model['path'] = local_path
-        model = nbm.save_notebook(model=model, name=name, path=local_path)
+        model['path'] = meta.path
+        model = nbm.save_notebook(model=model, name=name, path=meta.path)
         return model
 
     def update_notebook(self, model, name, path=''):
         """Update the notebook and return the model with no content."""
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.update_notebook(model, name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.update_notebook(model, name, meta.path)
 
     def delete_notebook(self, name, path=''):
         """Delete notebook by name and path."""
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.delete_notebook(name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.delete_notebook(name, meta.path)
 
     def create_checkpoint(self, name, path=''):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        nbm, local_path = self._nbm_from_path(path)
-        return nbm.create_checkpoint(name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.create_checkpoint(name, meta.path)
 
     def list_checkpoints(self, name, path=''):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.list_checkpoints(name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.list_checkpoints(name, meta.path)
 
     def restore_checkpoint(self, checkpoint_id, name, path=''):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.restore_checkpoint(checkpoint_id, name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.restore_checkpoint(checkpoint_id, name, meta.path)
 
     def delete_checkpoint(self, checkpoint_id, name, path=''):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.delete_checkpoint(checkpoint_id, name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.delete_checkpoint(checkpoint_id, name, meta.path)
 
     def get_kernel_path(self, name, path=''):
-        nbm, local_path, local_name = self._nbm_from_path(path)
-        return nbm.get_kernel_path(name, local_path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.get_kernel_path(name, meta.path)
 
 class HomeManager(ContentsManager):
     """
