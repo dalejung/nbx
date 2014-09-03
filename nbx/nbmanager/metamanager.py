@@ -19,6 +19,7 @@ from IPython.html.base.zmqhandlers import ZMQStreamHandler
 from IPython.html.utils import is_hidden, to_os_path, url_path_join
 
 from .middleware import manager_hook
+from ..handlers import enable_custom_handlers
 
 ZMQStreamHandler.same_origin = lambda self: True
 
@@ -63,7 +64,6 @@ class MetaManager(ContentsManager):
         self.managers['server-home'] = server_home
 
         if self.enable_custom_handlers:
-            from nbx.handlers import enable_custom_handlers
             enable_custom_handlers()
 
         for alias, path in self.file_dirs.items():
