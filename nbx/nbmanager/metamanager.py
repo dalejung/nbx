@@ -10,16 +10,19 @@ from IPython.utils.py3compat import getcwd
 from IPython.config.configurable import LoggingConfigurable
 from IPython.html.services.contents.manager import ContentsManager
 from IPython.html.services.contents.filemanager import FileContentsManager
+from IPython.html.base.zmqhandlers import ZMQStreamHandler
+from IPython.html.utils import is_hidden, to_os_path, url_path_join
 
 from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
 from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
 
-from IPython.html.base.zmqhandlers import ZMQStreamHandler
-from IPython.html.utils import is_hidden, to_os_path, url_path_join
-
 from .middleware import manager_hook
 from ..handlers import enable_custom_handlers
+
+from .static_handler import patch_file_handler
+
+patch_file_handler()
 
 ZMQStreamHandler.same_origin = lambda self: True
 
@@ -241,6 +244,11 @@ class MetaManager(ContentsManager):
     def get_kernel_path(self, name, path=''):
         nbm, meta = self._nbm_from_path(path)
         return nbm.get_kernel_path(name, meta.path)
+
+    def get_absolute_path(self, path):
+        """ return absolute path for static file handler """
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.get_absolute_path(meta.path)
 
 class HomeManager(ContentsManager):
     """
