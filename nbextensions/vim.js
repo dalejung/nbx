@@ -8,13 +8,12 @@ require(["nbextensions/vim"], function (vim_extension) {
 });
 
 */
-define(function() {
-    var token_name = "vim_github_token";
-
+define([
+    'notebook/js/notebook',
+    'notebook/js/keyboardmanager',
+], function() {
     var load_extension = function() {
-        $([IPython.events]).on("notebook_loaded.Notebook", function() {
-            console.log("notebook loaded event");
-        });
+        IPython_vim_patch(IPython);
     };
 
     return {
@@ -23,11 +22,18 @@ define(function() {
 });
 
 
-(function () {
+function IPython_vim_patch(IPython) {
     // only monkey patch on notebook page
     if(!IPython.Cell) {
         return;
     }
+
+    $.getScript("/static/components/codemirror/keymap/vim.js", function() {
+        IPython.Cell.options_default.cm_config.keyMap = "vim";
+        // this takes care of existing cells
+        IPython.notebook.setVIMode('NORMAL'); 
+    });
+
 
     // plug in so :w saves
     CodeMirror.commands.save = function(cm) {
@@ -163,17 +169,17 @@ define(function() {
     }
 
     IPython.Notebook.prototype.setVIMode = function(mode) {
-        var cell = this.get_selected_cell();
-        cm = cell.code_mirror;
-        if (cm) {
-            if (mode == 'INSERT') {
-                CodeMirror.keyMap.vim["'I'"](cm);
-            }
+        if (mode == 'INSERT') {
+            mode = 'vim-insert';
         }
+        if (mode == 'NORMAL') {
+            mode = 'vim';
+        }
+        // first let's apply vim mode to all current cells
+        function to_mode(c) { return c.code_mirror.setOption('keyMap', mode);};
+        IPython.notebook.get_cells().map(to_mode);
+        // apply the mode to future cells created
     }
-})();
-
-var IPython = (function(IPython) {
 
     var NormalMode = {};
     var InsertMode = {};
@@ -385,6 +391,4 @@ var IPython = (function(IPython) {
     };
 
     IPython.VIM = new VIM();
-    return IPython;
-
-}(IPython));
+}
