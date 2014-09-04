@@ -1,3 +1,7 @@
+# Warning
+
+Currently in the process of updating to be compatible with the ipython 3.0 changes. Will update when that branch is merged in.
+
 # Features 
 
 * MetaManager, allows multiple `NotebookManager`.
