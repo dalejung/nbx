@@ -160,7 +160,7 @@ class MetaManager(ContentsManager):
         exists = nbm.path_exists(meta.path)
         return exists
 
-    def exists(self, name, path):
+    def exists(self, name, path=''):
         nbm, meta = self._nbm_from_path(path, name)
         if nbm is None:
             return False
@@ -186,8 +186,9 @@ class MetaManager(ContentsManager):
         nbm, meta = self._nbm_from_path(path)
         return nbm.notebook_exists(name, meta.path)
 
-    def file_exists(self, name, path):
-        nbm, meta = self._nbm_from_path(path)
+    def file_exists(self, name, path=''):
+        nbm, meta = self._nbm_from_path(path, name)
+        print nbm, meta
         return nbm.file_exists(name, meta.path)
 
     def get_notebook(self, name, path='', content=True):
@@ -208,22 +209,22 @@ class MetaManager(ContentsManager):
         return model
 
     @manager_hook
-    def save_notebook(self, model, name='', path=''):
+    def save(self, model, name='', path=''):
         nbm, meta = self._nbm_from_path(path)
         # make sure path is local and doesn't include sub manager prefix
         model['path'] = meta.path
-        model = nbm.save_notebook(model=model, name=name, path=meta.path)
+        model = nbm.save(model=model, name=name, path=meta.path)
         return model
 
-    def update_notebook(self, model, name, path=''):
+    def update(self, model, name, path=''):
         """Update the notebook and return the model with no content."""
         nbm, meta = self._nbm_from_path(path)
-        return nbm.update_notebook(model, name, meta.path)
+        return nbm.update(model, name, meta.path)
 
-    def delete_notebook(self, name, path=''):
+    def delete(self, name, path=''):
         """Delete notebook by name and path."""
         nbm, meta = self._nbm_from_path(path)
-        return nbm.delete_notebook(name, meta.path)
+        return nbm.delete(name, meta.path)
 
     def create_checkpoint(self, name, path=''):
         nbm, meta = self._nbm_from_path(path)
@@ -245,6 +246,7 @@ class MetaManager(ContentsManager):
         nbm, meta = self._nbm_from_path(path)
         return nbm.get_kernel_path(name, meta.path)
 
+    # StaticFileHandler
     def get_absolute_path(self, path):
         """ return absolute path for static file handler """
         nbm, meta = self._nbm_from_path(path)
