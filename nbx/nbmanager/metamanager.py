@@ -18,7 +18,7 @@ from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
 from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
 
 from .middleware import manager_hook
-from .server_home import HomeManager
+from .root_manager import RootManager
 from ..handlers import enable_custom_handlers
 
 from .static_handler import patch_file_handler
@@ -90,7 +90,7 @@ class MetaManager(ContentsManager):
             cls = import_item(middleware)
             self.middleware[name] = cls(parent=self, log=self.log)
 
-        self.root = HomeManager(meta_manager=self)
+        self.root = RootManager(meta_manager=self)
 
     def dispatch_middleware(self, hook_name, *args, **kwargs):
         """

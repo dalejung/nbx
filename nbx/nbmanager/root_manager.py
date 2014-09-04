@@ -2,7 +2,7 @@ import datetime
 
 from IPython.html.services.contents.manager import ContentsManager
 
-class HomeManager(ContentsManager):
+class RootManager(ContentsManager):
     """
     Handle the root path "/"
 
@@ -10,7 +10,7 @@ class HomeManager(ContentsManager):
     """
     def __init__(self, *args, **kwargs):
         self.meta_manager = kwargs.pop('meta_manager')
-        super(HomeManager, self).__init__(*args, **kwargs)
+        super(RootManager, self).__init__(*args, **kwargs)
 
     @property
     def managers(self):
