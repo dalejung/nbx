@@ -14,7 +14,7 @@ from ..nbxmanager import NBXContentsManager
 class BundleNotebookManager(NBXContentsManager):
     """
     """
-    notebook_dir = Unicode()
+    root_dir = Unicode()
 
     def __init__(self, *args, **kwargs):
         super(BundleNotebookManager, self).__init__(*args, **kwargs)
@@ -41,12 +41,12 @@ class BundleNotebookManager(NBXContentsManager):
         """
         if name is not None:
             path = path + '/' + name
-        return to_os_path(path, self.notebook_dir)
+        return to_os_path(path, self.root_dir)
 
     def get_kernel_path(self, name, path='', model=None):
         # get into bundle dir
         bundle_path = self.bundler._get_bundle_path(name, path)
-        return os.path.join(self.notebook_dir, bundle_path)
+        return os.path.join(self.root_dir, bundle_path)
 
     def path_exists(self, path):
         path = path.strip('/')

@@ -106,7 +106,7 @@ class MetaManager(ContentsManager):
 
         for alias, path in self.bundle_dirs.items():
             fb = BundleNotebookManager()
-            fb.notebook_dir = path
+            fb.root_dir = path
             self.managers[alias] = fb
 
         for user, pw in self.github_accounts:
