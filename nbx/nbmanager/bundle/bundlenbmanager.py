@@ -1,17 +1,17 @@
 import itertools
-import os.path
+import os
 
 from tornado import web
 
 from IPython.utils.traitlets import Unicode
 from IPython.utils import tz
-from IPython.html.services.contents.manager import ContentsManager
 from IPython.nbformat import current
 from IPython.html.utils import is_hidden, to_os_path
 
 from .manager import BundleManager
+from ..nbxmanager import NBXContentsManager
 
-class BundleNotebookManager(ContentsManager):
+class BundleNotebookManager(NBXContentsManager):
     """
     """
     notebook_dir = Unicode()
@@ -85,6 +85,20 @@ class BundleNotebookManager(ContentsManager):
             model['path'] = path
             notebooks.append(model)
         return notebooks
+
+    def is_dir(self, path):
+        os_path = os.path.join(self.root_dir, path)
+        return os.path.isdir(os_path)
+
+    def get_model_dir(self, name, path='', content=True):
+        """ retrofit to use old list_dirs. No notebooks """
+        model = self._base_model(name, path)
+        model['type'] = 'directory'
+        dirs = self.list_dirs(path)
+        notebooks = self.list_notebooks(path)
+        entries = dirs + notebooks
+        model['content'] = entries
+        return model
 
     def get_notebook(self, name, path='', content=True, file_content=False):
         """ Takes a path and name for a notebook and returns its model
