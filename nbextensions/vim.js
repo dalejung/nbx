@@ -28,13 +28,6 @@ function IPython_vim_patch(IPython) {
         return;
     }
 
-    $.getScript("/static/components/codemirror/keymap/vim.js", function() {
-        // this takes care of existing cells
-        IPython.notebook.setVIMode('NORMAL'); 
-
-        IPython.Cell.options_default.cm_config.keyMap = "vim";
-    });
-
 
     // plug in so :w saves
     CodeMirror.commands.save = function(cm) {
@@ -43,8 +36,6 @@ function IPython_vim_patch(IPython) {
 
     // Monkey patch: KeyboardManager.handle_keydown
     // Diff: disable this handler
-    var keycodes = IPython.keyboard.keycodes;
-
     IPython.KeyboardManager.prototype.handle_keydown = function(event) {
         var cell = IPython.notebook.get_selected_cell();
         var vim_mode = cell.code_mirror.getOption('keyMap');
@@ -114,6 +105,9 @@ function IPython_vim_patch(IPython) {
 
     // Focus editor on select
     IPython.CodeCell.prototype.select = function() {
+        // assume on new selects that we reset all cells to normal mode
+        // we don't have a select that dumps us into insert mode, afaik
+        this.notebook.reset_cells();
         var cont = IPython.Cell.prototype.select.apply(this);
         if (cont) {
             this.code_mirror.refresh();
@@ -171,6 +165,10 @@ function IPython_vim_patch(IPython) {
 
     // reset all cells to normal vim
     IPython.Notebook.prototype.reset_cells = function () {
+        // if the keymap file has not loaded, don't run the reset.
+        if(!IPython.VIM.loaded) {
+            return;
+        }
         var cells = this.get_cells();
         var arr_length = cells.length;
         for(var i = 0; i < arr_length; i++) {
@@ -211,7 +209,8 @@ function IPython_vim_patch(IPython) {
     var NormalMode = {};
     var InsertMode = {};
 
-    var VIM = function() {;
+    var VIM = function() {
+        this.loaded = false;
     };
 
     VIM.prototype.keyDown = function(that, event) {
@@ -436,4 +435,14 @@ function IPython_vim_patch(IPython) {
     };
 
     IPython.VIM = new VIM();
+
+    $.getScript("/static/components/codemirror/keymap/vim.js", function() {
+        // blah. could make this sync or I guess wrap the keymap file as a requirejs
+        IPython.VIM.loaded = true;
+        // this takes care of existing cells
+        IPython.notebook.setVIMode('NORMAL'); 
+
+        IPython.Cell.options_default.cm_config.keyMap = "vim";
+    });
+
 }
