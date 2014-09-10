@@ -8,10 +8,14 @@ class NBXContentsManager(ContentsManager):
     def is_dir(self, path):
         raise NotImplementedError('must be implemented in a subclass')
 
+    def fullpath(self, name, path):
+        fullpath = url_path_join(name, path)
+        return fullpath
+
     def get_model(self, name, path='', content=True):
         path = path.strip('/')
 
-        fullpath = url_path_join(name, path)
+        fullpath = self.fullpath(name, path)
         if self.is_dir(fullpath):
             model = self.get_model_dir(name, path, content)
         elif name.endswith('.ipynb'):
