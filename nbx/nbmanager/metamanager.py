@@ -20,6 +20,7 @@ from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
 from .middleware import manager_hook
 from .root_manager import RootManager
 from ..handlers import enable_custom_handlers
+from .nbxmanager import NBXContentsManager
 
 from .static_handler import patch_file_handler
 
@@ -65,7 +66,7 @@ class ManagerMeta(object):
         attrs = ["{0}={1}".format(k,v) for k, v in self.__dict__.items()]
         return "ManagerMeta({0})".format(",".join(attrs))
 
-class MetaManager(ContentsManager):
+class MetaManager(NBXContentsManager):
     """
         Holds NotebookManager classes and routes calls to the appropiate
         manager.
@@ -175,6 +176,8 @@ class MetaManager(ContentsManager):
 
         nbm = self.managers.get(manager_path)
 
+        if self.debug:
+            print nbm, meta
         return nbm, meta
 
     def _get_fullpath(self, name=None, path=''):

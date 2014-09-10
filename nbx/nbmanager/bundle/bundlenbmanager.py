@@ -90,16 +90,6 @@ class BundleNotebookManager(NBXContentsManager):
         os_path = os.path.join(self.root_dir, path)
         return os.path.isdir(os_path)
 
-    def get_model_dir(self, name, path='', content=True):
-        """ retrofit to use old list_dirs. No notebooks """
-        model = self._base_model(name, path)
-        model['type'] = 'directory'
-        dirs = self.list_dirs(path)
-        notebooks = self.list_notebooks(path)
-        entries = dirs + notebooks
-        model['content'] = entries
-        return model
-
     def get_notebook(self, name, path='', content=True, file_content=False):
         """ Takes a path and name for a notebook and returns its model
 
