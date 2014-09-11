@@ -8,8 +8,11 @@ class NBXContentsManager(ContentsManager):
     def is_dir(self, path):
         raise NotImplementedError('must be implemented in a subclass')
 
+    def is_notebook(self, path):
+        return path.endswith('.ipynb')
+
     def fullpath(self, name, path):
-        fullpath = url_path_join(name, path)
+        fullpath = url_path_join(path, name)
         return fullpath
 
     def get_model(self, name, path='', content=True):
@@ -18,7 +21,7 @@ class NBXContentsManager(ContentsManager):
         fullpath = self.fullpath(name, path)
         if self.is_dir(fullpath):
             model_type = 'dir'
-        elif name.endswith('.ipynb'):
+        elif self.is_notebook(fullpath):
             model_type = 'notebook'
         else:
             model_type = 'file'
@@ -41,7 +44,7 @@ class NBXContentsManager(ContentsManager):
         if 'type' not in model:
             raise Exception(u"Model has no file type")
         model_type = model['type']
-        self._dispatch_method('save', model_type, model, name=name, path=path)
+        return self._dispatch_method('save', model_type, model, name=name, path=path)
 
     def _dispatch_method(self, hook, model_type, *args, **kwargs):
         print('dispatch_method', hook, model_type)
@@ -56,10 +59,11 @@ class NBXContentsManager(ContentsManager):
         default_method = getattr(self, default_name)
         return default_method(model, name, path)
 
+    # shims to bridge Content service and older notebook apis
     def get_model_dir(self, name, path='', content=True):
         """ retrofit to use old list_dirs. No notebooks """
         model = self._base_model(name, path)
-        fullpath = url_path_join(name, path)
+        fullpath = self.fullpath(name, path)
 
         model['type'] = 'directory'
         dirs = self.list_dirs(fullpath)
@@ -67,3 +71,6 @@ class NBXContentsManager(ContentsManager):
         entries = dirs + notebooks
         model['content'] = entries
         return model
+
+    def get_model_notebook(self, name, path='', content=True):
+        return self.get_notebook(name, path, content=content)

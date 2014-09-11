@@ -270,5 +270,9 @@ class GistNotebookManager(NBXContentsManager):
         return ''
 
     def is_dir(self, path=''):
-        return not path.endswith('.ipynb')
+        # we don't have files here. only notebooks and files
+        return not self.is_notebook(path)
 
+    def file_exists(self, name, path=''):
+        ret =  self.notebook_exists(name, path)
+        return ret
