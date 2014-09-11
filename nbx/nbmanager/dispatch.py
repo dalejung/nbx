@@ -9,7 +9,7 @@ logic can be used easily in the Middleware object.
 
 Not 100% on this.
 """
-def _model_type_from_path(path):
+def _model_type_from_path(self, path):
     if self.is_dir(path):
         model_type = 'dir'
     elif self.is_notebook(path):
@@ -40,7 +40,7 @@ def dispatch_get_model(self, name, path='', content=True, dispatcher=dispatch_me
     path = path.strip('/')
 
     fullpath = self.fullpath(name, path)
-    model_type = _model_type_from_path(fullpath)
+    model_type = _model_type_from_path(self, fullpath)
     return dispatcher(self, 'get_model', model_type, name=name,
                             path=path, content=content)
 
@@ -60,11 +60,11 @@ class DispatcherMixin(object):
 
     def save(self, model, name='', path=''):
         return dispatch_save(self, model, name, path,
-                             dispatcher=self.dispatch_method)
+                             dispatcher=self.dispatch_method.__func__)
 
     def get_model(self, name, path='', content=True):
-        return dispatch_get_model(self, name, path, content, 
-                                  dispatcher=self.dispatch_method)
+        return dispatch_get_model(self, name, path, content,
+                                  dispatcher=self.dispatch_method.__func__)
 
     def dispatch_method(self, hook, model_type, *args, **kwargs):
         return dispatch_method(self, hook, model_type, *args, **kwargs)

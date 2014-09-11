@@ -14,7 +14,7 @@ class BackwardsCompatMixin(object):
     def get_model_dir(self, name, path='', content=True):
         """ retrofit to use old list_dirs. No notebooks """
         model = self._base_model(name, path)
-        fullpath = _fullpath(name, path)
+        fullpath = self.fullpath(name, path)
 
         model['type'] = 'directory'
         dirs = self.list_dirs(fullpath)
@@ -47,3 +47,6 @@ class NBXContentsManager(DispatcherMixin, BackwardsCompatMixin, ContentsManager)
         model['content'] = None
         model['format'] = None
         return model
+
+    def fullpath(self, name, path):
+        return _fullpath(name, path)
