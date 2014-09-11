@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import os
 
@@ -9,9 +10,9 @@ from IPython.nbformat import current
 from IPython.html.utils import is_hidden, to_os_path
 
 from .manager import BundleManager
-from ..nbxmanager import NBXContentsManager
+from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
 
-class BundleNotebookManager(NBXContentsManager):
+class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
     """
     """
     root_dir = Unicode()
@@ -47,9 +48,6 @@ class BundleNotebookManager(NBXContentsManager):
         # get into bundle dir
         bundle_path = self.bundler._get_bundle_path(name, path)
         return os.path.join(self.root_dir, bundle_path)
-
-    def is_notebook(self, path):
-        return path.endswith('.ipynb')
 
     def path_exists(self, path):
         path = path.strip('/')
@@ -88,10 +86,6 @@ class BundleNotebookManager(NBXContentsManager):
             model['path'] = path
             notebooks.append(model)
         return notebooks
-
-    def is_dir(self, path):
-        os_path = os.path.join(self.root_dir, path)
-        return os.path.isdir(os_path) and not self.is_notebook(path)
 
     def get_notebook(self, name, path='', content=True, file_content=False):
         """ Takes a path and name for a notebook and returns its model
@@ -166,11 +160,11 @@ class BundleNotebookManager(NBXContentsManager):
         """find the path to a checkpoint"""
         path = path.strip('/')
         checkpoint_dir = self._get_checkpoint_dir(name, path)
-        basename, _ = os.path.splitext(name)
-        filename = u"{name}-{checkpoint_id}{ext}".format(
+        basename, ext = os.path.splitext(name)
+        filename = u"{name}---{checkpoint_id}{ext}".format(
             name=basename,
             checkpoint_id=checkpoint_id,
-            ext=self.filename_ext,
+            ext=ext,
         )
         cp_path = os.path.join(checkpoint_dir, filename)
         return cp_path
@@ -190,7 +184,8 @@ class BundleNotebookManager(NBXContentsManager):
 
     # checkpoint stuff
     def create_checkpoint(self, name, path=''):
-        checkpoint_id = u"checkpoint"
+        now = datetime.datetime.now()
+        checkpoint_id = now.strftime("%Y-%m-%d %H:%M:%S")
         checkpoint_dir = self._get_checkpoint_dir(name, path)
         os_checkpoint_dir = self._get_os_path(path=checkpoint_dir)
         if not os.path.exists(os_checkpoint_dir):
@@ -207,13 +202,33 @@ class BundleNotebookManager(NBXContentsManager):
     def list_checkpoints(self, name, path=''):
         """Return a list of checkpoints for a given notebook"""
         path = path.strip('/')
-        checkpoint_id = "checkpoint"
-        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
-        os_path = self._get_os_path(cp_path)
-        if not os.path.exists(os_path):
+
+        checkpoint_dir = self._get_checkpoint_dir(name, path)
+        os_checkpoint_dir = self._get_os_path(path=checkpoint_dir)
+        if not os.path.exists(os_checkpoint_dir):
             return []
-        else:
-            return [self.get_checkpoint_model(checkpoint_id, name, path)]
+
+        basename, ext = os.path.splitext(name)
+        prefix = "{name}---".format(name=basename)
+
+        _, _, files = next(os.walk(os_checkpoint_dir))
+        cp_names = [fn for fn in files if fn.startswith(prefix)]
+        cp_basenames = map(lambda fn: os.path.splitext(fn)[0], cp_names)
+        checkpoint_ids = map(lambda fn: fn.replace(prefix, ''), cp_basenames)
+        return [self.get_checkpoint_model(checkpoint_id, name, path)
+                for checkpoint_id in checkpoint_ids]
+
+    def extract_checkpoint_id(self, name, checkpoint_name):
+        """
+        Not currently used...
+
+        extra checkpoint_id from strings of form
+        "{basename}---{checkpoint_id}.ipynb"
+        """
+        basename, ext = os.path.splitext(name)
+        checkpoint_basename, _ = os.path.splitext(checkpoint_name)
+        prefix = "{name}---".format(name=basename)
+        return checkpoint_basename.replace(prefix, '')
 
     def restore_checkpoint(self, checkpoint_id, name, path=''):
         """Restore a notebook from one of its checkpoints"""

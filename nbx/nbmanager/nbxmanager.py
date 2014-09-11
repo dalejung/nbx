@@ -1,4 +1,5 @@
 import datetime
+import os.path
 
 from IPython.html.services.contents.manager import ContentsManager
 from IPython.html.utils import url_path_join
@@ -27,10 +28,29 @@ class BackwardsCompatMixin(object):
         return self.get_notebook(name, path, content=content)
 
     def file_exists(self, name, path=''):
+        # in old version, only file is notebook
         ret =  self.notebook_exists(name, path)
         return ret
 
-class NBXContentsManager(DispatcherMixin, BackwardsCompatMixin, ContentsManager):
+    def is_notebook(self, path):
+        """
+        Note that is_notebook is a nbx method, it's in BackwardsCompatMixin
+        because it uses old api
+
+        split path into name, path and use notebook_exists
+        """
+        path, name = os.path.split(path)
+        ret =  self.notebook_exists(name, path)
+        return ret
+
+    def is_dir(self, path):
+        """
+        nbx api method.
+        """
+        return self.path_exists(path) and not self.is_notebook(path)
+
+
+class NBXContentsManager(DispatcherMixin, ContentsManager):
     def __init__(self, *args, **kwargs):
         super(NBXContentsManager, self).__init__(*args, **kwargs)
 
