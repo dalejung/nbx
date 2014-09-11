@@ -272,7 +272,3 @@ class GistNotebookManager(NBXContentsManager):
     def is_dir(self, path=''):
         # we don't have files here. only notebooks and files
         return not self.is_notebook(path)
-
-    def file_exists(self, name, path=''):
-        ret =  self.notebook_exists(name, path)
-        return ret

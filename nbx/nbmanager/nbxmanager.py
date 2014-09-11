@@ -26,6 +26,10 @@ class BackwardsCompatMixin(object):
     def get_model_notebook(self, name, path='', content=True):
         return self.get_notebook(name, path, content=content)
 
+    def file_exists(self, name, path=''):
+        ret =  self.notebook_exists(name, path)
+        return ret
+
 class NBXContentsManager(DispatcherMixin, BackwardsCompatMixin, ContentsManager):
     def __init__(self, *args, **kwargs):
         super(NBXContentsManager, self).__init__(*args, **kwargs)

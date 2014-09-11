@@ -48,6 +48,9 @@ class BundleNotebookManager(NBXContentsManager):
         bundle_path = self.bundler._get_bundle_path(name, path)
         return os.path.join(self.root_dir, bundle_path)
 
+    def is_notebook(self, path):
+        return path.endswith('.ipynb')
+
     def path_exists(self, path):
         path = path.strip('/')
         os_path = self._get_os_path(path=path)
@@ -88,7 +91,7 @@ class BundleNotebookManager(NBXContentsManager):
 
     def is_dir(self, path):
         os_path = os.path.join(self.root_dir, path)
-        return os.path.isdir(os_path)
+        return os.path.isdir(os_path) and not self.is_notebook(path)
 
     def get_notebook(self, name, path='', content=True, file_content=False):
         """ Takes a path and name for a notebook and returns its model
