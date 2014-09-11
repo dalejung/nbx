@@ -50,6 +50,11 @@ def save(self, model, name='', path='', dispatcher=dispatch_method):
     model_type = model['type']
     return dispatcher(self, 'save', model_type, model, name=name, path=path)
 
+def update(self, model, name='', path='', dispatcher=dispatch_method):
+    # right now, ipython only supports notebook renames via PATCH
+    model_type = 'notebook'
+    return dispatcher(self, 'update', model_type, model, name=name, path=path)
+
 def delete(self, name, path='', dispatcher=dispatch_method):
     fullpath = self.fullpath(name, path)
     model_type = _model_type_from_path(self, fullpath)
@@ -65,6 +70,10 @@ class DispatcherMixin(object):
 
     def save(self, model, name='', path=''):
         return save(self, model, name, path,
+                             dispatcher=self.dispatch_method.__func__)
+
+    def update(self, model, name='', path=''):
+        return update(self, model, name, path,
                              dispatcher=self.dispatch_method.__func__)
 
     def delete(self, name, path=''):
