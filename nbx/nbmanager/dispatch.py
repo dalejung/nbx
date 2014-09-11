@@ -31,7 +31,7 @@ def dispatch_method(self, hook, model_type, *args, **kwargs):
     default_method = getattr(self, default_name)
     return default_method(model, name, path)
 
-def dispatch_get_model(self, name, path='', content=True, dispatcher=dispatch_method):
+def get_model(self, name, path='', content=True, dispatcher=dispatch_method):
     """
     Relies on:
         is_dir
@@ -44,11 +44,16 @@ def dispatch_get_model(self, name, path='', content=True, dispatcher=dispatch_me
     return dispatcher(self, 'get_model', model_type, name=name,
                             path=path, content=content)
 
-def dispatch_save(self, model, name='', path='', dispatcher=dispatch_method):
+def save(self, model, name='', path='', dispatcher=dispatch_method):
     if 'type' not in model:
         raise Exception(u"Model has no file type")
     model_type = model['type']
     return dispatcher(self, 'save', model_type, model, name=name, path=path)
+
+def delete(self, name, path='', dispatcher=dispatch_method):
+    fullpath = self.fullpath(name, path)
+    model_type = _model_type_from_path(self, fullpath)
+    return dispatcher(self, 'delete', model_type, name=name, path=path)
 
 class DispatcherMixin(object):
     """
@@ -59,11 +64,15 @@ class DispatcherMixin(object):
     """
 
     def save(self, model, name='', path=''):
-        return dispatch_save(self, model, name, path,
+        return save(self, model, name, path,
+                             dispatcher=self.dispatch_method.__func__)
+
+    def delete(self, name, path=''):
+        return delete(self, name, path,
                              dispatcher=self.dispatch_method.__func__)
 
     def get_model(self, name, path='', content=True):
-        return dispatch_get_model(self, name, path, content,
+        return get_model(self, name, path, content,
                                   dispatcher=self.dispatch_method.__func__)
 
     def dispatch_method(self, hook, model_type, *args, **kwargs):
