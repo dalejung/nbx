@@ -4,9 +4,11 @@ from IPython.utils.traitlets import (
     DottedObjectName, TraitError, Tuple,
 )
 
+from IPython.html.services.contents.filemanager import FileContentsManager
+
 from .gist import GistService, model_to_files
 from .bundle.bundlenbmanager import BundleNotebookManager
-from IPython.html.services.contents.filemanager import FileContentsManager
+from .dispatch import dispatch_method
 
 class GistMiddleware(LoggingConfigurable):
     """
@@ -25,6 +27,13 @@ class GistMiddleware(LoggingConfigurable):
         for user, pw in self.github_accounts:
             self.service.login(user, pw)
 
+    def post_save(self, nbm, local_path, model, name, path):
+        if 'type' not in model:
+            raise Exception(u"Model has no file type")
+        model_type = model['type']
+        return dispatch_method(self, 'post_save', model_type, nbm, local_path, model,
+                               name, path)
+
     def post_save_notebook(self, nbm, local_path, model, name, path):
         # for now only support bundlenbmanager
         if not isinstance(nbm, (BundleNotebookManager, FileContentsManager)):
@@ -39,9 +48,9 @@ class GistMiddleware(LoggingConfigurable):
 
         try:
             # this is only applicable to bundles
-            model = nbm.get_notebook(name, local_path, content=True, file_content=True)
+            model = nbm.get_model(name, local_path, content=True, file_content=True)
         except:
-            model = nbm.get_notebook(name, local_path, content=True)
+            model = nbm.get_model(name, local_path, content=True)
 
         files = model_to_files(model)
         gist.save(description=name, files=files)

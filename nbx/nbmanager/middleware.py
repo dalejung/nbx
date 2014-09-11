@@ -30,7 +30,8 @@ def manager_hook(func):
             path = args[path_index]
         else:
             path = kwargs.get('path')
-        nbm, local_path = self._nbm_from_path(path)
+        nbm, meta = self._nbm_from_path(path)
+        local_path = meta.path
         # call pre hook
         self.dispatch_middleware('pre_'+func_name, nbm, local_path, *args, **kwargs)
         res = func(self, *args, **kwargs)
