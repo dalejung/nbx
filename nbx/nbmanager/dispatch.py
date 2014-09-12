@@ -31,7 +31,7 @@ def dispatch_method(self, hook, model_type, *args, **kwargs):
     default_method = getattr(self, default_name)
     return default_method(model, name, path)
 
-def get_model(self, name, path='', content=True, dispatcher=dispatch_method):
+def get_model(self, name, path='', content=True, dispatcher=dispatch_method, **kwargs):
     """
     Relies on:
         is_dir
@@ -43,7 +43,7 @@ def get_model(self, name, path='', content=True, dispatcher=dispatch_method):
     model_type = _model_type_from_path(self, fullpath)
     print 'fullpath', fullpath, model_type, self
     return dispatcher(self, 'get_model', model_type, name=name,
-                            path=path, content=content)
+                            path=path, content=content, **kwargs)
 
 def save(self, model, name='', path='', dispatcher=dispatch_method):
     if 'type' not in model:
@@ -81,9 +81,9 @@ class DispatcherMixin(object):
         return delete(self, name, path,
                              dispatcher=self.dispatch_method.__func__)
 
-    def get_model(self, name, path='', content=True):
+    def get_model(self, name, path='', content=True, **kwargs):
         return get_model(self, name, path, content,
-                                  dispatcher=self.dispatch_method.__func__)
+                                  dispatcher=self.dispatch_method.__func__, **kwargs)
 
     def dispatch_method(self, hook, model_type, *args, **kwargs):
         return dispatch_method(self, hook, model_type, *args, **kwargs)

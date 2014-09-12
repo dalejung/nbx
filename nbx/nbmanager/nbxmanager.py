@@ -24,8 +24,8 @@ class BackwardsCompatMixin(object):
         model['content'] = entries
         return model
 
-    def get_model_notebook(self, name, path='', content=True):
-        return self.get_notebook(name, path, content=content)
+    def get_model_notebook(self, name, path='', content=True, **kwargs):
+        return self.get_notebook(name, path, content=content, **kwargs)
 
     def file_exists(self, name, path=''):
         # in old version, only file is notebook
