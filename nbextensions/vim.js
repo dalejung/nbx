@@ -202,7 +202,7 @@ function IPython_vim_patch(IPython) {
 
         this.reset_cells();
         if (cm && mode == 'INSERT') {
-            CodeMirror.keyMap.vim["'I'"](cm);
+            CodeMirror.keyMap.vim["'i'"](cm);
         }
     }
 
