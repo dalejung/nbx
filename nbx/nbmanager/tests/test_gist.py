@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 import nose.tools as nt
 from IPython.nbformat import current
-from IPython.html.services.notebooks.filenbmanager import FileNotebookManager
+from IPython.html.services.contents.filemanager import FileContentsManager
 from IPython.utils.tempdir import TemporaryDirectory
 
 from ..gist import model_to_files, GistService, Gister
@@ -23,9 +23,10 @@ class TestGist(unittest.TestCase):
 
     def test_model_to_files(self):
         with TemporaryDirectory() as td:
-            fm = FileNotebookManager(notebook_dir=td)
-            model = fm.create_notebook()
-            model = fm.get_notebook(model['name'], model['path'])
+            fm = FileContentsManager(root_dir=td)
+            model = fm.create_file()
+            # need content
+            model = fm.get_model(model['name'], model['path'])
             files = model_to_files(model)
             name = model['name']
             # files should only contain one file
