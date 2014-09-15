@@ -2,12 +2,12 @@ import itertools
 
 from tornado import web
 
-from IPython.html.services.notebooks.nbmanager import NotebookManager
 from IPython.nbformat import current
 
+from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
 from .notebook_gisthub import parse_tags
 
-class GistNotebookManager(NotebookManager):
+class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
     """
     """
     def __init__(self, *args, **kwargs):
@@ -268,3 +268,7 @@ class GistNotebookManager(NotebookManager):
 
     def info_string(self):
         return ''
+
+    def is_dir(self, path=''):
+        # we don't have files here. only notebooks and files
+        return not self.is_notebook(path)

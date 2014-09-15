@@ -8,13 +8,12 @@ require(["nbextensions/vim"], function (vim_extension) {
 });
 
 */
-define(function() {
-    var token_name = "vim_github_token";
-
+define([
+    'notebook/js/notebook',
+    'notebook/js/keyboardmanager',
+], function() {
     var load_extension = function() {
-        $([IPython.events]).on("notebook_loaded.Notebook", function() {
-            console.log("notebook loaded event");
-        });
+        IPython_vim_patch(IPython);
     };
 
     return {
@@ -23,11 +22,12 @@ define(function() {
 });
 
 
-(function () {
+function IPython_vim_patch(IPython) {
     // only monkey patch on notebook page
     if(!IPython.Cell) {
         return;
     }
+
 
     // plug in so :w saves
     CodeMirror.commands.save = function(cm) {
@@ -36,8 +36,6 @@ define(function() {
 
     // Monkey patch: KeyboardManager.handle_keydown
     // Diff: disable this handler
-    var keycodes = IPython.keyboard.keycodes;
-
     IPython.KeyboardManager.prototype.handle_keydown = function(event) {
         var cell = IPython.notebook.get_selected_cell();
         var vim_mode = cell.code_mirror.getOption('keyMap');
@@ -107,6 +105,9 @@ define(function() {
 
     // Focus editor on select
     IPython.CodeCell.prototype.select = function() {
+        // assume on new selects that we reset all cells to normal mode
+        // we don't have a select that dumps us into insert mode, afaik
+        this.notebook.reset_cells();
         var cont = IPython.Cell.prototype.select.apply(this);
         if (cont) {
             this.code_mirror.refresh();
@@ -162,23 +163,54 @@ define(function() {
         return false;
     }
 
-    IPython.Notebook.prototype.setVIMode = function(mode) {
-        var cell = this.get_selected_cell();
-        cm = cell.code_mirror;
-        if (cm) {
-            if (mode == 'INSERT') {
-                CodeMirror.keyMap.vim["'I'"](cm);
+    // reset all cells to normal vim
+    IPython.Notebook.prototype.reset_cells = function () {
+        // if the keymap file has not loaded, don't run the reset.
+        if(!IPython.VIM.loaded) {
+            return;
+        }
+        var cells = this.get_cells();
+        var arr_length = cells.length;
+        for(var i = 0; i < arr_length; i++) {
+            var c = cells[i];
+            var cm = c.code_mirror;
+            var current_mode = cm.getOption('keyMap');
+            // cell isn't set to vim. set to vim. should only happen on startup.
+            if(current_mode.indexOf('vim') !== 0) {
+                cm.setOption('keyMap', 'vim');
+                continue;
+            }
+
+            // reset cell to normal vim
+            if(current_mode == 'vim-insert') {
+                CodeMirror.keyMap['vim-insert']["Esc"](cm);
             }
         }
-    }
-})();
+    };
 
-var IPython = (function(IPython) {
+
+    IPython.Notebook.prototype.setVIMode = function(mode) {
+        /*
+         * The point of this logic is that only one cell should be in insert
+         * mode at any one point. In reality the important function here is reset_cells.
+         *
+         * TODO: If we click on another cell while in insert, we should have a way to reset cells first
+         * and then select.
+         */
+        selected_cell = this.get_selected_cell()
+        cm = selected_cell.code_mirror;
+
+        this.reset_cells();
+        if (cm && mode == 'INSERT') {
+            CodeMirror.keyMap.vim["'i'"](cm);
+        }
+    }
 
     var NormalMode = {};
     var InsertMode = {};
 
-    var VIM = function() {;
+    var VIM = function() {
+        this.loaded = false;
     };
 
     VIM.prototype.keyDown = function(that, event) {
@@ -351,6 +383,18 @@ var IPython = (function(IPython) {
             return true;
         }
 
+        // i: use our internal vimode setter. 
+        if ((textcell && !rendered) && event.which === 73 && !event.shiftKey) {
+            that.setVIMode('INSERT');
+            return true;
+        }
+
+        // i: use our internal vimode setter. 
+        if (!textcell && event.which === 73 && !event.shiftKey) {
+            that.setVIMode('INSERT');
+            return true;
+        }
+
         // esc: get out of insert and render textcell
         if (textcell && !rendered && event.which === 27 && !event.shiftKey) {
             cell.render();
@@ -362,6 +406,12 @@ var IPython = (function(IPython) {
         var cell = that.get_selected_cell();
         var cell_type = cell.cell_type;
         var textcell = cell instanceof IPython.TextCell;
+
+        // esc: use our internal vim mode setter
+        if (event.which === 27 && !event.shiftKey) {
+            that.setVIMode('NORMAL');
+            return true;
+        }
 
         // control/apple E: execute (apple - E is easier than shift E)
         if ((event.ctrlKey || event.metaKey) && event.keyCode == 69) {
@@ -385,6 +435,14 @@ var IPython = (function(IPython) {
     };
 
     IPython.VIM = new VIM();
-    return IPython;
 
-}(IPython));
+    $.getScript("/static/components/codemirror/keymap/vim.js", function() {
+        // blah. could make this sync or I guess wrap the keymap file as a requirejs
+        IPython.VIM.loaded = true;
+        // this takes care of existing cells
+        IPython.notebook.setVIMode('NORMAL'); 
+
+        IPython.Cell.options_default.cm_config.keyMap = "vim";
+    });
+
+}

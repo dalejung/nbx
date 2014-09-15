@@ -5,7 +5,7 @@ from nbx.handlers import NBXHandler
 class ServerInfoHandler(NBXHandler):
     @web.authenticated
     def get(self, path='', name=None):
-        nbm = self.notebook_manager
+        nbm = self.contents_manager
         app = nbm.parent
         data = {}
         data['profile'] = app.profile
