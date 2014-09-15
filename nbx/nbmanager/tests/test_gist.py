@@ -45,11 +45,13 @@ def create_gist_context(*args, **kwargs):
     """
     contextmanager that creates a gist and makes sure to delete it
     """
+    delete_after = kwargs.pop('delete_after', True)
     gs = GistService()
     gs.login(login, password)
     gist = gs.create_gist(*args, **kwargs)
     yield gist
-    gist.delete()
+    if delete_after:
+        gist.delete()
 
 class TestGistService(unittest.TestCase):
 
@@ -107,6 +109,7 @@ class TestGistService(unittest.TestCase):
 
             # add file
             gist.edit('new desc', files={'new.txt':'new stuff'})
+            # TODO: Need to deepdive and see why the assert fails. #15
             nt.assert_items_equal(gist.files, ['empty.txt', 'new.txt'])
             nt.assert_equals(len(gist.gist.history), 3)
 
