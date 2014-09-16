@@ -1,5 +1,6 @@
 from IPython.nbformat import current
 import github
+import time
 
 _missing = object()
 
@@ -153,6 +154,11 @@ class Gister(object):
         files = _github_files(files)
         if dirty or force:
             self.gist.edit(description, files)
+            # at the moment, it looks like sending edit requests
+            # too quickly will cause the files dict in the response
+            # to be stale. Emailed github about this. For now, 
+            # putting in a sleep.
+            time.sleep(.3)
 
     def delete(self):
         self.gist.delete()
