@@ -11,7 +11,7 @@ from .common import *
 def fake_manager():
     with fake_file_system() as td:
         manager = BundleNotebookManager()
-        manager.notebook_dir = td
+        manager.root_dir = td
         yield manager
 
 def bundletest(func):
@@ -68,7 +68,7 @@ class TestBundleNotebookManager(unittest.TestCase):
         nt.assert_equal(len(checkpoints), 1)
 
         # check that files were saved
-        nb_dir = os.path.join(mgr.notebook_dir, 'testing', 'new-name.ipynb')
+        nb_dir = os.path.join(mgr.root_dir, 'testing', 'new-name.ipynb')
         nt.assert_true(os.path.isdir(nb_dir))
         nt.assert_true(os.path.isfile(os.path.join(nb_dir, 'new-name.ipynb')))
         nt.assert_true(os.path.isfile(os.path.join(nb_dir, 'file1.txt')))
@@ -107,12 +107,12 @@ class TestBundleNotebookManager(unittest.TestCase):
     @bundletest
     def test_get_checkpoint_path(self, mgr):
         checkpoint_path = mgr.get_checkpoint_path('cpid', 'dale.ipynb', 'subdir')
-        nt.assert_equal(checkpoint_path, 'subdir/dale.ipynb/.ipynb_checkpoints/dale-cpid.ipynb')
+        nt.assert_equal(checkpoint_path, 'subdir/dale.ipynb/.ipynb_checkpoints/dale---cpid.ipynb')
 
     @bundletest
     def test_create_checkpoint(self, mgr):
         model = mgr.create_checkpoint('second.ipynb', '')
-        cp_path = 'second.ipynb/.ipynb_checkpoints/second-checkpoint.ipynb'
+        cp_path = mgr.get_checkpoint_path(model['id'], 'second.ipynb', path='')
         os_cp_path = mgr._get_os_path(cp_path)
         # see that checkpoint was created
         nt.assert_true(os.path.isfile(os_cp_path))
@@ -126,22 +126,7 @@ class TestBundleNotebookManager(unittest.TestCase):
         checkpoints = mgr.list_checkpoints('second.ipynb')
         nt.assert_equal(len(checkpoints), 1)
         checkpoint = checkpoints[0]
-        nt.assert_equal(checkpoint['id'], 'checkpoint')
-
-fm = fake_manager()
-mgr = fm.__enter__()
-model = mgr.bundler.new_notebook()
-model['name'] = 'new-name.ipynb'
-model['path'] = 'testing'
-model['__files'] = {}
-model['__files']['file1.txt'] = 'file1.txt content'
-new_model = mgr.save_notebook(model, 'new-name.ipynb', 'testing')
-new_model = mgr.save_notebook(model, 'new-name.ipynb', 'testing')
-
-checkpoints = mgr.list_checkpoints('new-name.ipynb', 'testing')
-nt.assert_equal(len(checkpoints), 1)
-print mgr.list_notebooks('testing')
-print mgr.notebook_exists('new-name.ipynb', 'testing')
+        nt.assert_equal(checkpoint['id'], model['id'])
 
 if __name__ == '__main__':
     import nose

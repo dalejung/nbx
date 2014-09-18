@@ -238,3 +238,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")
 
+if __name__ == '__main__':
+    import nose
+    nose.runmodule(argv=[__file__,'-vvs','-x','--pdb', '--pdb-failure'],
+                  exit=False)
