@@ -156,9 +156,10 @@ class Gister(object):
             self.gist.edit(description, files)
             # at the moment, it looks like sending edit requests
             # too quickly will cause the files dict in the response
-            # to be stale. Emailed github about this. For now, 
+            # to be stale. Emailed github about this. For now,
             # putting in a sleep.
-            time.sleep(.3)
+            # http://nbviewer.ipython.org/gist/dalejung/9008256a672754df6d7d
+            time.sleep(1)
 
     def delete(self):
         self.gist.delete()
