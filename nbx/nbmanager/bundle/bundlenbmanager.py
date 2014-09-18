@@ -36,7 +36,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         Returns
         -------
         path : string
-            A file system path that combines notebook_dir (location where
+            A file system path that combines root_dir (location where
             server started), the relative path, and the filename with the
             current operating system's url.
         """

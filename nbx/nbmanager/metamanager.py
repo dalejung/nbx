@@ -185,10 +185,6 @@ class MetaManager(NBXContentsManager):
             path = url_path_join(path, name)
         return path
 
-    @property
-    def notebook_dir(self):
-        return self.managers['server-home'].notebook_dir
-
     def list_dirs(self, path):
         nbm, meta = self._nbm_from_path(path)
         val = nbm.list_dirs(meta.path)
