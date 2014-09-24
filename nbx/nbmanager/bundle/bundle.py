@@ -22,6 +22,7 @@ class Bundle(object):
             root, dirs, files = next(os.walk(self.bundle_path))
             # filter out compiled files
             files = filter(lambda x: not x.endswith('.pyc'), files)
+            files = list(files)
         except StopIteration:
             files = []
         return files

@@ -6,7 +6,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 from IPython.nbformat import current
 
 def touch(fname, times=None):
-    with file(fname, 'a'):
+    with open(fname, 'a'):
         os.utime(fname, times)
 
 def new_notebook(metadata, filepath):
@@ -56,3 +56,4 @@ def fake_file_system():
 
         yield td
 
+        pass

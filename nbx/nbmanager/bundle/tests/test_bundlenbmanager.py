@@ -2,7 +2,7 @@ import os
 import unittest
 from contextlib import contextmanager
 
-import nose.tools as nt
+from ...tests import tools as nt
 
 from ..bundlenbmanager import BundleNotebookManager
 from .common import *

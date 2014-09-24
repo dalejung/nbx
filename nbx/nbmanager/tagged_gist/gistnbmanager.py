@@ -129,7 +129,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             Notebook Name
         """
         gists = self.gists_by_tag(path)
-        for key, gist in gists.iteritems():
+        for key, gist in gists.items():
             if gist.name == name:
                 return True
         return False

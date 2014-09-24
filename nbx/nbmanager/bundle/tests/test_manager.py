@@ -1,9 +1,9 @@
 import os
 import unittest
-import nose.tools as nt
+from ...tests import tools as nt
 
 from .. import manager as mmod
-from common import *
+from .common import *
 
 class TestManager(unittest.TestCase):
 

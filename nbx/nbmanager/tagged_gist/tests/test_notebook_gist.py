@@ -1,5 +1,5 @@
 import unittest
-import nose.tools as nt
+from ...tests import tools as nt
 
 from ..notebook_gisthub import NotebookGistHub, NotebookGist
 from ..gisthub import GistHub, TaggedGist
@@ -90,7 +90,7 @@ class TestNotebookGist(unittest.TestCase):
         revisions = nb.revisions
         # a.ipynb is only revision 0 and 1
         keys = map(lambda x: x['id'], revisions)
-        nt.assert_list_equal(keys, [0,1])
+        nt.assert_list_equal(list(keys), [0,1])
         nt.assert_equal(nb.get_revision_content(0), "a.ipynb_0_revision_content")
         nt.assert_equal(nb.get_revision_content(1), "a.ipynb_1_revision_content")
 

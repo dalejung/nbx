@@ -1,7 +1,9 @@
 import github
 
-from .gisthub import gisthub, _hashtags
 from IPython.nbformat import current
+
+from .gisthub import gisthub, _hashtags
+import nbx.compat as compat
 
 def parse_tags(desc):
     # real tags and not system-like tags
@@ -75,7 +77,7 @@ class NotebookGist(object):
 
     @notebook_content.setter
     def notebook_content(self, content):
-        if isinstance(content, basestring):
+        if isinstance(content, compat.string_types):
             self._notebook_content = content
             return
 
@@ -167,7 +169,7 @@ class NotebookGistHub(object):
 
     def _wrap_results(self, results):
         wrapped = {}
-        for key, gists in results.iteritems():
+        for key, gists in results.items():
             # convert to NotebookGist
             items = [NotebookGist(gist, self) for gist in gists]
             # index by key_name

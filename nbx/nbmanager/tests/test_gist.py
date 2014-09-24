@@ -2,11 +2,11 @@ import os
 import unittest
 from contextlib import contextmanager
 
-import nose.tools as nt
 from IPython.nbformat import current
 from IPython.html.services.contents.filemanager import FileContentsManager
 from IPython.utils.tempdir import TemporaryDirectory
 
+from ..tests import tools as nt
 from ..gist import model_to_files, GistService, Gister
 from nbx.nbmanager.tests.common import login, password, require_github, makeFakeGist
 

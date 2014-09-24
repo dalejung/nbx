@@ -20,7 +20,7 @@ class BackwardsCompatMixin(object):
         model['type'] = 'directory'
         dirs = self.list_dirs(fullpath)
         notebooks = self.list_notebooks(fullpath)
-        entries = dirs + notebooks
+        entries = list(dirs) + list(notebooks)
         model['content'] = entries
         return model
 

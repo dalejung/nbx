@@ -1,6 +1,6 @@
 import unittest
 from  mock import Mock
-import nose.tools as nt
+from ...tests import tools as nt
 
 from ..gisthub import TaggedGist, GistHub
 from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist
@@ -158,7 +158,7 @@ class TestGistHub(unittest.TestCase):
         # inactive
         test = gh.query(active=False)
         # will return both #inactive and #bob
-        nt.assert_equals(len(test.keys()), 2)
+        nt.assert_equals(len(list(test.keys())), 2)
         nt.assert_equals(len(test['#bob']), 1)
         valid = ['bob inactive']
         test_names = [g.name for g in test['#bob']]
@@ -166,7 +166,7 @@ class TestGistHub(unittest.TestCase):
 
         # filtering inactive with bob, which shoudl return same as above
         test = gh.query(active=False, filter_tag='bob', drop_filter=False)
-        nt.assert_equals(len(test.keys()), 2)
+        nt.assert_equals(len(list(test.keys())), 2)
         nt.assert_equals(len(test['#bob']), 1)
         valid = ['bob inactive']
         test_names = [g.name for g in test['#bob']]
@@ -184,7 +184,7 @@ class TestGistHub(unittest.TestCase):
 
         # filtering only by #twin should get just the bob twins
         test = gh.query(filter_tag='twin')
-        nt.assert_items_equal(test.keys(), ['#bob'])
+        nt.assert_items_equal(list(test.keys()), ['#bob'])
         bobs = test['#bob']
         nt.assert_equal(len(bobs), 2)
 

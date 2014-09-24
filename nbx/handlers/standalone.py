@@ -54,7 +54,7 @@ def get_varname(obj):
     bound to in the IPython kernel
     """
     inst = IPython.InteractiveShell._instance
-    for k,v in inst.user_ns.iteritems():
+    for k,v in inst.user_ns.items():
         if v is obj and not k.startswith('_'):
             return k
 

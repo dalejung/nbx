@@ -1,6 +1,6 @@
 import os
 import unittest
-import nose.tools as nt
+from ...tests import tools as nt
 
 from .. import bundle as bmod
 from .common import *
@@ -35,7 +35,7 @@ class TestBundle(unittest.TestCase):
             for name, b in bundles.items():
                 nt.assert_false(isinstance(b, bmod.NotebookBundle))
                 correct = correct_files[b.name]
-                nt.assert_items_equal(b.files, correct)
+                nt.assert_items_equal(list(b.files), correct)
 
 class TestNotebookBundle(unittest.TestCase):
 

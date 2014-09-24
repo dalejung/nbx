@@ -2,6 +2,8 @@ from IPython.nbformat import current
 import github
 import time
 
+import nbx.compat as compat
+
 _missing = object()
 
 def model_to_files(model):
@@ -26,7 +28,7 @@ def model_to_files(model):
 
 
     __files = model.get('__files', {})
-    for fn, content in __files.iteritems():
+    for fn, content in __files.items():
         files[fn] = content
     return files
 
@@ -34,7 +36,7 @@ def _github_files(files):
     """ wrap basestring content into github.InputFilecontent """
     new_files = {}
     for fn, content in files.items():
-        if isinstance(content, basestring):
+        if isinstance(content, compat.string_types):
             content = github.InputFileContent(content)
         new_files[fn] = content
     return new_files
@@ -194,7 +196,7 @@ class Gister(object):
         if files is None:
             files = {}
 
-        for fn, fobj in self.gist.files.iteritems():
+        for fn, fobj in self.gist.files.items():
             if fn not in files:
                 files[fn] = None # mark for deletion
 

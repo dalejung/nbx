@@ -6,6 +6,8 @@ gists and tagging.
 """
 import github
 
+import nbx.compat as compat
+
 def _hashtags(desc):
     if not desc:
         return []
@@ -129,11 +131,12 @@ class GistHub(object):
     def _normalize_tag(self, tag):
         if tag is None:
             tag = []
-        if isinstance(tag, basestring):
+        if isinstance(tag, compat.string_types):
             tag = [tag]
 
         # allow tag in both hashtag and bare form
         tag = map(lambda t: t.startswith("#") and t or '#'+t, tag)
+        tag = list(tag)
         return tag
 
     def _filter_tag(self, gists, filter_tag):
@@ -142,6 +145,7 @@ class GistHub(object):
         """
         filter_tag = self._normalize_tag(filter_tag)
         gists = filter(lambda gist: set(gist.tags).issuperset(filter_tag), gists)
+        gists = list(gists)
         return gists
 
     def _select_tag(self, gists, select_tag, filter_tag=None):
@@ -175,6 +179,7 @@ class GistHub(object):
         if active is None:
             return gists
         gists = filter(lambda gist: gist.active == active, gists)
+        gists = list(gists)
         return gists
 
     def _get_tagged_gists(self):
