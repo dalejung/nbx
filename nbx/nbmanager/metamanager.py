@@ -141,9 +141,9 @@ class MetaManager(NBXContentsManager):
         param. Sometimes the name is really a path. blah
         """
         if self.debug:
-            print 'nbm_from_path(path={0}, name={1})'.format(path, name)
+            print('nbm_from_path(path={0}, name={1})'.format(path, name))
             import inspect
-            print inspect.stack()[1][3]
+            print(inspect.stack()[1][3])
         # TODO clean up this logic.
         request_path = self._get_fullpath(name, path)
         # remove beginning slash (/)
@@ -177,7 +177,7 @@ class MetaManager(NBXContentsManager):
         nbm = self.managers.get(manager_path)
 
         if self.debug:
-            print nbm, meta
+            print(nbm, meta)
         return nbm, meta
 
     def _get_fullpath(self, name=None, path=''):

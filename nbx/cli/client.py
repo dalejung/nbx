@@ -40,7 +40,7 @@ class IPythonClient(object):
         lines.append("Active Kernels:")
         lines.append("====================")
         lines.extend(self._list_sessions())
-        print '\n'.join(lines)
+        print('\n'.join(lines))
 
     def _format_session(self, i, session):
         return "[{i}] {name}".format(i=i, name=session['notebook']['name'])
@@ -54,9 +54,9 @@ class IPythonClient(object):
         profile = info['profile']
         pos = int(pos)
         session = self._get_session(pos)
-        print "=" * 80
-        print "Attaching to {name}".format(name=session['notebook']['name'])
-        print "=" * 80
+        print("=" * 80)
+        print("Attaching to {name}".format(name=session['notebook']['name']))
+        print("=" * 80)
         return attach_session(session, profile=profile)
 
     def kernel_path(self, pos):

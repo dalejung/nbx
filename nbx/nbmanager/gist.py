@@ -61,7 +61,7 @@ class GistService(object):
             self.default = login
         # if account already
         if login in self.accounts:
-            print "Alredy logged in"
+            print("Alredy logged in")
             return
         hub = github.Github(login, password, user_agent="nbx")
         self.accounts[login] = hub
@@ -80,7 +80,7 @@ class GistService(object):
         gist = self.hub.get_gist(gist_id)
         owner = self.get_owner(gist)
         if owner is not None and owner is not self.hub:
-            print 'grabbed from hub'
+            print('grabbed from hub')
             gist = owner.get_gist(gist_id)
         gist = Gister(gist, self)
         return gist

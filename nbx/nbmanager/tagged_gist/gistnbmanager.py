@@ -76,7 +76,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         # get notebooks by tag
         gists = self.gists_by_tag(path)
         if name not in gists:
-            print 'gist not found', gists.keys(), name, path
+            print('gist not found', gists.keys(), name, path)
         return gists.get(name, None)
 
     def get_notebook(self, name, path='', content=True):

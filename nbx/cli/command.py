@@ -44,7 +44,7 @@ def main():
 
     if action in ['pwd']:
         import pipes
-        print kernel_pwd(cl, target)
+        print(kernel_pwd(cl, target))
 
 if __name__ == '__main__':
     main()

@@ -35,7 +35,7 @@ def save_to_gist(path):
 
     gist_id = model['content']['metadata'].get('gist_id', None)
     if gist_id is None:
-        print 'No gist_id found in notebook'
+        print('No gist_id found in notebook')
         return
 
     gist = service.get_gist(gist_id)
@@ -45,7 +45,7 @@ def save_to_gist(path):
     msg = "Saved notebook {path} {name} to gist {gist_id}".format(name=name,
                                                         path=path,
                                                         gist_id=gist_id)
-    print msg
+    print(msg)
 
 def bundle_get_model(name, path):
     bundler = BundleManager()
