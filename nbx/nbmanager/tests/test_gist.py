@@ -177,6 +177,7 @@ class TestGister(unittest.TestCase):
             else:
                 nt.assert_is_none(f)
 
+
     @require_github
     def test_save_gist_live(self):
         gs = GistService()

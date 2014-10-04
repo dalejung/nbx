@@ -63,10 +63,15 @@ class NotebookBundle(Bundle):
             model['content'] = self.notebook_content
         files = {}
         for fn in self.files:
-            with open(os.path.join(self.bundle_path, fn)) as f:
+            with open(os.path.join(self.bundle_path, fn), 'rb') as f:
                 data = None
                 if file_content:
-                    data = f.read()
+                    try:
+                        data = f.read().decode('utf-8')
+                    except UnicodeDecodeError:
+                        # TODO how to deal with binary data?
+                        # right now we skip
+                        continue
                 files[fn] = data
         model['__files'] = files
         return model

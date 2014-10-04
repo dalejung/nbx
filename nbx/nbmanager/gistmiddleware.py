@@ -53,8 +53,13 @@ class GistMiddleware(LoggingConfigurable):
             model = nbm.get_model(name, local_path, content=True)
 
         files = model_to_files(model)
-        gist.save(description=name, files=files)
-        msg = "Saved notebook {path} {name} to gist {gist_id}".format(name=name,
+        try:
+            gist.save(description=name, files=files)
+        except:
+            print(files)
+            raise Exception('Error saving gist')
+        else:
+            msg = "Saved notebook {path} {name} to gist {gist_id}".format(name=name,
                                                             path=local_path,
                                                             gist_id=gist_id)
         self.log.info(msg)
