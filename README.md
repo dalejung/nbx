@@ -1,4 +1,5 @@
 # Warning
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/dalejung/nbx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Currently in the process of updating to be compatible with the ipython 3.0 changes. Will update when that branch is merged in.
 
