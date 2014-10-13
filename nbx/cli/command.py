@@ -1,5 +1,9 @@
 from . import client
-import urllib2
+try:
+    import urllib.request as urllib2
+except:
+    import urllib2
+
 import urllib
 
 def list_sessions(cl):
