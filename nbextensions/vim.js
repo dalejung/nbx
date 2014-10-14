@@ -399,8 +399,8 @@ function IPython_vim_patch(IPython) {
 
         // esc: get out of insert and render textcell
         if (textcell && !rendered && event.which === 27 && !event.shiftKey) {
-            cell.render();
-            return false;
+            //cell.render();
+            //return false;
         }
     };
 
