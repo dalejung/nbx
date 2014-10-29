@@ -198,6 +198,7 @@ function IPython_vim_patch(IPython) {
          * and then select.
          */
         selected_cell = this.get_selected_cell()
+        cm = null;
         if (selected_cell) {
             cm = selected_cell.code_mirror;
         }
