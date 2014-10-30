@@ -11,6 +11,7 @@ require(["nbextensions/vim"], function (vim_extension) {
 define([
     'notebook/js/notebook',
     'notebook/js/keyboardmanager',
+    'codemirror/keymap/vim'
 ], function() {
     var load_extension = function() {
         IPython_vim_patch(IPython);
@@ -165,10 +166,6 @@ function IPython_vim_patch(IPython) {
 
     // reset all cells to normal vim
     IPython.Notebook.prototype.reset_cells = function () {
-        // if the keymap file has not loaded, don't run the reset.
-        if(!IPython.VIM.loaded) {
-            return;
-        }
         var cells = this.get_cells();
         var arr_length = cells.length;
         for(var i = 0; i < arr_length; i++) {
@@ -213,7 +210,6 @@ function IPython_vim_patch(IPython) {
     var InsertMode = {};
 
     var VIM = function() {
-        this.loaded = false;
     };
 
     VIM.prototype.keyDown = function(that, event) {
@@ -439,13 +435,8 @@ function IPython_vim_patch(IPython) {
 
     IPython.VIM = new VIM();
 
-    $.getScript("/static/components/codemirror/keymap/vim.js", function() {
-        // blah. could make this sync or I guess wrap the keymap file as a requirejs
-        IPython.VIM.loaded = true;
-        // this takes care of existing cells
-        IPython.notebook.setVIMode('NORMAL'); 
+    // this takes care of existing cells
+    IPython.notebook.setVIMode('NORMAL'); 
 
-        IPython.Cell.options_default.cm_config.keyMap = "vim";
-    });
-
+    IPython.Cell.options_default.cm_config.keyMap = "vim";
 }
