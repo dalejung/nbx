@@ -3,21 +3,50 @@ Currently `%run -m` will not bring back any variables if the module
 execution errors. This will replicate the normal run behavior which 
 acts like the code is executed in the IPython shell scope.
 """
-from runpy import (_TempModule, _ModifiedArgv0, _run_code, 
+import sys
+from runpy import (_TempModule, _ModifiedArgv0, 
                    _get_module_details)
 
 from IPython.core.interactiveshell import InteractiveShell, warn
+from importlib._bootstrap import _SpecMethods
+
+class TempModule:
+    """
+    Temporarily put module into sys.modules
+    """
+    def __init__(self, module):
+        self.module = module
+        self.mod_name = module.__name__
+        self._saved_module = []
+
+    def __enter__(self):
+        mod_name = self.mod_name
+        try:
+            self._saved_module.append(sys.modules[mod_name])
+        except KeyError:
+            pass
+        sys.modules[mod_name] = self.module
+        return self
+
+    def __exit__(self, *args):
+        if self._saved_module:
+            sys.modules[self.mod_name] = self._saved_module[0]
+        else:
+            del sys.modules[self.mod_name]
+        self._saved_module = []
 
 def _run_module_code(code, init_globals=None,
                     mod_name=None, mod_spec=None,
                     pkg_name=None, script_name=None):
     """Helper to run code in new namespace with sys modified"""
     fname = script_name if mod_spec is None else mod_spec.origin
-    with _TempModule(mod_name) as temp_module, _ModifiedArgv0(fname):
+
+    methods = _SpecMethods(mod_spec)
+    module = methods.create()
+    with TempModule(module) as temp_module, _ModifiedArgv0(fname):
         mod_globals = temp_module.module.__dict__
         try:
-            _run_code(code, mod_globals, init_globals,
-                    mod_name, mod_spec, pkg_name, script_name)
+            methods.exec(module)
         except Exception as error:
             mod_globals['__run_module_error__'] = error
     # Copy the globals of the temporary module, as they
