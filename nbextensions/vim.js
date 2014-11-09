@@ -136,6 +136,11 @@ function IPython_vim_patch(IPython) {
     };
 
     IPython.CodeCell.prototype.handle_keyevent = function(editor, event) {
+        var ret = this.handle_codemirror_keyevent(editor, event);
+        if (ret) {
+            event.codemirrorIgnore = true;
+            return ret;
+        }
         if (event.type == 'keypress') {
             // switch IPython.notebook to this.notebook if Cells get notebook reference
             ret = IPython.VIM.keyDown(IPython.notebook, event);
