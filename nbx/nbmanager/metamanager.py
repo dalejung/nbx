@@ -236,6 +236,7 @@ class MetaManager(NBXContentsManager):
     def update(self, model, name, path=''):
         """Update the notebook and return the model with no content."""
         nbm, meta = self._nbm_from_path(path, name)
+        model['path'] = meta.path
         return nbm.update(model, meta.name, meta.path)
 
     def delete(self, name, path=''):
@@ -279,7 +280,9 @@ class MetaManager(NBXContentsManager):
 
     def create_file(self, model=None, path='', ext='.ipynb'):
         nbm, meta = self._nbm_from_path(path)
-        return nbm.create_file(model, meta.path, ext)
+        model = nbm.create_file(model, meta.path, ext)
+        model['path'] = path
+        return model
 
     def copy(self, from_name, to_name=None, path=''):
         nbm, meta = self._nbm_from_path(path)
