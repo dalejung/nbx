@@ -3,7 +3,8 @@ import io
 from contextlib import contextmanager
 
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.nbformat import current
+from IPython import nbformat
+current = nbformat.v4
 
 def touch(fname, times=None):
     with open(fname, 'a'):
@@ -13,7 +14,7 @@ def new_notebook(metadata, filepath):
     content = current.new_notebook(metadata=metadata)
     nb = current.to_notebook_json(content)
     with io.open(filepath, 'w', encoding='utf-8') as f:
-        current.write(nb, f, u'json')
+        nbformat.write(nb, f, version=nbformat.NO_CONVERT)
 
 @contextmanager
 def fake_file_system():

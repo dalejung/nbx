@@ -6,7 +6,6 @@ from tornado import web
 
 from IPython.utils.traitlets import Unicode
 from IPython.utils import tz
-from IPython.nbformat import current
 from IPython.html.utils import is_hidden, to_os_path
 
 from .manager import BundleManager

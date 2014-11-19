@@ -1,7 +1,7 @@
 import os
 import io
 
-from IPython.nbformat import current
+from IPython import nbformat
 from IPython.utils import tz
 
 
@@ -34,7 +34,7 @@ class NotebookBundle(Bundle):
         filepath = os.path.join(self.bundle_path, self.name)
         with io.open(filepath, 'r', encoding='utf-8') as f:
             try:
-                nb = current.read(f, u'json')
+                nb = nbformat.read(f, as_version=4)
             except Exception as e:
                 nb = None
             return nb

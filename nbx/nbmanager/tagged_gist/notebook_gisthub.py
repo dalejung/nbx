@@ -1,6 +1,6 @@
 import github
 
-from IPython.nbformat import current
+from IPython import nbformat
 
 from .gisthub import gisthub, _hashtags
 import nbx.compat as compat
@@ -83,7 +83,7 @@ class NotebookGist(object):
 
         try:
             # maybe this is a notebook
-            content = current.writes(content, format=u'json')
+            content = nbformat.writes(content, version=nbformat.NO_CONVERT)
             self._notebook_content = content
         except:
             raise
