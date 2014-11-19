@@ -8,12 +8,13 @@ from IPython import nbformat
 from IPython.nbformat import sign
 current = nbformat.v4
 
-def is_notebook(name, path):
+def is_notebook(path):
+    name = path.rsplit('/', 1)[-1]
     # checks if path follows bundle format
     if not name.endswith('.ipynb'):
         return False
     # if that we have same named ipynb file in directory
-    file_path = os.path.join(path, name, name)
+    file_path = os.path.join(path, name)
     has_file = os.path.isfile(file_path)
     return has_file
 
@@ -29,33 +30,28 @@ class BundleManager(object):
         if bundle_class:
             self.bundle_class = bundle_class
 
-    def __new_notebook(self):
-        model = {}
-        model['content'] = current.new_notebook(metadata={'name':u''})
-        return model
+    def _get_bundle_path(self, path):
+        return path
 
-    def _get_bundle_path(self, name, path):
-        bundle_path = os.path.join(path, name)
-        return bundle_path
-
-    def _get_nb_path(self, name, path):
-        bundle_path = self._get_bundle_path(name, path)
+    def _get_nb_path(self, path):
+        name = path.rsplit('/', 1)[-1]
+        bundle_path = self._get_bundle_path(path)
         nb_path = os.path.join(bundle_path, name)
         return nb_path
 
-    def save_notebook(self, model, name='', path=''):
+    def save_notebook(self, model, path):
         """
         Save notebook model to file system.
 
         Note: This differs from the NotebookManager.save_notebook in that
         it doesn't have a rename check.
         """
-        if not self.is_writable(name, path):
+        name = path.rsplit('/', 1)[-1]
+        if not self.is_writable(path):
             raise Exception("Notebook target is not writable")
 
-        bundle_path = self._get_bundle_path(name, path)
-        if not os.path.exists(bundle_path):
-            os.mkdir(bundle_path)
+        if not os.path.exists(path):
+            os.mkdir(path)
 
         nb = nbformat.from_dict(model['content'])
 
@@ -64,13 +60,14 @@ class BundleManager(object):
         if notary.check_cells(nb):
             notary.sign(nb)
 
-        self.write_notebook(bundle_path, name, nb)
+        self.write_notebook(path, nb)
 
         if '__files' in model:
-            self.write_files(bundle_path, model)
+            self.write_files(path, model)
 
-    def write_notebook(self, bundle_path, name, nb):
-        nb_path = os.path.join(bundle_path, name)
+    def write_notebook(self, path, nb):
+        name = path.rsplit('/', 1)[-1]
+        nb_path = os.path.join(path, name)
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
         try:
@@ -87,23 +84,25 @@ class BundleManager(object):
             with open(filepath, 'w') as f:
                 f.write(fcontent)
 
-    def notebook_exists(self, name, path):
-        return is_notebook(name, path)
+    def notebook_exists(self, path):
+        return is_notebook(path)
 
-    def is_writable(self, name, path):
-        bundle_path = os.path.join(path, name)
+    def is_writable(self, path):
+        bundle_path = path
         if not os.path.exists(bundle_path):
             return True
         # if path exists, only writable if it is a directory notebook
-        if is_notebook(name, path):
+        if is_notebook(path):
             return True
 
         return False
 
-    def rename_notebook(self, name, path, new_name, new_path):
+    def rename_notebook(self, path, new_path):
         if path != new_path :
             raise NotImplementedError('Moving directories not supported')
 
+        name = path.rsplit('/', 1)[-1]
+        new_name = new_path.rsplit('/', 1)[-1]
         bundle_path = os.path.join(path, name)
         new_bundle_path = os.path.join(new_path, new_name)
         # Should we proceed with the move?
@@ -124,7 +123,8 @@ class BundleManager(object):
         except Exception as e:
             raise Exception(u'Unknown error renaming notebook: %s %s' % (bundle_path, e))
 
-    def get_notebook(self, name, path):
+    def get_notebook(self, path):
+        name = path.rsplit('/', 1)[-1]
         bundle = self.bundle_class(name, path)
         return bundle
 
@@ -145,9 +145,9 @@ class BundleManager(object):
             raise Exception("{path} is not a directory".format(path=path))
         root, dirs, files = next(os.walk(path))
         # remove dirs that are notebooks
-        dirs = filter(lambda name: not is_notebook(name, path), dirs)
+        dirs = filter(lambda path: not is_notebook(path), dirs)
         return dirs
 
-    def copy_notebook_file(self, name, path, cp_path=None):
-        nb_path = self._get_nb_path(name, path)
+    def copy_notebook_file(self, path, cp_path=None):
+        nb_path = self._get_nb_path(path)
         shutil.copy2(nb_path, cp_path)

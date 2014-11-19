@@ -23,10 +23,10 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         tags = self.gist_query()
         return path in tags.keys()
 
-    def get_dir_model(self, name):
+    def get_dir_model(self, path):
         model ={}
-        model['name'] = name
-        model['path'] = name
+        model['path'] = path
+        model['path'] = path
         model['type'] = 'directory'
         return model
 
@@ -68,12 +68,13 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         notebooks = sorted(notebooks, key=lambda x: x['last_modified'], reverse=True)
         return notebooks
 
-    def notebook_exists(self, name, path=''):
-        gist = self._get_gist(name, path)
+    def notebook_exists(self, path):
+        gist = self._get_gist(path)
         return gist is not None
 
-    def _get_gist(self, name, path):
+    def _get_gist(self, path):
         # get notebooks by tag
+        name = path.rsplit('/', 1)[-1]
         gists = self.gists_by_tag(path)
         if name not in gists:
             print('gist not found', gists.keys(), name, path)
@@ -84,8 +85,6 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
 
         Parameters
         ----------
-        name : str
-            the name of the notebook
         path : str
             the URL path that describes the relative path for
             the notebook
@@ -97,12 +96,12 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             dict in the model as well.
         """
         path = path.strip('/')
-        if not self.notebook_exists(name=name, path=path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
-        gist = self._get_gist(name, path)
+        if not self.notebook_exists(path=path):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % path)
+        gist = self._get_gist(path)
         # Create the notebook model.
         model ={}
-        model['name'] = name
+        model['name'] = path.rsplit('/', 1)[-1]
         model['path'] = path
         model['last_modified'] = gist.updated_at
         model['created'] = gist.created_at
@@ -112,8 +111,8 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             try:
                 nb = nbformat.reads(notebook_content, as_version=4)
             except Exception as e:
-                raise web.HTTPError(400, u"Unreadable Notebook: %s %s %s" % (path, name, e))
-            self.mark_trusted_cells(nb, path, name)
+                raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (path, e))
+            self.mark_trusted_cells(nb, path)
 
             # add gist id if public.
             if gist.public:
@@ -121,13 +120,14 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             model['content'] = nb
         return model
 
-    def basename_exists(self, name, path):
+    def basename_exists(self, path):
         """
         notebook_exists checks notebook names in the form of:
             Notebook Name [gistid]
         basename_exists checks on names without suffix. i.e.:
             Notebook Name
         """
+        name = path.rsplit('/', 1)[-1]
         gists = self.gists_by_tag(path)
         for key, gist in gists.items():
             if gist.name == name:
@@ -157,7 +157,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
                 break
         return name
 
-    def save_notebook(self, model, name='', path=''):
+    def save_notebook(self, model, path=''):
         """Save the notebook model and return the model with no content."""
         path = path.strip('/')
 
@@ -169,7 +169,8 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
 
         nb = nbformat.from_dict(model['content'])
 
-        gist = self._get_gist(name, path)
+        gist = self._get_gist(path)
+        name = path.rsplit('/', 1)[-1]
         if gist is None:
             tags = parse_tags(name)
             if path:
@@ -182,7 +183,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         #    self.create_checkpoint(name, path)
 
         new_path = model.get('path', path).strip('/')
-        new_name = model.get('name', name)
+        new_name = new_path.rsplit('/', 1)[-1]
 
         if path != new_path:
             raise web.HTTPError(400, u'Gist backend does not support path change')
@@ -191,7 +192,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         gist.name = gist.strip_gist_id(new_name)
         gist.notebook_content = nb
 
-        self.check_and_sign(nb, new_path, new_name)
+        self.check_and_sign(nb, new_path)
 
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
@@ -206,13 +207,14 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         model = self.get_notebook(gist.key_name, new_path, content=False)
         return model
 
-    def update_notebook(self, model, name, path=''):
+    def update_notebook(self, model, path=''):
         """Update the notebook's path and/or name"""
         path = path.strip('/')
-        gist = self._get_gist(name, path)
-        new_name = model.get('name', name)
+        gist = self._get_gist(path)
 
         new_path = model.get('path', path).strip('/')
+        new_name = new_path.rsplit('/', 1)[-1]
+
         if path != new_path :
             raise web.HTTPError(400, u'Gist backend does not support path change')
 

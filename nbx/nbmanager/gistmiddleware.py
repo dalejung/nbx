@@ -27,14 +27,14 @@ class GistMiddleware(LoggingConfigurable):
         for user, pw in self.github_accounts:
             self.service.login(user, pw)
 
-    def post_save(self, nbm, local_path, model, name, path):
+    def post_save(self, nbm, local_path, model, path):
         if 'type' not in model:
             raise Exception(u"Model has no file type")
         model_type = model['type']
         return dispatch_method(self, 'post_save', model_type, nbm, local_path, model,
-                               name, path)
+                               path)
 
-    def post_save_notebook(self, nbm, local_path, model, name, path):
+    def post_save_notebook(self, nbm, local_path, model, path):
         # for now only support bundlenbmanager
         if not isinstance(nbm, (BundleNotebookManager, FileContentsManager)):
             return
@@ -48,10 +48,11 @@ class GistMiddleware(LoggingConfigurable):
 
         try:
             # this is only applicable to bundles
-            model = nbm.get_model(name, local_path, content=True, file_content=True)
+            model = nbm.get_model(local_path, content=True, file_content=True)
         except:
-            model = nbm.get_model(name, local_path, content=True)
+            model = nbm.get_model(local_path, content=True)
 
+        name = model['name']
         files = model_to_files(model)
         try:
             gist.save(description=name, files=files)

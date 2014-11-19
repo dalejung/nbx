@@ -31,7 +31,7 @@ def dispatch_method(self, hook, model_type, *args, **kwargs):
     default_method = getattr(self, default_name)
     return default_method(*args, **kwargs)
 
-def get_model(self, name, path='', content=True, dispatcher=dispatch_method, **kwargs):
+def get_model(self, path, content=True, dispatcher=dispatch_method, **kwargs):
     """
     Relies on:
         is_dir
@@ -39,27 +39,27 @@ def get_model(self, name, path='', content=True, dispatcher=dispatch_method, **k
     """
     path = path.strip('/')
 
-    fullpath = self.fullpath(name, path)
+    fullpath = self.fullpath(path)
     model_type = _model_type_from_path(self, fullpath)
     print('fullpath', fullpath, model_type, self)
-    return dispatcher(self, 'get_model', model_type, name=name,
+    return dispatcher(self, 'get_model', model_type,
                             path=path, content=content, **kwargs)
 
-def save(self, model, name='', path='', dispatcher=dispatch_method):
+def save(self, model, path, dispatcher=dispatch_method):
     if 'type' not in model:
         raise Exception(u"Model has no file type")
     model_type = model['type']
-    return dispatcher(self, 'save', model_type, model, name=name, path=path)
+    return dispatcher(self, 'save', model_type, model, path=path)
 
-def update(self, model, name='', path='', dispatcher=dispatch_method):
+def update(self, model, path, dispatcher=dispatch_method):
     # right now, ipython only supports notebook renames via PATCH
     model_type = 'notebook'
-    return dispatcher(self, 'update', model_type, model, name=name, path=path)
+    return dispatcher(self, 'update', model_type, model, path=path)
 
-def delete(self, name, path='', dispatcher=dispatch_method):
-    fullpath = self.fullpath(name, path)
+def delete(self, path, dispatcher=dispatch_method):
+    fullpath = self.fullpath(path)
     model_type = _model_type_from_path(self, fullpath)
-    return dispatcher(self, 'delete', model_type, name=name, path=path)
+    return dispatcher(self, 'delete', model_type, path=path)
 
 class DispatcherMixin(object):
     """
@@ -69,20 +69,20 @@ class DispatcherMixin(object):
     i.e. get_model for a directory would call get_model_dir
     """
 
-    def save(self, model, name='', path=''):
-        return save(self, model, name, path,
+    def save(self, model, path):
+        return save(self, model, path,
                              dispatcher=self.dispatch_method.__func__)
 
-    def update(self, model, name='', path=''):
-        return update(self, model, name, path,
+    def update(self, model, path):
+        return update(self, model, path,
                              dispatcher=self.dispatch_method.__func__)
 
-    def delete(self, name, path=''):
-        return delete(self, name, path,
+    def delete(self, path=''):
+        return delete(self, path,
                              dispatcher=self.dispatch_method.__func__)
 
-    def get_model(self, name, path='', content=True, **kwargs):
-        return get_model(self, name, path, content,
+    def get_model(self, path='', content=True, **kwargs):
+        return get_model(self, path, content,
                                   dispatcher=self.dispatch_method.__func__, **kwargs)
 
     def dispatch_method(self, hook, model_type, *args, **kwargs):

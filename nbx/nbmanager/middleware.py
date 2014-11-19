@@ -8,15 +8,15 @@ def manager_hook(func):
 
     # wrap manager call
     @manager_hook
-    def save_notebook(self, model, name='', path=''):
+    def save_notebook(self, model, path):
         pass
 
     # middleware to catch those hooks
     class Middleware(object):
-        def pre_save_notebook(self, nbm, local_path, model, name, path):
+        def pre_save_notebook(self, nbm, local_path, model, path):
             pass
 
-        def post_save_notebook(self, nbm, local_path, model, name, path):
+        def post_save_notebook(self, nbm, local_path, model, path):
             pass
     """
     func_name = func.__name__

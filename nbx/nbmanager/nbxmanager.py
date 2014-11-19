@@ -6,16 +6,16 @@ from IPython.html.utils import url_path_join
 
 from .dispatch import DispatcherMixin
 
-def _fullpath(name, path):
-    fullpath = url_path_join(path, name)
-    return fullpath
-
 class BackwardsCompatMixin(object):
+    # keeping get_model around
+    def get(self, *args, **kwargs):
+        self.get_model(*args, **kwargs)
+
     # shims to bridge Content service and older notebook apis
-    def get_model_dir(self, name, path='', content=True):
+    def get_model_dir(self, path, content=True):
         """ retrofit to use old list_dirs. No notebooks """
-        model = self._base_model(name, path)
-        fullpath = self.fullpath(name, path)
+        model = self._base_model(path)
+        fullpath = self.fullpath(path)
 
         model['type'] = 'directory'
         dirs = self.list_dirs(fullpath)
@@ -24,12 +24,12 @@ class BackwardsCompatMixin(object):
         model['content'] = entries
         return model
 
-    def get_model_notebook(self, name, path='', content=True, **kwargs):
-        return self.get_notebook(name, path, content=content, **kwargs)
+    def get_model_notebook(self, path='', content=True, **kwargs):
+        return self.get_notebook(path, content=content, **kwargs)
 
-    def file_exists(self, name, path=''):
+    def file_exists(self, path=''):
         # in old version, only file is notebook
-        ret =  self.notebook_exists(name, path)
+        ret =  self.notebook_exists(path)
         return ret
 
     def is_notebook(self, path):
@@ -39,8 +39,7 @@ class BackwardsCompatMixin(object):
 
         split path into name, path and use notebook_exists
         """
-        path, name = os.path.split(path)
-        ret =  self.notebook_exists(name, path)
+        ret =  self.notebook_exists(path)
         return ret
 
     def is_dir(self, path):
@@ -60,11 +59,11 @@ class NBXContentsManager(DispatcherMixin, ContentsManager):
     def is_notebook(self, path):
         return path.endswith('.ipynb')
 
-    def _base_model(self, name, path=''):
+    def _base_model(self, path=''):
         """Build the common base of a contents model"""
         # Create the base model.
         model = {}
-        model['name'] = name
+        model['name'] = path.rsplit('/', 1)[-1]
         model['path'] = path
         model['created'] = datetime.datetime.now()
         model['last_modified'] = datetime.datetime.now()
@@ -72,5 +71,5 @@ class NBXContentsManager(DispatcherMixin, ContentsManager):
         model['format'] = None
         return model
 
-    def fullpath(self, name, path):
-        return _fullpath(name, path)
+    def fullpath(self, path):
+        return path

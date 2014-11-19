@@ -45,11 +45,11 @@ class RootManager(ContentsManager):
     def info_string(self):
         return ''
 
-    def _base_model(self, name, path=''):
+    def _base_model(self, path):
         """Build the common base of a contents model"""
         # Create the base model.
         model = {}
-        model['name'] = name
+        model['name'] = path.rsplit('/', 1)[-1]
         model['path'] = path
         model['created'] = datetime.datetime.now()
         model['last_modified'] = datetime.datetime.now()
@@ -57,9 +57,9 @@ class RootManager(ContentsManager):
         model['format'] = None
         return model
 
-    def get_model(self, name, path='', content=True):
+    def get_model(self, path, content=True):
         """ retrofit to use old list_dirs. No notebooks """
-        model = self._base_model(name, path)
+        model = self._base_model(path)
         model['type'] = 'directory'
         dirs = self.list_dirs(path)
         model['content'] = dirs
