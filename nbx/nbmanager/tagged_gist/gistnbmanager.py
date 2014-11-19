@@ -2,7 +2,7 @@ import itertools
 
 from tornado import web
 
-from IPython.nbformat import current
+from IPython import nbformat
 
 from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
 from .notebook_gisthub import parse_tags
@@ -43,7 +43,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         assert len(tagged) <= 1, "should only at most one tag"
         if not tagged:
             return {}
-        gists = tagged.values()[0]
+        gists = list(tagged.values())[0]
         return gists
 
     def list_dirs(self, path=''):
@@ -110,7 +110,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         if content:
             notebook_content = gist.notebook_content
             try:
-                nb = current.reads(notebook_content, u'json')
+                nb = nbformat.reads(notebook_content, as_version=4)
             except Exception as e:
                 raise web.HTTPError(400, u"Unreadable Notebook: %s %s %s" % (path, name, e))
             self.mark_trusted_cells(nb, path, name)
@@ -167,12 +167,14 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         if not path:
             raise web.HTTPError(400, u'We require path for saving.')
 
+        nb = nbformat.from_dict(model['content'])
+
         gist = self._get_gist(name, path)
         if gist is None:
             tags = parse_tags(name)
             if path:
                 tags.append(path)
-            content = current.writes(model['content'], format=u'json')
+            content = nbformat.writes(nb, version=nbformat.NO_CONVERT)
             gist = self.gisthub.create_gist(name, tags, content)
 
         # One checkpoint should always exist
@@ -184,9 +186,6 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
 
         if path != new_path:
             raise web.HTTPError(400, u'Gist backend does not support path change')
-
-        # Save the notebook file
-        nb = current.to_notebook_json(model['content'])
 
         # remove [gist_id] if we're being sent old key_name
         gist.name = gist.strip_gist_id(new_name)
@@ -254,7 +253,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         path = path.strip('/')
         gist = self._get_gist(name, path)
         revisions = gist.revisions
-        checkpoints = map(self.get_checkpoint_model, revisions)
+        checkpoints = list(map(self.get_checkpoint_model, revisions))
         return checkpoints
 
     def restore_checkpoint(self, checkpoint_id, name, path=''):
