@@ -59,6 +59,7 @@ class NotebookBundle(Bundle):
         model['last_modified'] = last_modified
         model['created'] = created
         model['type'] = 'notebook'
+        model['is_bundle'] = True
         if content:
             model['content'] = self.notebook_content
         files = {}

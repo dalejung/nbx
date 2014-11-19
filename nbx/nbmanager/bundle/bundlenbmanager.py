@@ -1,15 +1,50 @@
 import datetime
 import itertools
 import os
+import inspect
+from functools import wraps
 
 from tornado import web
 
 from IPython.utils.traitlets import Unicode
 from IPython.utils import tz
-from IPython.html.utils import is_hidden, to_os_path
+from IPython.html.utils import is_hidden, to_os_path, url_path_join
+from IPython.html.services.contents.filemanager import FileContentsManager
 
 from .manager import BundleManager
 from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
+from ..dispatch import DispatcherMixin
+
+def notebook_type_proxy(alt):
+    """
+    if notebook is a bundle, use regular method
+    if notebook is file, defer to file manager
+    """
+    def decorator(meth):
+        nonlocal alt
+        meth_name = meth.__name__
+        if alt is None:
+            alt = meth_name
+        argspec = inspect.getargspec(meth)
+
+        @wraps(meth)
+        def wrapper(self, *args, **kwargs):
+            scope = kwargs.copy()
+            # skip self in args
+            scope.update(zip(argspec.args[1:], args))
+            name = scope['name']
+            path = scope['path']
+
+            method = meth.__get__(self)
+            if self.notebook_type(name=name, path=path) == 'file':
+                method = getattr(self.filemanager, alt)
+            return method(*args, **kwargs)
+        return wrapper
+    return decorator
+
+class BackwardsFileContentsManager(FileContentsManager):
+    def get_notebook(self, name, path='', content=True, file_content=False):
+        return self.get_model(name, path, content=content)
 
 class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
     """
@@ -19,6 +54,8 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
     def __init__(self, *args, **kwargs):
         super(BundleNotebookManager, self).__init__(*args, **kwargs)
         self.bundler = BundleManager()
+        self.filemanager = BackwardsFileContentsManager()
+        self.filemanager.root_dir = self.root_dir
 
     def _get_os_path(self, name=None, path=''):
         """Given a notebook name and a URL path, return its file system
@@ -43,6 +80,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             path = path + '/' + name
         return to_os_path(path, self.root_dir)
 
+    @notebook_type_proxy(alt=None)
     def get_kernel_path(self, name, path='', model=None):
         # get into bundle dir
         bundle_path = self.bundler._get_bundle_path(name, path)
@@ -53,10 +91,21 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         os_path = self._get_os_path(path=path)
         return os.path.isdir(os_path)
 
+    @notebook_type_proxy(alt='exists')
     def notebook_exists(self, name, path=''):
+        return self._notebook_exists(name, path)
+
+    def _notebook_exists(self, name, path=''):
         path = path.strip('/')
         os_path = self._get_os_path(path=path)
         return self.bundler.notebook_exists(name, os_path)
+
+    def notebook_type(self, name, path=''):
+        if self._notebook_exists(name, path):
+            return 'bundle'
+        if self.filemanager.exists(name, path) and name.endswith('ipynb'):
+            return 'file'
+        return None
 
     def is_hidden(self, path):
         return False
@@ -84,8 +133,16 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             # set back to relative
             model['path'] = path
             notebooks.append(model)
+
+        # also grab regular notebooks
+        dir_model = self.filemanager.get_model(path=path, name='')
+        for model in dir_model['content']:
+            if model['type'] == 'notebook':
+                notebooks.append(model)
+
         return notebooks
 
+    @notebook_type_proxy(alt=None)
     def get_notebook(self, name, path='', content=True, file_content=False):
         """ Takes a path and name for a notebook and returns its model
 
@@ -113,6 +170,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         model['path'] = path
         return model
 
+    @notebook_type_proxy(alt='save')
     def save_notebook(self, model, name='', path=''):
         """Save the notebook model and return the model with no content."""
         path = path.strip('/')
@@ -129,6 +187,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         model = self.get_notebook(name, path, content=False)
         return model
 
+    @notebook_type_proxy(alt='update')
     def update_notebook(self, model, name, path=''):
         """Update the notebook's path and/or name"""
         path = path.strip('/')
@@ -140,6 +199,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         model = self.get_notebook(new_name, new_path, content=False)
         return model
 
+    @notebook_type_proxy(alt='rename')
     def rename_notebook(self, name, path, new_name, new_path):
         """Update the notebook's path and/or name"""
         os_path = self._get_os_path(path=path)
@@ -155,6 +215,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         checkpoint_dir = os.path.join(path, name, '.ipynb_checkpoints')
         return checkpoint_dir
 
+    @notebook_type_proxy(alt=None)
     def get_checkpoint_path(self, checkpoint_id, name, path=''):
         """find the path to a checkpoint"""
         path = path.strip('/')
@@ -168,6 +229,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         cp_path = os.path.join(checkpoint_dir, filename)
         return cp_path
 
+    @notebook_type_proxy(alt=None)
     def get_checkpoint_model(self, checkpoint_id, name, path=''):
         """construct the info dict for a given checkpoint"""
         path = path.strip('/')
@@ -182,6 +244,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         return info
 
     # checkpoint stuff
+    @notebook_type_proxy(alt=None)
     def create_checkpoint(self, name, path=''):
         now = datetime.datetime.now()
         checkpoint_id = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -198,6 +261,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         # return the checkpoint info
         return self.get_checkpoint_model(checkpoint_id, name, path)
 
+    @notebook_type_proxy(alt=None)
     def list_checkpoints(self, name, path=''):
         """Return a list of checkpoints for a given notebook"""
         path = path.strip('/')
@@ -229,10 +293,12 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         prefix = "{name}---".format(name=basename)
         return checkpoint_basename.replace(prefix, '')
 
+    @notebook_type_proxy(alt=None)
     def restore_checkpoint(self, checkpoint_id, name, path=''):
         """Restore a notebook from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
+    @notebook_type_proxy(alt=None)
     def delete_checkpoint(self, checkpoint_id, name, path=''):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")

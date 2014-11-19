@@ -4,7 +4,9 @@ import shutil
 
 from .bundle import NotebookBundle
 
-from IPython.nbformat import current, sign
+from IPython import nbformat
+from IPython.nbformat import sign
+current = nbformat.v4
 
 def is_notebook(name, path):
     # checks if path follows bundle format
@@ -27,10 +29,9 @@ class BundleManager(object):
         if bundle_class:
             self.bundle_class = bundle_class
 
-    def new_notebook(self):
+    def __new_notebook(self):
         model = {}
-        metadata = current.new_metadata(name=u'')
-        model['content'] = current.new_notebook(metadata=metadata)
+        model['content'] = current.new_notebook(metadata={'name':u''})
         return model
 
     def _get_bundle_path(self, name, path):
@@ -56,8 +57,7 @@ class BundleManager(object):
         if not os.path.exists(bundle_path):
             os.mkdir(bundle_path)
 
-        # Save the notebook file
-        nb = current.to_notebook_json(model['content'])
+        nb = nbformat.from_dict(model['content'])
 
         #self.check_and_sign(nb, name, path)
         notary = sign.NotebookNotary()
@@ -75,7 +75,7 @@ class BundleManager(object):
             nb['metadata']['name'] = u''
         try:
             with io.open(nb_path, 'w', encoding='utf-8') as f:
-                current.write(nb, f, u'json')
+                nbformat.write(nb, f, version=nbformat.NO_CONVERT)
         except Exception as e:
             raise Exception(u'Unexpected error while autosaving notebook: %s %s' % (nb_path, e))
 
