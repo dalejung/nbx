@@ -14,9 +14,12 @@ class BackwardsFileContentsManager(ContentsManager):
         self.filemanager = FileContentsManager(*args, **kwargs)
 
     def get_notebook(self, name, path='', content=True, **kwargs):
-        # note this is mostly for bundle manager...
-        path = _fullpath(name, path)
-        return self.get(path, content=content)
+        model = self.get(name, path, content=content, **kwargs)
+        # note, since this is calling IPython's .get, the model
+        # path will be the newer full path. reset it since we're
+        # translating back in MetaManager.
+        model['path'] = path
+        return model
 
     def get_model(self, *args, **kwargs):
         return self.get(*args, **kwargs)
@@ -72,7 +75,7 @@ class BackwardsFileContentsManager(ContentsManager):
         path = _fullpath(name, path)
         return self.filemanager.create_checkpoint(path)
 
-    def list_checkpoint(self, name, path=''):
+    def list_checkpoints(self, name, path=''):
         path = _fullpath(name, path)
         return self.filemanager.list_checkpoints(path)
 

@@ -213,6 +213,10 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         model = self.get_notebook(new_name, new_path, content=False)
         return model
 
+    @notebook_type_proxy(alt='delete')
+    def delete_notebook(self, name, path=''):
+        raise Exception("Removing bundle not implemented")
+
     # Checkpoint-related utilities
     def _get_checkpoint_dir(self, name, path=''):
         checkpoint_dir = os.path.join(path, name, '.ipynb_checkpoints')
