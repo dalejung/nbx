@@ -59,7 +59,6 @@ class BundleManager(object):
 
         nb = nbformat.from_dict(model['content'])
 
-        #self.check_and_sign(nb, name, path)
         notary = sign.NotebookNotary()
         if notary.check_cells(nb):
             notary.sign(nb)

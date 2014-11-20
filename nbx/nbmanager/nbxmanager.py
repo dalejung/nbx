@@ -10,10 +10,21 @@ def _fullpath(name, path):
     fullpath = url_path_join(path, name)
     return fullpath
 
+def _path_split(path):
+    bits = path.rsplit('/', 1)
+    path = ''
+    name = bits.pop()
+    if bits:
+        path = bits[0]
+    return name, path
+
 class BackwardsCompatMixin(object):
     # shims to bridge Content service and older notebook apis
-    def get_model_dir(self, name, path='', content=True):
-        """ retrofit to use old list_dirs. No notebooks """
+    def get_model_dir(self, name, path='', content=True, **kwargs):
+        """ 
+        retrofit to use old list_dirs. No notebooks 
+        note that this requires the dispatcher mixin
+        """
         model = self._base_model(name, path)
         fullpath = self.fullpath(name, path)
 
@@ -25,6 +36,9 @@ class BackwardsCompatMixin(object):
         return model
 
     def get_model_notebook(self, name, path='', content=True, **kwargs):
+        """
+        note that this requires the dispatcher mixin
+        """
         return self.get_notebook(name, path, content=content, **kwargs)
 
     def file_exists(self, name, path=''):
@@ -49,7 +63,6 @@ class BackwardsCompatMixin(object):
         """
         return self.path_exists(path) and not self.is_notebook(path)
 
-
 class NBXContentsManager(DispatcherMixin, ContentsManager):
     def __init__(self, *args, **kwargs):
         super(NBXContentsManager, self).__init__(*args, **kwargs)
@@ -65,7 +78,7 @@ class NBXContentsManager(DispatcherMixin, ContentsManager):
         # Create the base model.
         model = {}
         model['name'] = name
-        model['path'] = path
+        model['path'] = self.fullpath(name, path)
         model['created'] = datetime.datetime.now()
         model['last_modified'] = datetime.datetime.now()
         model['content'] = None
@@ -74,3 +87,12 @@ class NBXContentsManager(DispatcherMixin, ContentsManager):
 
     def fullpath(self, name, path):
         return _fullpath(name, path)
+
+    def get(self, name, path='', content=True, **kwargs):
+        """
+        backwards compat with get_model rename. fml. 
+        Putting here instead of creating another mixin
+        """
+        if hasattr(self, 'get_model'):
+            return self.get_model(name, path=path, content=content, **kwargs)
+        return super().get(name, path=path, content=content, **kwargs)

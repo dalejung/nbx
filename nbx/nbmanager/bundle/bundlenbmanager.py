@@ -14,6 +14,8 @@ from IPython.html.services.contents.filemanager import FileContentsManager
 from .manager import BundleManager
 from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
 from ..dispatch import DispatcherMixin
+from ..filemanager import BackwardsFileContentsManager
+from .. import shim
 
 def notebook_type_proxy(alt):
     """
@@ -42,20 +44,18 @@ def notebook_type_proxy(alt):
         return wrapper
     return decorator
 
-class BackwardsFileContentsManager(FileContentsManager):
-    def get_notebook(self, name, path='', content=True, file_content=False):
-        return self.get_model(name, path, content=content)
-
 class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
     """
     """
     root_dir = Unicode()
 
     def __init__(self, *args, **kwargs):
-        super(BundleNotebookManager, self).__init__(*args, **kwargs)
+        print('root_dir', args, kwargs)
+        super().__init__(*args, **kwargs)
         self.bundler = BundleManager()
-        self.filemanager = BackwardsFileContentsManager()
+        self.filemanager = BackwardsFileContentsManager(*args, **kwargs)
         self.filemanager.root_dir = self.root_dir
+        print('root_dir', self.root_dir)
 
     def _get_os_path(self, name=None, path=''):
         """Given a notebook name and a URL path, return its file system
@@ -135,7 +135,10 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             notebooks.append(model)
 
         # also grab regular notebooks
-        dir_model = self.filemanager.get_model(path=path, name='')
+        print(path)
+        print('root_dir', self.filemanager.root_dir)
+        print(self.filemanager)
+        dir_model = self.filemanager.get_model('', path=path, content=True)
         for model in dir_model['content']:
             if model['type'] == 'notebook':
                 notebooks.append(model)
@@ -143,7 +146,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         return notebooks
 
     @notebook_type_proxy(alt=None)
-    def get_notebook(self, name, path='', content=True, file_content=False):
+    def get_notebook(self, name, path='', content=True, file_content=False, **kwargs):
         """ Takes a path and name for a notebook and returns its model
 
         Parameters

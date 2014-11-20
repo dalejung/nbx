@@ -79,7 +79,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             print('gist not found', gists.keys(), name, path)
         return gists.get(name, None)
 
-    def get_notebook(self, name, path='', content=True):
+    def get_notebook(self, name, path='', content=True, **kwargs):
         """ Takes a path and name for a notebook and returns its model
 
         Parameters
@@ -113,7 +113,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
                 nb = nbformat.reads(notebook_content, as_version=4)
             except Exception as e:
                 raise web.HTTPError(400, u"Unreadable Notebook: %s %s %s" % (path, name, e))
-            self.mark_trusted_cells(nb, path, name)
+            self.mark_trusted_cells(nb, self.fullpath(path, name))
 
             # add gist id if public.
             if gist.public:
@@ -191,7 +191,7 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         gist.name = gist.strip_gist_id(new_name)
         gist.notebook_content = nb
 
-        self.check_and_sign(nb, new_path, new_name)
+        self.check_and_sign(nb, self.fullpath(new_path, new_name))
 
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''

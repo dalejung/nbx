@@ -32,7 +32,7 @@ class RootManager(ContentsManager):
     def get_dir_model(self, name):
         model ={}
         model['name'] = name
-        model['path'] = ''
+        model['path'] = name
         model['type'] = 'directory'
         return model
 
@@ -44,6 +44,9 @@ class RootManager(ContentsManager):
 
     def info_string(self):
         return ''
+
+    def file_exists(self, name, path):
+        return False
 
     def _base_model(self, name, path=''):
         """Build the common base of a contents model"""
@@ -57,7 +60,7 @@ class RootManager(ContentsManager):
         model['format'] = None
         return model
 
-    def get_model(self, name, path='', content=True):
+    def get_model(self, name, path='', content=True, **kwargs):
         """ retrofit to use old list_dirs. No notebooks """
         model = self._base_model(name, path)
         model['type'] = 'directory'

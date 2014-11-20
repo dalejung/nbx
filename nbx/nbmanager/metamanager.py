@@ -9,7 +9,6 @@ from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import getcwd
 from IPython.config.configurable import LoggingConfigurable
 from IPython.html.services.contents.manager import ContentsManager
-from IPython.html.services.contents.filemanager import FileContentsManager
 from IPython.html.base.zmqhandlers import ZMQStreamHandler
 from IPython.html.utils import is_hidden, to_os_path, url_path_join
 
@@ -21,8 +20,10 @@ from .middleware import manager_hook
 from .root_manager import RootManager
 from ..handlers import enable_custom_handlers
 from .nbxmanager import NBXContentsManager
+from .filemanager import BackwardsFileContentsManager
 
 from .static_handler import patch_file_handler
+from . import shim
 
 patch_file_handler()
 
@@ -66,6 +67,7 @@ class ManagerMeta(object):
         attrs = ["{0}={1}".format(k,v) for k, v in self.__dict__.items()]
         return "ManagerMeta({0})".format(",".join(attrs))
 
+@shim.contents_api_name
 class MetaManager(NBXContentsManager):
     """
         Holds NotebookManager classes and routes calls to the appropiate
@@ -89,11 +91,11 @@ class MetaManager(NBXContentsManager):
     root_dir = Unicode(getcwd())
 
     def __init__(self, *args, **kwargs):
-        super(MetaManager, self).__init__(*args, **kwargs)
-        self.app = kwargs['parent']
+        super().__init__(*args, **kwargs)
+        #self.app = kwargs['parent']
 
         self.managers = {}
-        server_home = FileContentsManager()
+        server_home = BackwardsFileContentsManager()
         server_home.root_dir = self.root_dir
         self.managers['server-home'] = server_home
 
@@ -101,13 +103,11 @@ class MetaManager(NBXContentsManager):
             enable_custom_handlers()
 
         for alias, path in self.file_dirs.items():
-            fb = FileContentsManager()
-            fb.root_dir = path
+            fb = BackwardsFileContentsManager(root_dir=path)
             self.managers[alias] = fb
 
         for alias, path in self.bundle_dirs.items():
-            fb = BundleNotebookManager()
-            fb.root_dir = path
+            fb = BundleNotebookManager(root_dir=path)
             self.managers[alias] = fb
 
         for user, pw in self.github_accounts:
@@ -198,6 +198,9 @@ class MetaManager(NBXContentsManager):
         exists = nbm.path_exists(meta.path)
         return exists
 
+    def dir_exists(self, path):
+        return self.path_exists(path)
+
     def is_hidden(self, path):
         nbm, meta = self._nbm_from_path(path)
         return nbm.is_hidden(meta.path)
@@ -213,16 +216,19 @@ class MetaManager(NBXContentsManager):
         exists = nbm.exists(meta.name, meta.path)
         return exists
 
-    def get_model(self, name, path='', content=True):
+    def get_model(self, name, path='', content=True, **kwargs):
         nbm, meta = self._nbm_from_path(path, name)
-        model = nbm.get_model(meta.name, path=meta.path, content=content)
+        model = nbm.get_model(meta.name, path=meta.path, content=content, **kwargs)
 
         # while the local manager doesn't know its nbm_path,
         # we have to add it back in for the metamanager.
         if model['type'] == 'directory':
             content = model.get("content", [])
             for m in content:
-                m['path'] = meta.request_path
+                m['path'] = os.path.join(meta.request_path, m['name'])
+        # so the path needs to be the full request path.
+        if model['type'] == 'notebook':
+            model['path'] = os.path.join(meta.nbm_path, model['path'], model['name'])
         return model
 
     @manager_hook
@@ -276,7 +282,7 @@ class MetaManager(NBXContentsManager):
 
     def increment_filename(self, filename, path=''):
         nbm, meta = self._nbm_from_path(path)
-        return nbm.get_kernel_path(filename, meta.path)
+        return nbm.increment_filename(filename, meta.path)
 
     def create_file(self, model=None, path='', ext='.ipynb'):
         nbm, meta = self._nbm_from_path(path)
