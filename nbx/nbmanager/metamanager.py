@@ -88,6 +88,8 @@ class MetaManager(NBXContentsManager):
     # Not sure if this should be optional. For now, make it configurable
     enable_custom_handlers = Bool(True, config=True, help="Enable Custom Handlers")
 
+    enable_default_manager = Bool(True, config=True, help="Enable server-home manager")
+
     root_dir = Unicode(getcwd())
 
     def __init__(self, *args, **kwargs):
@@ -95,9 +97,10 @@ class MetaManager(NBXContentsManager):
         #self.app = kwargs['parent']
 
         self.managers = {}
-        server_home = BackwardsFileContentsManager()
-        server_home.root_dir = self.root_dir
-        self.managers['server-home'] = server_home
+        if self.enable_default_manager:
+            server_home = BackwardsFileContentsManager()
+            server_home.root_dir = self.root_dir
+            self.managers['server-home'] = server_home
 
         if self.enable_custom_handlers:
             enable_custom_handlers()
