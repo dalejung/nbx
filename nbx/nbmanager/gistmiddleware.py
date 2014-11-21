@@ -9,6 +9,9 @@ from IPython.html.services.contents.filemanager import FileContentsManager
 from .gist import GistService, model_to_files
 from .bundle.bundlenbmanager import BundleNotebookManager
 from .dispatch import dispatch_method
+from .util import _path_split
+
+_missing = object()
 
 class GistMiddleware(LoggingConfigurable):
     """
@@ -27,7 +30,13 @@ class GistMiddleware(LoggingConfigurable):
         for user, pw in self.github_accounts:
             self.service.login(user, pw)
 
-    def post_save(self, nbm, local_path, model, name, path):
+    def post_save(self, nbm, local_path, model, name, path=_missing):
+        # HACK. So new calls save(model, path) which doens't go through
+        # the name shim. Either find a cleaner way to catch this earlier
+        # or remove once name is removed completely instead of shimmed
+        if path is _missing:
+            name, path = _path_split(name)
+
         if 'type' not in model:
             raise Exception(u"Model has no file type")
         model_type = model['type']

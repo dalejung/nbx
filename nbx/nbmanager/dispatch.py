@@ -19,7 +19,6 @@ def _model_type_from_path(self, path):
     return model_type
 
 def dispatch_method(self, hook, model_type, *args, **kwargs):
-    print('dispatch_method', hook, model_type)
     # call type specific hook
     method_name = "{hook}_{type}".format(hook=hook, type=model_type)
     method = getattr(self, method_name, None)
@@ -41,7 +40,6 @@ def get_model(self, name, path='', content=True, dispatcher=dispatch_method, **k
 
     fullpath = self.fullpath(name, path)
     model_type = _model_type_from_path(self, fullpath)
-    print('fullpath', fullpath, model_type, self)
     return dispatcher(self, 'get_model', model_type, name=name,
                             path=path, content=content, **kwargs)
 

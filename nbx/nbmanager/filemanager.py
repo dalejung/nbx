@@ -8,7 +8,7 @@ def _fullpath(name, path):
     fullpath = url_path_join(path, name)
     return fullpath
 
-class BackwardsFileContentsManager(ContentsManager):
+class BackwardsFileContentsManager(BackwardsCompatMixin, NBXContentsManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.filemanager = FileContentsManager(*args, **kwargs)
@@ -21,8 +21,11 @@ class BackwardsFileContentsManager(ContentsManager):
         model['path'] = path
         return model
 
-    def get_model(self, *args, **kwargs):
-        return self.get(*args, **kwargs)
+    def get_model_dir(self, name, path='', content=True, **kwargs):
+        return self.get(name, path, content=content, **kwargs)
+
+    def notebook_exists(self, name, path=''):
+        return self.file_exists(name, path) and name.endswith('.ipynb')
 
     # this is dumb, quite literally just translating back
 

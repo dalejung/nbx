@@ -234,6 +234,38 @@ class MetaManager(NBXContentsManager):
             model['path'] = os.path.join(meta.nbm_path, model['path'], model['name'])
         return model
 
+    def new(self, model=None, path=''):
+        nbm, meta = self._nbm_from_path(path)
+        model = self._new(model=model, path=meta.path)
+        model = self.save(model, path)
+        model['path'] = path
+        return model
+
+    def _new(self, model=None, path=''):
+        """
+        Basically the ContentsManager.new but with the .save removed.
+        """
+        from IPython.nbformat.v4 import new_notebook
+        path = path.strip('/')
+        if model is None:
+            model = {}
+
+        if path.endswith('.ipynb'):
+            model.setdefault('type', 'notebook')
+        else:
+            model.setdefault('type', 'file')
+
+        # no content, not a directory, so fill out new-file model
+        if 'content' not in model and model['type'] != 'directory':
+            if model['type'] == 'notebook':
+                model['content'] = new_notebook()
+                model['format'] = 'json'
+            else:
+                model['content'] = ''
+                model['type'] = 'file'
+                model['format'] = 'text'
+        return model
+
     @manager_hook
     def save(self, model, name='', path=''):
         nbm, meta = self._nbm_from_path(path, name)
@@ -269,6 +301,10 @@ class MetaManager(NBXContentsManager):
         nbm, meta = self._nbm_from_path(path, name)
         return nbm.delete_checkpoint(checkpoint_id, meta.name, meta.path)
 
+    def delete_checkpoint(self, checkpoint_id, name, path=''):
+        nbm, meta = self._nbm_from_path(path, name)
+        return nbm.delete_checkpoint(checkpoint_id, meta.name, meta.path)
+
     # ContentsManager API part 2: methods that have useable default
     # implementations, but can be overridden in subclasses.
 
@@ -283,9 +319,9 @@ class MetaManager(NBXContentsManager):
         nbm, meta = self._nbm_from_path(path, name)
         return nbm.get_kernel_path(meta.name, meta.path)
 
-    def increment_filename(self, filename, path=''):
+    def increment_filename(self, filename, path='', insert=''):
         nbm, meta = self._nbm_from_path(path)
-        return nbm.increment_filename(filename, meta.path)
+        return nbm.increment_filename(filename, meta.path, insert=insert)
 
     def create_file(self, model=None, path='', ext='.ipynb'):
         nbm, meta = self._nbm_from_path(path)

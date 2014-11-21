@@ -63,6 +63,9 @@ class BackwardsCompatMixin(object):
         """
         return self.path_exists(path) and not self.is_notebook(path)
 
+    def dir_exists(self, path):
+        return self.path_exists(path)
+
 class NBXContentsManager(DispatcherMixin, ContentsManager):
     def __init__(self, *args, **kwargs):
         super(NBXContentsManager, self).__init__(*args, **kwargs)

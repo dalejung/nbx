@@ -4,7 +4,7 @@ from .util import get_invoked_arg, set_invoked_arg, _path_split
 
 API = ['save', 'update', 'delete', 'get', 'rename', 'file_exists', 'exists',
        'get_checkpoint_path', 'get_checkpoint_model', 'create_checkpoint',
-       'list_checkpoint', 'restore_checkpoint', 'delete_checkpoint',
+       'list_checkpoints', 'restore_checkpoint', 'delete_checkpoint',
        'get_kernel_path']
 
 class ContentsNameApiShim(ContentsManager):
