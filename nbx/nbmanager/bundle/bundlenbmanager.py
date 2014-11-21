@@ -35,7 +35,7 @@ def notebook_type_proxy(alt):
             # skip self in args
             scope.update(zip(argspec.args[1:], args))
             name = scope['name']
-            path = scope['path']
+            path = scope.get('path', '')
 
             method = meth.__get__(self)
             if self.notebook_type(name=name, path=path) == 'file':

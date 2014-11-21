@@ -53,7 +53,10 @@ class TestBundleNotebookManager(unittest.TestCase):
     def test_save_notebook(self, mgr):
         notebooks = mgr.list_notebooks('')
         dirs = mgr.list_dirs('')
-        model = mgr.bundler.new_notebook()
+        model = mgr.new_untitled(type='notebook')
+        # the above returns the model returned from save, which does not
+        # include content
+        model = mgr.get_notebook(model['name'], model['path'], content=True)
         model['name'] = 'new-name.ipynb'
         model['path'] = 'testing'
         model['__files'] = {}
