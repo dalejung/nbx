@@ -3,11 +3,11 @@ import unittest
 from contextlib import contextmanager
 
 from IPython.nbformat import current
-from IPython.html.services.contents.filemanager import FileContentsManager
 from IPython.utils.tempdir import TemporaryDirectory
 
 from ..tests import tools as nt
 from ..gist import model_to_files, GistService, Gister
+from ..filemanager import BackwardsFileContentsManager
 from nbx.nbmanager.tests.common import login, password, require_github, makeFakeGist
 
 class TestGist(unittest.TestCase):
@@ -23,8 +23,9 @@ class TestGist(unittest.TestCase):
 
     def test_model_to_files(self):
         with TemporaryDirectory() as td:
-            fm = FileContentsManager(root_dir=td)
-            model = fm.create_file()
+            fm = BackwardsFileContentsManager(root_dir=td)
+            model = fm.new_untitled(type='notebook')
+            model['path'] = ''
             # need content
             model = fm.get_model(model['name'], model['path'])
             files = model_to_files(model)
