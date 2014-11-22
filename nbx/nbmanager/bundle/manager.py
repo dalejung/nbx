@@ -29,8 +29,9 @@ class BundleManager(object):
         if bundle_class:
             self.bundle_class = bundle_class
 
-    def __new_notebook(self):
+    def _new_notebook(self):
         model = {}
+        model['type'] = 'notebook'
         model['content'] = current.new_notebook(metadata={'name':u''})
         return model
 

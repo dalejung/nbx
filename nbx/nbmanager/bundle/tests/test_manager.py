@@ -75,7 +75,7 @@ class TestBundleManager(unittest.TestCase):
     def test_save_notebook(self):
         with fake_file_system() as td:
             bm = mmod.BundleManager()
-            model = bm.new_notebook()
+            model = bm._new_notebook()
             model['name'] = 'new-name.ipynb'
             model['path'] = td
             files = {}
