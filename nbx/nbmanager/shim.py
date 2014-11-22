@@ -51,6 +51,19 @@ class ContentsNameApiShim(ContentsManager):
             name, path = _path_split(path)
             set_invoked_arg(legacy, 'name', name, args, kwargs)
             set_invoked_arg(legacy, 'path', path, args, kwargs)
+
+            # see if we're getting a model. update the name and path
+            # in model to represent the old way
+            try:
+                model = get_invoked_arg(current_api, 'model', args, kwargs)
+                model_path = model.get('path', '')
+                model_name, model_path = _path_split(model_path)
+                model['path'] = model_path
+                model['name'] = model_name
+                set_invoked_arg(legacy, 'model', model, args, kwargs)
+            except:
+                pass
+
             try:
                 ret = legacy(*args, **kwargs)
                 return ret

@@ -277,8 +277,15 @@ class MetaManager(NBXContentsManager):
     def update(self, model, name, path=''):
         """Update the notebook and return the model with no content."""
         nbm, meta = self._nbm_from_path(path, name)
-        model['path'] = meta.path
-        return nbm.update(model, meta.name, meta.path)
+        # remove the nbm_path from the model
+        bits = model['path'].split('/')
+        bits.pop(0)
+        model['path'] = os.sep.join(bits)
+        model =  nbm.update(model, meta.name, meta.path)
+        # so the path needs to be the full request path.
+        if model['type'] == 'notebook':
+            model['path'] = os.path.join(meta.nbm_path, model['path'], model['name'])
+        return model
 
     def delete(self, name, path=''):
         """Delete notebook by name and path."""
