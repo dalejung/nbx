@@ -22,7 +22,12 @@ class BackwardsFileContentsManager(BackwardsCompatMixin, NBXContentsManager):
         return model
 
     def get_model_dir(self, name, path='', content=True, **kwargs):
-        return self.get(name, path, content=content, **kwargs)
+        model = self.get(name, path, content=content, **kwargs)
+        for nb in model['content']:
+            # reset the model back to pre v4 name/path
+            nb['name'] = nb['path'].rsplit('/')[-1]
+            nb['path'] = path
+        return model
 
     def notebook_exists(self, name, path=''):
         return self.file_exists(name, path) and name.endswith('.ipynb')

@@ -7,7 +7,7 @@ API = ['save', 'update', 'delete', 'get', 'rename', 'file_exists', 'exists',
        'list_checkpoints', 'restore_checkpoint', 'delete_checkpoint',
        'get_kernel_path']
 
-class ContentsNameApiShim(ContentsManager):
+class ShimManager(ContentsManager):
     """
     Provide backwards compat to ipython removing name from its api calls
 
@@ -41,6 +41,8 @@ class ContentsNameApiShim(ContentsManager):
 
     def _should_shim(self, name):
         return name in API
+
+class ContentsNameApiShim(ShimManager):
 
     def _shim(self, name):
         current_api = getattr(ContentsManager, name)

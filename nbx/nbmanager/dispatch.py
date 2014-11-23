@@ -27,7 +27,10 @@ def dispatch_method(self, hook, model_type, *args, **kwargs):
 
     # try default
     default_name = '{hook}_default'.format(hook=hook)
-    default_method = getattr(self, default_name)
+    try:
+        default_method = getattr(self, default_name)
+    except:
+        raise AttributeError("Could not find method for {0} {1}".format(hook, model_type))
     return default_method(*args, **kwargs)
 
 def get_model(self, name, path='', content=True, dispatcher=dispatch_method, **kwargs):

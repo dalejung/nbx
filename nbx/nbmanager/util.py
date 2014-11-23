@@ -14,7 +14,11 @@ def get_invoked_arg(func, name, args, kwargs):
         var = kwargs[name]
         return var
 
-    argspec = inspect.getargspec(func)
+    # handle functools.wraps functions. specifically the middleware
+    if hasattr(func, '__wrapped__'):
+        argspec = inspect.getargspec(func.__wrapped__)
+    else:
+        argspec = inspect.getargspec(func)
     if name not in argspec.args:
         raise Exception('{name} was not found in invoked function'.format(name=name))
 
@@ -54,7 +58,15 @@ def set_invoked_arg(func, name, value, args, kwargs):
         index -= 1
         num_args -= 1
 
+    defaults_len = 0
+    if argspec.defaults:
+        defaults_len = len(argspec.defaults)
+
     if len(args) == num_args:
+        args[index] = value
+    elif len(args) == index: # 
+        args.append(value)
+    elif len(args) + defaults_len >= num_args:
         args[index] = value
     else:
         args.insert(index, value)

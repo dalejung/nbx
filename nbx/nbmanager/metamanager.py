@@ -15,6 +15,7 @@ from IPython.html.utils import is_hidden, to_os_path, url_path_join
 from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
 from nbx.nbmanager.bundle.bundlenbmanager import BundleNotebookManager
+from nbx.nbmanager.scratchpad import WorkareaManager
 
 from .middleware import manager_hook
 from .root_manager import RootManager
@@ -79,6 +80,10 @@ class MetaManager(NBXContentsManager):
                            help="Dict of alias, path")
     bundle_dirs = Dict(config=True,
                            help="BundleNBManager. Dict of alias, path")
+
+    workarea_dirs = Dict(config=True,
+                           help="BundleNBManager. Dict of alias, path")
+
     github_accounts = List(Tuple, config=True,
                            help="List of Tuple(github_account, github_password)")
 
@@ -111,6 +116,10 @@ class MetaManager(NBXContentsManager):
 
         for alias, path in self.bundle_dirs.items():
             fb = BundleNotebookManager(root_dir=path)
+            self.managers[alias] = fb
+
+        for alias, workarea_paths in self.workarea_dirs.items():
+            fb = WorkareaManager(workarea_paths=workarea_paths)
             self.managers[alias] = fb
 
         for user, pw in self.github_accounts:
