@@ -43,7 +43,8 @@ class IPythonClient(object):
         print('\n'.join(lines))
 
     def _format_session(self, i, session):
-        return "[{i}] {name}".format(i=i, name=session['notebook']['name'])
+        name = session['notebook']['path'].rsplit('/')[-1]
+        return "[{i}] {name}".format(i=i, name=name)
 
     def _get_session(self, pos):
         session = self.sessions_cache[pos]
@@ -55,7 +56,8 @@ class IPythonClient(object):
         pos = int(pos)
         session = self._get_session(pos)
         print("=" * 80)
-        print("Attaching to {name}".format(name=session['notebook']['name']))
+        name = session['notebook']['path'].rsplit('/')[-1]
+        print("Attaching to {name}".format(name=name))
         print("=" * 80)
         return attach_session(session, profile=profile)
 
