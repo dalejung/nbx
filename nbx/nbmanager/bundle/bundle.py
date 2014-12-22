@@ -60,6 +60,7 @@ class NotebookBundle(Bundle):
         model['created'] = created
         model['type'] = 'notebook'
         model['is_bundle'] = True
+        model['content'] = None
         if content:
             model['content'] = self.notebook_content
         files = {}

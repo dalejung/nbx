@@ -166,6 +166,11 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         bundle = self.bundler.get_notebook(name, os_path)
         model = bundle.get_model(content=content, file_content=file_content)
         model['path'] = path
+        model['format'] = None
+        if content:
+            model['format'] = 'json'
+        model['writable'] = True
+        model['mimetype'] = None
         return model
 
     @notebook_type_proxy(alt='save')
