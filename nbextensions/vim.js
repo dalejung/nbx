@@ -42,7 +42,7 @@ function IPython_vim_patch(IPython) {
         var vim_mode = cell.code_mirror.getOption('keyMap');
         var notebook = IPython.notebook;
 
-        if (cell instanceof IPython.TextCell) {
+        if (cell instanceof IPython.TextCell || cell.dual_mode) {
             // when cell is rendered, we get no key events, so we capture here
             if (cell.rendered && event.type == 'keydown') {
                 // switch IPython.notebook to this.notebook if Cells get notebook reference
@@ -140,14 +140,6 @@ function IPython_vim_patch(IPython) {
         if (ret) {
             event.codemirrorIgnore = true;
             return ret;
-        }
-        if (event.type == 'keypress') {
-            // switch IPython.notebook to this.notebook if Cells get notebook reference
-            ret = IPython.VIM.keyDown(IPython.notebook, event);
-            if (ret) {
-                event.codemirrorIgnore = true;
-                return ret;
-            }
         }
         if (event.type == 'keydown') {
             // switch IPython.notebook to this.notebook if Cells get notebook reference
@@ -248,7 +240,7 @@ function IPython_vim_patch(IPython) {
     NormalMode.keyDown = function(that, event) {
         var cell = that.get_selected_cell();
         var cell_type = cell.cell_type;
-        var textcell = cell instanceof IPython.TextCell;
+        var textcell = cell instanceof IPython.TextCell || cell.dual_mode;
 
 
         // ` : enable console
@@ -361,6 +353,7 @@ function IPython_vim_patch(IPython) {
             that.setVIMode('INSERT');
             return true;
         }
+
         // control/apple E: execute (apple - E is easier than shift E)
         if ((event.ctrlKey || event.metaKey) && event.keyCode == 69) {
             that.execute_cell();
@@ -416,7 +409,7 @@ function IPython_vim_patch(IPython) {
     InsertMode.keyDown = function(that, event) {
         var cell = that.get_selected_cell();
         var cell_type = cell.cell_type;
-        var textcell = cell instanceof IPython.TextCell;
+        var textcell = cell instanceof IPython.TextCell || cell.dual_mode;
 
         // esc: use our internal vim mode setter
         if (event.which === 27 && !event.shiftKey) {
