@@ -34,6 +34,7 @@ class RootManager(ContentsManager):
         model['name'] = name
         model['path'] = name
         model['type'] = 'directory'
+        model['format'] = 'json'
         return model
 
     def list_dirs(self, path):
@@ -58,6 +59,8 @@ class RootManager(ContentsManager):
         model['last_modified'] = datetime.datetime.now()
         model['content'] = None
         model['format'] = None
+        model['writable'] = None
+        model['mimetype'] = None
         return model
 
     def get_model(self, name, path='', content=True, **kwargs):
@@ -66,5 +69,6 @@ class RootManager(ContentsManager):
         model['type'] = 'directory'
         dirs = self.list_dirs(path)
         model['content'] = dirs
+        model['format'] = 'json'
         return model
 

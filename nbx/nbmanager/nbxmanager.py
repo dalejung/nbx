@@ -29,6 +29,7 @@ class BackwardsCompatMixin(object):
         fullpath = self.fullpath(name, path)
 
         model['type'] = 'directory'
+        model['format'] = 'json'
         dirs = self.list_dirs(fullpath)
         notebooks = self.list_notebooks(fullpath)
         entries = list(dirs) + list(notebooks)
@@ -86,6 +87,8 @@ class NBXContentsManager(DispatcherMixin, ContentsManager):
         model['last_modified'] = datetime.datetime.now()
         model['content'] = None
         model['format'] = None
+        model['writable'] = None
+        model['mimetype'] = None
         return model
 
     def fullpath(self, name, path):
