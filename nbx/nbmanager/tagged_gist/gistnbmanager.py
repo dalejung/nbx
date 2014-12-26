@@ -107,7 +107,11 @@ class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         model['last_modified'] = gist.updated_at
         model['created'] = gist.created_at
         model['type'] = 'notebook'
+        model['format'] = None
+        model['writable'] = True
+        model['mimetype'] = None
         if content:
+            model['format'] = 'json'
             notebook_content = gist.notebook_content
             try:
                 nb = nbformat.reads(notebook_content, as_version=4)
