@@ -2,6 +2,7 @@ import datetime
 import itertools
 import os
 import inspect
+import shutil
 from functools import wraps
 
 from tornado import web
@@ -48,6 +49,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
     """
     """
     root_dir = Unicode()
+    trash_dir = Unicode(config=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -215,7 +217,28 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
 
     @notebook_type_proxy(alt='delete')
     def delete_notebook(self, name, path=''):
-        raise Exception("Removing bundle not implemented")
+        if not self.trash_dir:
+            raise Exception("Removing bundle not implemented. Add trash_dir")
+            return
+
+        # get into bundle dir
+        bundle_path = self.bundler._get_bundle_path(name, path)
+        bundle_path = os.path.join(self.root_dir, bundle_path)
+
+        trash_name = name
+        if path:
+            trash_name = path.replace(os.path.sep, '__') + '--' + name
+
+        trash_path = os.path.join(self.trash_dir, trash_name)
+
+        i = 0
+        while os.path.exists(trash_path):
+            bits = trash_name.rsplit('.')
+            bits[0] = bits[0] + '-' + str(i)
+            trash_name = '.'.join(bits)
+            trash_path = os.path.join(self.trash_dir, trash_name)
+
+        shutil.move(bundle_path, trash_path)
 
     # Checkpoint-related utilities
     def _get_checkpoint_dir(self, name, path=''):

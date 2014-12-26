@@ -96,6 +96,7 @@ class MetaManager(NBXContentsManager):
     enable_default_manager = Bool(True, config=True, help="Enable server-home manager")
 
     root_dir = Unicode(getcwd())
+    trash_dir = Unicode(config=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -115,7 +116,7 @@ class MetaManager(NBXContentsManager):
             self.managers[alias] = fb
 
         for alias, path in self.bundle_dirs.items():
-            fb = BundleNotebookManager(root_dir=path)
+            fb = BundleNotebookManager(root_dir=path, trash_dir=self.trash_dir)
             self.managers[alias] = fb
 
         for alias, workarea_paths in self.workarea_dirs.items():
