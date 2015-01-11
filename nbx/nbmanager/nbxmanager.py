@@ -32,7 +32,12 @@ class BackwardsCompatMixin(object):
         model['format'] = 'json'
         dirs = self.list_dirs(fullpath)
         notebooks = self.list_notebooks(fullpath)
-        entries = list(dirs) + list(notebooks)
+
+        files = []
+        if hasattr(self, 'list_files'):
+            files = self.list_files(fullpath)
+
+        entries = list(dirs) + list(notebooks) + list(files)
         model['content'] = entries
         return model
 
