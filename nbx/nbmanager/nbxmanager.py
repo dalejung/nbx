@@ -1,7 +1,7 @@
 import datetime
 import os.path
 
-from IPython.html.services.contents.manager import ContentsManager
+from jupyter_notebook.services.contents.manager import ContentsManager
 from IPython.html.utils import url_path_join
 
 from .dispatch import DispatcherMixin
