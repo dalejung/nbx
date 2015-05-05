@@ -85,5 +85,5 @@ def contents_api_name(cls):
     shim = ContentsNameApiShim
     cls_name = cls.__name__ + 'Shimmed'
     dct = {'__shim_target__' : cls}
-    wrapper = type(cls_name, (shim,), dct)
+    wrapper = type(cls_name, (shim, cls), dct)
     return wrapper
