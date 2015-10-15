@@ -13,6 +13,9 @@ class ShimManager(ContentsManager):
 
     This could be done with inspect and a metaclass
     """
+    _shim_cache = {}
+    _manager = None
+
     def __init__(self, *args, **kwargs):
         self._shim_cache = {}
         self._manager = self.__shim_target__(*args, **kwargs)
