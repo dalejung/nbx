@@ -8,7 +8,9 @@ class ServerInfoHandler(NBXHandler):
         nbm = self.contents_manager
         app = nbm.parent
         data = {}
-        data['profile'] = app.profile
+        # data['profile'] = app.profile
+        # until I figure out where this info moved to, hard code.
+        data['profile'] = 'default'
         self.finish(json.dumps(data))
 
 #-----------------------------------------------------------------------------
