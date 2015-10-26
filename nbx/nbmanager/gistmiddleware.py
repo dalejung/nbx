@@ -1,5 +1,5 @@
 from IPython.config.configurable import LoggingConfigurable
-from IPython.utils.traitlets import (
+from traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
     DottedObjectName, TraitError, Tuple,
 )

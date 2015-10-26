@@ -1,5 +1,5 @@
 from IPython.lib.kernel import find_connection_file
-from IPython.kernel.manager import KernelManager
+from jupyter_client.manager import KernelManager
 
 import time
 

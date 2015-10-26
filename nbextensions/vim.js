@@ -25,10 +25,14 @@ define([
 
 function IPython_vim_patch(IPython) {
     // only monkey patch on notebook page
+    var Cell = require('notebook/js/cell').Cell;
     if(!IPython.Cell) {
         return;
     }
 
+    var KeyboardManager = require('notebook/js/keyboardmanager').KeyboardManager;
+    var TextCell = require('notebook/js/textcell').TextCell;
+    var CodeCell = require('notebook/js/codecell').CodeCell;
 
     // plug in so :w saves
     CodeMirror.commands.save = function(cm) {
@@ -37,12 +41,12 @@ function IPython_vim_patch(IPython) {
 
     // Monkey patch: KeyboardManager.handle_keydown
     // Diff: disable this handler
-    IPython.KeyboardManager.prototype.handle_keydown = function(event) {
+    KeyboardManager.prototype.handle_keydown = function(event) {
         var cell = IPython.notebook.get_selected_cell();
         var vim_mode = cell.code_mirror.getOption('keyMap');
         var notebook = IPython.notebook;
 
-        if (cell instanceof IPython.TextCell || cell.dual_mode) {
+        if (cell instanceof TextCell || cell.dual_mode) {
             // when cell is rendered, we get no key events, so we capture here
             if (cell.rendered && event.type == 'keydown') {
                 // switch IPython.notebook to this.notebook if Cells get notebook reference
@@ -119,7 +123,7 @@ function IPython_vim_patch(IPython) {
     };
 
     // Focus editor on select
-    IPython.TextCell.prototype.select = function() {
+    TextCell.prototype.select = function() {
         var cont = IPython.Cell.prototype.select.apply(this);
         if(this.rendered) {
             this.element.focus();
@@ -130,12 +134,13 @@ function IPython_vim_patch(IPython) {
         return cont;
     };
 
-    IPython.TextCell.prototype.execute = function () {
+    TextCell.prototype.execute = function () {
         this.render();
         this.command_mode();
     };
 
-    IPython.CodeCell.prototype.handle_keyevent = function(editor, event) {
+    console.log(Object.keys(IPython.CodeCell.prototype));
+    CodeCell.prototype.handle_keyevent = function(editor, event) {
         var ret = this.handle_codemirror_keyevent(editor, event);
         if (ret) {
             event.codemirrorIgnore = true;
