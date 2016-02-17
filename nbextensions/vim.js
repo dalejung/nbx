@@ -11,10 +11,11 @@ require(["nbextensions/vim"], function (vim_extension) {
 define([
     'notebook/js/notebook',
     'notebook/js/keyboardmanager',
-    'codemirror/keymap/vim'
-], function() {
+    'codemirror/keymap/vim',
+    'codemirror/lib/codemirror'
+], function(n, km, v, CodeMirror) {
     var load_extension = function() {
-        IPython_vim_patch(IPython);
+        IPython_vim_patch(IPython, CodeMirror);
     };
 
     return {
@@ -23,16 +24,17 @@ define([
 });
 
 
-function IPython_vim_patch(IPython) {
+function IPython_vim_patch(IPython, CodeMirror) {
     // only monkey patch on notebook page
     var Cell = require('notebook/js/cell').Cell;
-    if(!IPython.Cell) {
+    if(!Cell) {
         return;
     }
 
     var KeyboardManager = require('notebook/js/keyboardmanager').KeyboardManager;
     var TextCell = require('notebook/js/textcell').TextCell;
     var CodeCell = require('notebook/js/codecell').CodeCell;
+    var Notebook = require('notebook/js/notebook').Notebook;
 
     // plug in so :w saves
     CodeMirror.commands.save = function(cm) {
@@ -58,24 +60,24 @@ function IPython_vim_patch(IPython) {
     }
 
     // the new ipython refactor was screwing up key handling
-    IPython.Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
+    Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         return false;
     }
 
     // For VIM, focusing the element makes no sense. We want editor focused
-    IPython.Cell.prototype.focus_cell = function () {
+    Cell.prototype.focus_cell = function () {
         //this.focus_editor();
         return;
     }
 
     // Monkey patch: KeyboardManager.register_events
     // Diff: disable this handler
-    IPython.KeyboardManager.prototype.register_events = function(e) {
+    KeyboardManager.prototype.register_events = function(e) {
         return;
     }
     // Monkey patch insert_cell_below
     // Diff: Select cell after insert
-    IPython.Notebook.prototype.insert_cell_below = function(type, index) {
+    Notebook.prototype.insert_cell_below = function(type, index) {
         index = this.index_or_selected(index);
         var cell = this.insert_cell_at_index(type, index + 1);
         this.select(this.find_cell_index(cell));
@@ -84,7 +86,7 @@ function IPython_vim_patch(IPython) {
 
     // Monkey patch insert_cell_above
     // Diff: Select cell after insert
-    IPython.Notebook.prototype.insert_cell_above = function(type, index) {
+    Notebook.prototype.insert_cell_above = function(type, index) {
         index = this.index_or_selected(index);
         var cell = this.insert_cell_at_index(type, index);
         this.select(this.find_cell_index(cell));
@@ -93,27 +95,27 @@ function IPython_vim_patch(IPython) {
 
     // Monkey patch: execute_cell
     // Diff: don't switch to command mode
-    IPython.Notebook.prototype.execute_cell = function() {
+    Notebook.prototype.execute_cell = function() {
         var cell = this.get_selected_cell();
         var cell_index = this.find_cell_index(cell);
         cell.execute();
         this.set_dirty(true);
     };
 
-    IPython.Notebook.prototype.command_mode = function () {
+    Notebook.prototype.command_mode = function () {
         return;
     }
 
-    IPython.Notebook.prototype.edit_mode = function () {
+    Notebook.prototype.edit_mode = function () {
         return;
     }
 
     // Focus editor on select
-    IPython.CodeCell.prototype.select = function() {
+    CodeCell.prototype.select = function() {
         // assume on new selects that we reset all cells to normal mode
         // we don't have a select that dumps us into insert mode, afaik
         this.notebook.reset_cells();
-        var cont = IPython.Cell.prototype.select.apply(this);
+        var cont = Cell.prototype.select.apply(this);
         if (cont) {
             this.code_mirror.refresh();
             this.focus_editor();
@@ -124,7 +126,7 @@ function IPython_vim_patch(IPython) {
 
     // Focus editor on select
     TextCell.prototype.select = function() {
-        var cont = IPython.Cell.prototype.select.apply(this);
+        var cont = Cell.prototype.select.apply(this);
         if(this.rendered) {
             this.element.focus();
         } else {
@@ -139,7 +141,6 @@ function IPython_vim_patch(IPython) {
         this.command_mode();
     };
 
-    console.log(Object.keys(IPython.CodeCell.prototype));
     CodeCell.prototype.handle_keyevent = function(editor, event) {
         var ret = this.handle_codemirror_keyevent(editor, event);
         if (ret) {
@@ -161,7 +162,7 @@ function IPython_vim_patch(IPython) {
     // Override TextCell keydown
     // Really just here to handle the render/editing of text cells
     // Might need to consider also using codemirror keyevent
-    IPython.TextCell.prototype.handle_keyevent = function(editor, event) {
+    TextCell.prototype.handle_keyevent = function(editor, event) {
         var ret = this.handle_codemirror_keyevent(editor, event);
         if (ret) {
             return ret;
@@ -174,7 +175,7 @@ function IPython_vim_patch(IPython) {
     }
 
     // reset all cells to normal vim
-    IPython.Notebook.prototype.reset_cells = function () {
+    Notebook.prototype.reset_cells = function () {
         var cells = this.get_cells();
         var arr_length = cells.length;
         for(var i = 0; i < arr_length; i++) {
@@ -195,7 +196,7 @@ function IPython_vim_patch(IPython) {
     };
 
 
-    IPython.Notebook.prototype.setVIMode = function(mode) {
+    Notebook.prototype.setVIMode = function(mode) {
         /*
          * The point of this logic is that only one cell should be in insert
          * mode at any one point. In reality the important function here is reset_cells.
@@ -245,7 +246,7 @@ function IPython_vim_patch(IPython) {
     NormalMode.keyDown = function(that, event) {
         var cell = that.get_selected_cell();
         var cell_type = cell.cell_type;
-        var textcell = cell instanceof IPython.TextCell || cell.dual_mode;
+        var textcell = cell instanceof TextCell || cell.dual_mode;
 
 
         // ` : enable console
@@ -414,7 +415,7 @@ function IPython_vim_patch(IPython) {
     InsertMode.keyDown = function(that, event) {
         var cell = that.get_selected_cell();
         var cell_type = cell.cell_type;
-        var textcell = cell instanceof IPython.TextCell || cell.dual_mode;
+        var textcell = cell instanceof TextCell || cell.dual_mode;
 
         // esc: use our internal vim mode setter
         if (event.which === 27 && !event.shiftKey) {
@@ -445,8 +446,5 @@ function IPython_vim_patch(IPython) {
 
     IPython.VIM = new VIM();
 
-    // this takes care of existing cells
-    IPython.notebook.setVIMode('NORMAL'); 
-
-    IPython.Cell.options_default.cm_config.keyMap = "vim";
+    Cell.options_default.cm_config.keyMap = "vim";
 }
