@@ -19,7 +19,6 @@ class ShimManager(ContentsManager):
     def __init__(self, *args, **kwargs):
         self._shim_cache = {}
         self._manager = self.__shim_target__(*args, **kwargs)
-        super().__init__(*args, **kwargs)
 
     def __getattribute__(self, name):
         if name.startswith('_'):
