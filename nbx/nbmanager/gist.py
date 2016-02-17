@@ -23,7 +23,7 @@ def model_to_files(model):
     """
     files = {}
     name = model['name']
-    content = current.writes(model['content'], format=u'json')
+    content = current.writes(model['content'])
     files[name] = content
 
 
