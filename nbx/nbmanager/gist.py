@@ -1,4 +1,4 @@
-from nbformat import current
+from nbformat import v4 as current
 import github
 import time
 
