@@ -1,5 +1,5 @@
 import os.path
-from IPython.config.loader import (
+from traitlets.config.loader import (
     KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound, JSONFileConfigLoader
 )
 from IPython.core.profiledir import ProfileDir
