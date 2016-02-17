@@ -1,10 +1,10 @@
-from IPython.config.configurable import LoggingConfigurable
-from IPython.utils.traitlets import (
+from traitlets.config.configurable import LoggingConfigurable
+from traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
     DottedObjectName, TraitError, Tuple,
 )
 
-from IPython.html.services.contents.filemanager import FileContentsManager
+from notebook.services.contents.filemanager import FileContentsManager
 
 from .gist import GistService, model_to_files
 from .bundle.bundlenbmanager import BundleNotebookManager
@@ -23,12 +23,18 @@ class GistMiddleware(LoggingConfigurable):
     github_accounts = List(Tuple, config=True,
                             help="List of Tuple(github_account, github_password)")
 
+    oauth_token = Unicode(config=True)
+
     def __init__(self, *args, **kwargs):
         super(GistMiddleware, self).__init__(*args, **kwargs)
 
         self.service = GistService()
+        if self.oauth_token:
+            self.service.oauth_login(token=self.oauth_token)
+
         for user, pw in self.github_accounts:
             self.service.login(user, pw)
+
 
     def post_save(self, nbm, local_path, model, name, path=_missing):
         # HACK. So new calls save(model, path) which doens't go through

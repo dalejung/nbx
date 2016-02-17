@@ -1,6 +1,6 @@
 import datetime
 
-from IPython.html.services.contents.manager import ContentsManager
+from notebook.services.contents.manager import ContentsManager
 
 class RootManager(ContentsManager):
     """

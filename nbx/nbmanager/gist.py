@@ -1,4 +1,4 @@
-from IPython.nbformat import current
+from nbformat import v4 as current
 import github
 import time
 
@@ -23,7 +23,7 @@ def model_to_files(model):
     """
     files = {}
     name = model['name']
-    content = current.writes(model['content'], format=u'json')
+    content = current.writes(model['content'])
     files[name] = content
 
 
@@ -58,14 +58,25 @@ class GistService(object):
         """
         return self.accounts[self.default]
 
+    def oauth_login(self, token):
+        hub = github.Github(token, user_agent="nbx")
+        self._save_login(hub)
+
     def login(self, login, password):
+        hub = github.Github(login, password, user_agent="nbx")
+        self._save_login(hub)
+
+    def _save_login(self, hub):
+        user = hub.get_user()
+        login = user.login
+
         if self.default is None:
             self.default = login
         # if account already
         if login in self.accounts:
             print("Alredy logged in")
             return
-        hub = github.Github(login, password, user_agent="nbx")
+        print('gist login {login}'.format(login=login))
         self.accounts[login] = hub
 
     def get_gist(self, gist_id, refresh=False):

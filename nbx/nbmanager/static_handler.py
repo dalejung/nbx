@@ -31,8 +31,8 @@ def file_get_absolute_path(self, path):
     return os.path.join(self.root_dir, path)
 
 def patch_file_handler():
-    from IPython.html.base.handlers import AuthenticatedFileHandler
+    from notebook.base.handlers import AuthenticatedFileHandler
     AuthenticatedFileHandler.get_absolute_path = get_absolute_path
 
-    from IPython.html.services.contents.filemanager import FileContentsManager
+    from notebook.services.contents.filemanager import FileContentsManager
     FileContentsManager.get_absolute_path = file_get_absolute_path

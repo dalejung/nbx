@@ -10,13 +10,14 @@ Not sure if the dual mode will mesh well with what I want for vim bindings. Howe
 1. Download the `nbx/nbextensions/vim.js` to your `$IPYTHON_DIR/nbextensions` directory.
 2. Edit your `$IPYTHON_DIR/$PROFILE_NAME/static/custom/custom.js` and add
 ```javascript
-// add this to <profile>/static/custom/custom.js to load vim keybindings:
-$.getScript("/static/components/codemirror/keymap/vim.js", function() {
-    if (! IPython.Cell) return;
-    IPython.Cell.options_default.cm_config.keyMap = "vim";
-});
+define([
+    'nbextensions/gist',
+    'nbextensions/vim',
 
-require(["nbextensions/vim"], function (vim_extension) {
+], function (gist_extension,
+             vim_extension
+    ) {
+    gist_extension.load_extension();
     vim_extension.load_extension();
 });
 ```

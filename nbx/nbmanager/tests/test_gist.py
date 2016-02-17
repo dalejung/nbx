@@ -2,7 +2,7 @@ import os
 import unittest
 from contextlib import contextmanager
 
-from IPython.nbformat import current
+from nbformat import current
 from IPython.utils.tempdir import TemporaryDirectory
 
 from ..tests import tools as nt

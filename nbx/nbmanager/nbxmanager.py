@@ -1,8 +1,8 @@
 import datetime
 import os.path
 
-from jupyter_notebook.services.contents.manager import ContentsManager
-from IPython.html.utils import url_path_join
+from notebook.services.contents.manager import ContentsManager
+from notebook.utils import url_path_join
 
 from .dispatch import DispatcherMixin
 
@@ -21,8 +21,8 @@ def _path_split(path):
 class BackwardsCompatMixin(object):
     # shims to bridge Content service and older notebook apis
     def get_model_dir(self, name, path='', content=True, **kwargs):
-        """ 
-        retrofit to use old list_dirs. No notebooks 
+        """
+        retrofit to use old list_dirs. No notebooks
         note that this requires the dispatcher mixin
         """
         model = self._base_model(name, path)
@@ -101,7 +101,7 @@ class NBXContentsManager(DispatcherMixin, ContentsManager):
 
     def get(self, name, path='', content=True, **kwargs):
         """
-        backwards compat with get_model rename. fml. 
+        backwards compat with get_model rename. fml.
         Putting here instead of creating another mixin
         """
         if hasattr(self, 'get_model'):

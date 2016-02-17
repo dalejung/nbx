@@ -1,7 +1,7 @@
 import os
 import io
 
-from IPython import nbformat
+import nbformat
 from IPython.utils import tz
 
 

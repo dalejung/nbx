@@ -2,7 +2,7 @@ import os.path
 import datetime
 
 from tornado import web
-from IPython.html.notebook.handlers import NotebookHandler
+from notebook.notebook.handlers import NotebookHandler
 
 from .bundle.bundlenbmanager import BundleNotebookManager
 from .path_translate import translate_path_shim

@@ -1,16 +1,16 @@
 import os
 import datetime
 
-from IPython.utils.traitlets import (
+from traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
     DottedObjectName, TraitError, Tuple,
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import getcwd
-from IPython.config.configurable import LoggingConfigurable
-from IPython.html.services.contents.manager import ContentsManager
-from IPython.html.base.zmqhandlers import ZMQStreamHandler
-from IPython.html.utils import is_hidden, to_os_path, url_path_join
+from traitlets.config.configurable import LoggingConfigurable
+from notebook.services.contents.manager import ContentsManager
+from notebook.base.zmqhandlers import ZMQStreamHandler
+from notebook.utils import is_hidden, to_os_path, url_path_join
 
 from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
@@ -255,7 +255,7 @@ class MetaManager(NBXContentsManager):
         """
         Basically the ContentsManager.new but with the .save removed.
         """
-        from IPython.nbformat.v4 import new_notebook
+        from nbformat.v4 import new_notebook
         path = path.strip('/')
         if model is None:
             model = {}

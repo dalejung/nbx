@@ -1,6 +1,6 @@
 import github
 
-from IPython import nbformat
+import nbformat
 
 from .gisthub import gisthub, _hashtags
 import nbx.compat as compat

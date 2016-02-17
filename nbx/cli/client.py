@@ -7,6 +7,7 @@ class IPythonService(object):
 
     def _get(self, path, **kwargs):
         url = 'http://{host}:{port}/{path}'.format(path=path, **self.__dict__)
+        print(url)
         r = requests.get(url, **kwargs)
         return r.json()
 

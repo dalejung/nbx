@@ -1,4 +1,4 @@
-from IPython.html.services.contents.manager import ContentsManager
+from notebook.services.contents.manager import ContentsManager
 
 from .util import get_invoked_arg, set_invoked_arg, _path_split
 
@@ -13,10 +13,12 @@ class ShimManager(ContentsManager):
 
     This could be done with inspect and a metaclass
     """
+    _shim_cache = {}
+    _manager = None
+
     def __init__(self, *args, **kwargs):
         self._shim_cache = {}
         self._manager = self.__shim_target__(*args, **kwargs)
-        super().__init__(*args, **kwargs)
 
     def __getattribute__(self, name):
         if name.startswith('_'):
