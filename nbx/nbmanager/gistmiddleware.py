@@ -23,12 +23,18 @@ class GistMiddleware(LoggingConfigurable):
     github_accounts = List(Tuple, config=True,
                             help="List of Tuple(github_account, github_password)")
 
+    oauth_token = Unicode(config=True)
+
     def __init__(self, *args, **kwargs):
         super(GistMiddleware, self).__init__(*args, **kwargs)
 
         self.service = GistService()
+        if self.oauth_token:
+            self.service.oauth_login(token=self.oauth_token)
+
         for user, pw in self.github_accounts:
             self.service.login(user, pw)
+
 
     def post_save(self, nbm, local_path, model, name, path=_missing):
         # HACK. So new calls save(model, path) which doens't go through
