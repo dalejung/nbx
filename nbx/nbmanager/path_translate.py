@@ -1,4 +1,4 @@
-from IPython.html.services.contents.manager import ContentsManager
+from notebook.services.contents.manager import ContentsManager
 
 from .shim import ShimManager
 from .util import get_invoked_arg, set_invoked_arg, _path_split

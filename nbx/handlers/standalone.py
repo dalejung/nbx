@@ -5,7 +5,7 @@ from tornado import web
 import IPython
 from nbx.handlers import NBXHandler
 import nbx.kernel_client as kernel_client
-from IPython.html.base.handlers import path_regex as notebook_path_regex
+from notebook.base.handlers import path_regex as notebook_path_regex
 
 CODE_FMT = """
 from nbx.handlers.standalone import get_html

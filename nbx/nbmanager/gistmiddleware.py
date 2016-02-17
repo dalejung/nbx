@@ -4,7 +4,7 @@ from traitlets import (
     DottedObjectName, TraitError, Tuple,
 )
 
-from IPython.html.services.contents.filemanager import FileContentsManager
+from notebook.services.contents.filemanager import FileContentsManager
 
 from .gist import GistService, model_to_files
 from .bundle.bundlenbmanager import BundleNotebookManager

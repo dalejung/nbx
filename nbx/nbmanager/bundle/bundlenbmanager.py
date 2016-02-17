@@ -9,8 +9,8 @@ from tornado import web
 
 from traitlets import Unicode
 from IPython.utils import tz
-from IPython.html.utils import is_hidden, to_os_path, url_path_join
-from IPython.html.services.contents.filemanager import FileContentsManager
+from notebook.utils import is_hidden, to_os_path, url_path_join
+from notebook.services.contents.filemanager import FileContentsManager
 
 from .manager import BundleManager
 from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin

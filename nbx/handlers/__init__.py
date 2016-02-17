@@ -2,8 +2,8 @@ import os.path
 
 from jinja2 import Environment, FileSystemLoader
 
-from IPython.html.base.handlers import IPythonHandler
-from IPython.html.notebookapp import NotebookWebApplication
+from notebook.base.handlers import IPythonHandler
+from notebook.notebookapp import NotebookWebApplication
 
 NBX_HANDLERS = ['nbx.handlers.standalone',
                 'nbx.handlers.kernel_info',

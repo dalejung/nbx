@@ -2,7 +2,7 @@ import datetime
 import os.path
 
 from notebook.services.contents.manager import ContentsManager
-from IPython.html.utils import url_path_join
+from notebook.utils import url_path_join
 
 from .dispatch import DispatcherMixin
 

@@ -1,6 +1,6 @@
-from IPython.html.services.contents.manager import ContentsManager
-from IPython.html.services.contents.filemanager import FileContentsManager
-from IPython.html.utils import url_path_join
+from notebook.services.contents.manager import ContentsManager
+from notebook.services.contents.filemanager import FileContentsManager
+from notebook.utils import url_path_join
 
 from .nbxmanager import NBXContentsManager, BackwardsCompatMixin
 
