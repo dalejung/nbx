@@ -3,7 +3,7 @@ import io
 from contextlib import contextmanager
 
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython import nbformat
+import nbformat
 current = nbformat.v4
 
 def touch(fname, times=None):

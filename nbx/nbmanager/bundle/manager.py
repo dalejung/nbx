@@ -4,8 +4,8 @@ import shutil
 
 from .bundle import NotebookBundle
 
-from IPython import nbformat
-from IPython.nbformat import sign
+import nbformat
+from nbformat import sign
 current = nbformat.v4
 
 def is_notebook(name, path):

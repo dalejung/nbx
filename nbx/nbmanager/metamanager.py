@@ -255,7 +255,7 @@ class MetaManager(NBXContentsManager):
         """
         Basically the ContentsManager.new but with the .save removed.
         """
-        from IPython.nbformat.v4 import new_notebook
+        from nbformat.v4 import new_notebook
         path = path.strip('/')
         if model is None:
             model = {}

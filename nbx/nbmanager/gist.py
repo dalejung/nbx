@@ -1,4 +1,4 @@
-from IPython.nbformat import current
+from nbformat import current
 import github
 import time
 

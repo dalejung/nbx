@@ -2,7 +2,7 @@ import itertools
 
 from tornado import web
 
-from IPython import nbformat
+import nbformat
 
 from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
 from .notebook_gisthub import parse_tags
