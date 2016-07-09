@@ -9,13 +9,12 @@ require(["nbextensions/vim"], function (vim_extension) {
 
 */
 define([
-    'notebook/js/notebook',
-    'notebook/js/keyboardmanager',
-    'codemirror/keymap/vim',
-    'codemirror/lib/codemirror'
-], function(n, km, v, CodeMirror) {
+    'codemirror/lib/codemirror',
+    'notebook',
+], function(CodeMirror, notebookApp) {
     var load_extension = function() {
-        IPython_vim_patch(IPython, CodeMirror);
+        var IPython = notebookApp['base/js/namespace'];
+        IPython_vim_patch(IPython, CodeMirror, notebookApp);
     };
 
     return {
@@ -24,17 +23,14 @@ define([
 });
 
 
-function IPython_vim_patch(IPython, CodeMirror) {
-    // only monkey patch on notebook page
-    var Cell = require('notebook/js/cell').Cell;
-    if(!Cell) {
-        return;
-    }
+function IPython_vim_patch(IPython, CodeMirror, notebookApp) {
+    var exports = IPython.exports;
+    var KeyboardManager = exports.keyboardmanager.KeyboardManager;
 
-    var KeyboardManager = require('notebook/js/keyboardmanager').KeyboardManager;
-    var TextCell = require('notebook/js/textcell').TextCell;
-    var CodeCell = require('notebook/js/codecell').CodeCell;
-    var Notebook = require('notebook/js/notebook').Notebook;
+    var Cell = exports.cell.Cell;
+    var TextCell = exports.textcell.TextCell;
+    var CodeCell = exports.codecell.CodeCell;
+    var Notebook = exports.notebook.Notebook;
 
     // plug in so :w saves
     CodeMirror.commands.save = function(cm) {
@@ -48,6 +44,7 @@ function IPython_vim_patch(IPython, CodeMirror) {
         var vim_mode = cell.code_mirror.getOption('keyMap');
         var notebook = IPython.notebook;
 
+        
         if (cell instanceof TextCell || cell.dual_mode) {
             // when cell is rendered, we get no key events, so we capture here
             if (cell.rendered && event.type == 'keydown') {
@@ -63,6 +60,7 @@ function IPython_vim_patch(IPython, CodeMirror) {
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         return false;
     }
+
 
     // For VIM, focusing the element makes no sense. We want editor focused
     Cell.prototype.focus_cell = function () {
