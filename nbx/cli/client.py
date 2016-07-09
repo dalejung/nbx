@@ -76,11 +76,11 @@ def attach_session(session, profile='default'):
     """
         Start a terminal app attached to a notebook
     """
-    from IPython.terminal.ipapp import launch_new_instance
+    from jupyter_console import app
     kernel = 'kernel-{0}.json'.format(session['kernel']['id'])
     # TODO support other submodules like qtconsole
     argv = ['console', '--existing', kernel, '--profile={0}'.format(profile)]
-    return launch_new_instance(argv=argv)
+    return app.launch_new_instance(argv=argv)
 
 def client(host="127.0.0.1", port="8888"):
     service = IPythonService(host, port)
