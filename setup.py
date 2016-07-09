@@ -13,5 +13,8 @@ setup(
                 'nbx = nbx.cli.command:main',
                 'nbx-gist = nbx.cli.gist_upload:main',
             ]
-    }
+    },
+    install_requires = [
+        "PyGitHub"
+    ]
 )
