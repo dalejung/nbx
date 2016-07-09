@@ -9,6 +9,11 @@
 
 # nbextensions
 
+**WARNING**
+
+In order to use the vim bindings you need to use
+https://github.com/dalejung/notebook/pull/1.
+
 * vim key bindings [vim docs](nbextensions/README.md)
 * gist.js (modified from minK's that allows private gists)
 
