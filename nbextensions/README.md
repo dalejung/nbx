@@ -7,20 +7,11 @@ Not sure if the dual mode will mesh well with what I want for vim bindings. Howe
 
 ## Install
 
-1. Download the `nbx/nbextensions/vim.js` to your `$IPYTHON_DIR/nbextensions` directory.
-2. Edit your `$IPYTHON_DIR/$PROFILE_NAME/static/custom/custom.js` and add
-```javascript
-define([
-    'nbextensions/gist',
-    'nbextensions/vim',
-
-], function (gist_extension,
-             vim_extension
-    ) {
-    gist_extension.load_extension();
-    vim_extension.load_extension();
-});
 ```
+jupyter nbextension install --symlink --user ./vim.js
+jupyter nbextension enable vim
+```
+
 
 ## Shortcuts:
 
