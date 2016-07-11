@@ -1,21 +1,15 @@
 /*
 Add this file to $(ipython locate)/nbextensions/gist.js
 And load it with:
-
-require(["nbextensions/gist"], function (gist_extension) {
-    console.log('gist extension loaded');
-    gist_extension.load_extension();
-});
-
 */
-define( function () {
-    
+define([
+    'notebook',
+], function (notebookApp) {
+    var IPython = notebookApp['base/js/namespace'];
     var token_name = "gist_github_token";
-    
     // dialog to request GitHub OAuth token
     // I'm not sure it's possible to step through OAuth purely client side,
     // so just ask the user to go create a token manually.
-    
     var token_dialog = function () {
         var dialog = $('<div/>').append(
             $("<p/>")
@@ -157,14 +151,14 @@ define( function () {
         $(IPython.toolbar.selector).append(btn_group)
     }
     
-    var load_extension = function () {
+    var load_ipython_extension = function () {
         gist_button();
         update_gist_link();
         $([IPython.events]).on("notebook_loaded.Notebook", function () {update_gist_link();});
     };
     
     return {
-        load_extension : load_extension,
+        load_ipython_extension : load_ipython_extension,
     };
     
 });

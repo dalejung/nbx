@@ -12,13 +12,13 @@ define([
     'codemirror/lib/codemirror',
     'notebook',
 ], function(CodeMirror, notebookApp) {
-    var load_extension = function() {
+    var load_ipython_extension = function() {
         var IPython = notebookApp['base/js/namespace'];
         IPython_vim_patch(IPython, CodeMirror, notebookApp);
     };
 
     return {
-        load_extension: load_extension,
+        load_ipython_extension: load_ipython_extension,
     };
 });
 
@@ -44,7 +44,6 @@ function IPython_vim_patch(IPython, CodeMirror, notebookApp) {
         var vim_mode = cell.code_mirror.getOption('keyMap');
         var notebook = IPython.notebook;
 
-        
         if (cell instanceof TextCell || cell.dual_mode) {
             // when cell is rendered, we get no key events, so we capture here
             if (cell.rendered && event.type == 'keydown') {
