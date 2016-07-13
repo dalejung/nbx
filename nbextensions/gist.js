@@ -123,8 +123,8 @@ define([
             );
         }
     
-        link.attr("href", "http://nbviewer.ipython.org/" + gist_id);
-        link.text("http://nbviewer.ipython.org/" + gist_id);
+        link.attr("href", "http://gist.github.com/" + gist_id);
+        link.text("http://gist.github.com/" + gist_id);
 
         // hide buttons 
         toolbar.find('.gist-button').hide();
