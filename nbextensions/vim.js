@@ -55,6 +55,12 @@ function IPython_vim_patch(IPython, CodeMirror, notebookApp) {
         return;
     }
 
+    // clicking codemirror will do select. We don't want to trigger
+    // select when interacting with output.
+    CodeCell.prototype._on_click = function (event) {
+      return;
+    }
+
     // the new ipython refactor was screwing up key handling
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         return false;
