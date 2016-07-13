@@ -26,6 +26,22 @@ from .filemanager import BackwardsFileContentsManager
 from .static_handler import patch_file_handler
 from . import shim
 
+from notebook.services.kernels.kernelmanager import MappingKernelManager
+
+def cwd_for_path(self, path):
+    """Turn API path into absolute OS path."""
+    if os.path.exists(path):
+        return path
+
+    os_path = to_os_path(path, self.root_dir)
+    # in the case of notebooks and kernels not being on the same filesystem,
+    # walk up to root_dir if the paths don't exist
+    while not os.path.isdir(os_path) and os_path != self.root_dir:
+        os_path = os.path.dirname(os_path)
+    return os_path
+
+MappingKernelManager.cwd_for_path = cwd_for_path
+
 patch_file_handler()
 
 ZMQStreamHandler.same_origin = lambda self: True

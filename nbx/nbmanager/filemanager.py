@@ -1,3 +1,5 @@
+import os.path
+
 from notebook.services.contents.manager import ContentsManager
 from notebook.services.contents.filemanager import FileContentsManager
 from notebook.utils import url_path_join
@@ -96,6 +98,12 @@ class BackwardsFileContentsManager(BackwardsCompatMixin, NBXContentsManager):
         return self.filemanager.delete_checkpoint(checkpoint_id, path)
 
     def get_kernel_path(self, name, path='', model=None):
+        """
+        filemanager.get_kernel_path will essentially return the dir 
+        Normal Jupyter relies on the having one root_dir. Where we have many
+        due to MetaManager. So we can't rely on the KernelManager.root_dir
+        """
         path = _fullpath(name, path)
-        return self.filemanager.get_kernel_path(path, model=model)
+        path =  self.filemanager.get_kernel_path(path, model=model)
+        return os.path.join(self.root_dir, path)
 
