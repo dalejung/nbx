@@ -11,8 +11,11 @@
 
 **WARNING**
 
-In order to use the vim bindings you need to use
-https://github.com/dalejung/notebook/pull/1.
+In order to use the vim bindings you need to use:
+
+https://github.com/dalejung/notebook/pull/2.
+
+This allows the monkey-patching of jupyter notebook js.
 
 * vim key bindings [vim docs](nbextensions/README.md)
 * gist.js (modified from minK's that allows private gists)
