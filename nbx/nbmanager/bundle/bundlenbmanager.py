@@ -101,6 +101,12 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         os_path = self._get_os_path(name, path=path)
         return self.filemanager.get(name, path)
 
+    def save_file(self, model, name='', path=''):
+        """Save the notebook model and return the model with no content."""
+
+        model = self.filemanager.save(model, name, path)
+        return model
+
     @notebook_type_proxy(alt='exists')
     def notebook_exists(self, name, path=''):
         return self._notebook_exists(name, path)

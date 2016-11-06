@@ -49,6 +49,10 @@ class GistMiddleware(LoggingConfigurable):
         return dispatch_method(self, 'post_save', model_type, nbm, local_path, model,
                                name, path)
 
+    def post_save_default(self, nbm, local_path, model, name, path):
+        # for now just a no-op
+        pass
+
     def post_save_notebook(self, nbm, local_path, model, name, path):
         # for now only support bundlenbmanager
         if not isinstance(nbm, (BundleNotebookManager, FileContentsManager)):
