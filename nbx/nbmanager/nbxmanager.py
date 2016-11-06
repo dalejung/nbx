@@ -47,11 +47,6 @@ class BackwardsCompatMixin(object):
         """
         return self.get_notebook(name, path, content=content, **kwargs)
 
-    def file_exists(self, name, path=''):
-        # in old version, only file is notebook
-        ret =  self.notebook_exists(name, path)
-        return ret
-
     def is_notebook(self, path):
         """
         Note that is_notebook is a nbx method, it's in BackwardsCompatMixin

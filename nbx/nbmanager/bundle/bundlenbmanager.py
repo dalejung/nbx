@@ -91,6 +91,16 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         os_path = self._get_os_path(path=path)
         return os.path.isdir(os_path)
 
+    def file_exists(self, name, path):
+        path = path.strip('/')
+        os_path = self._get_os_path(name, path=path)
+        return os.path.isfile(os_path)
+
+    def get_model_file(self, name, path='', content=True, **kwargs):
+        path = path.strip('/')
+        os_path = self._get_os_path(name, path=path)
+        return self.filemanager.get(name, path)
+
     @notebook_type_proxy(alt='exists')
     def notebook_exists(self, name, path=''):
         return self._notebook_exists(name, path)
