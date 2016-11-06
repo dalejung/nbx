@@ -142,6 +142,19 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
 
         return notebooks
 
+    def list_files(self, path):
+        os_path = self._get_os_path(path=path)
+        notebooks = []
+
+        # also grab regular notebooks
+        dir_model = self.filemanager.get_model('', path=path, content=True)
+        for model in dir_model['content']:
+            if model['type'] == 'file':
+                notebooks.append(model)
+
+        return notebooks
+
+
     @notebook_type_proxy(alt=None)
     def get_notebook(self, name, path='', content=True, file_content=False, **kwargs):
         """ Takes a path and name for a notebook and returns its model
