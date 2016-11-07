@@ -91,6 +91,22 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         os_path = self._get_os_path(path=path)
         return os.path.isdir(os_path)
 
+    def file_exists(self, name, path):
+        path = path.strip('/')
+        os_path = self._get_os_path(name, path=path)
+        return os.path.isfile(os_path)
+
+    def get_model_file(self, name, path='', content=True, **kwargs):
+        path = path.strip('/')
+        os_path = self._get_os_path(name, path=path)
+        return self.filemanager.get(name, path)
+
+    def save_file(self, model, name='', path=''):
+        """Save the notebook model and return the model with no content."""
+
+        model = self.filemanager.save(model, name, path)
+        return model
+
     @notebook_type_proxy(alt='exists')
     def notebook_exists(self, name, path=''):
         return self._notebook_exists(name, path)
@@ -141,6 +157,19 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
                 notebooks.append(model)
 
         return notebooks
+
+    def list_files(self, path):
+        os_path = self._get_os_path(path=path)
+        notebooks = []
+
+        # also grab regular notebooks
+        dir_model = self.filemanager.get_model('', path=path, content=True)
+        for model in dir_model['content']:
+            if model['type'] == 'file':
+                notebooks.append(model)
+
+        return notebooks
+
 
     @notebook_type_proxy(alt=None)
     def get_notebook(self, name, path='', content=True, file_content=False, **kwargs):
