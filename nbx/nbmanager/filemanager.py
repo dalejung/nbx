@@ -4,13 +4,13 @@ from notebook.services.contents.manager import ContentsManager
 from notebook.services.contents.filemanager import FileContentsManager
 from notebook.utils import url_path_join
 
-from .nbxmanager import NBXContentsManager, BackwardsCompatMixin
+from .nbxmanager import NBXContentsManager
 
 def _fullpath(name, path):
     fullpath = url_path_join(path, name)
     return fullpath
 
-class BackwardsFileContentsManager(BackwardsCompatMixin, NBXContentsManager):
+class BackwardsFileContentsManager(NBXContentsManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.filemanager = FileContentsManager(*args, **kwargs)
@@ -39,7 +39,7 @@ class BackwardsFileContentsManager(BackwardsCompatMixin, NBXContentsManager):
     def is_hidden(self, path):
         return self.filemanager.is_hidden(path)
 
-    def get(self, name, path, **kwargs):
+    def get(self, path, **kwargs):
         path = _fullpath(name, path)
         model =  self.filemanager.get(path, **kwargs)
         return model

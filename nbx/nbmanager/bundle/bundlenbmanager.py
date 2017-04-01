@@ -13,7 +13,7 @@ from notebook.utils import is_hidden, to_os_path, url_path_join
 from notebook.services.contents.filemanager import FileContentsManager
 
 from .manager import BundleManager
-from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
+from ..nbxmanager import NBXContentsManager
 from ..dispatch import DispatcherMixin
 from ..filemanager import BackwardsFileContentsManager
 from .. import shim
@@ -45,7 +45,7 @@ def notebook_type_proxy(alt):
         return wrapper
     return decorator
 
-class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
+class BundleNotebookManager(NBXContentsManager):
     """
     """
     root_dir = Unicode()
@@ -54,17 +54,15 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bundler = BundleManager()
-        self.filemanager = BackwardsFileContentsManager(*args, **kwargs)
+        self.filemanager = FileContentsManager(*args, **kwargs)
         self.filemanager.root_dir = self.root_dir
 
-    def _get_os_path(self, name=None, path=''):
+    def _get_os_path(self, path=''):
         """Given a notebook name and a URL path, return its file system
         path.
 
         Parameters
         ----------
-        name : string
-            The name of a notebook file with the .ipynb extension
         path : string
             The relative URL path (with '/' as separator) to the named
             notebook.
@@ -76,9 +74,10 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             server started), the relative path, and the filename with the
             current operating system's url.
         """
-        if name is not None:
-            path = path + '/' + name
         return to_os_path(path, self.root_dir)
+
+    def is_dir(self, path):
+        return self.path_exists(path) and not self.is_notebook(path)
 
     @notebook_type_proxy(alt=None)
     def get_kernel_path(self, name, path='', model=None):
@@ -91,15 +90,13 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         os_path = self._get_os_path(path=path)
         return os.path.isdir(os_path)
 
-    def file_exists(self, name, path):
-        path = path.strip('/')
-        os_path = self._get_os_path(name, path=path)
+    def file_exists(self, path):
+        os_path = self._get_os_path(path=path)
         return os.path.isfile(os_path)
 
-    def get_model_file(self, name, path='', content=True, **kwargs):
-        path = path.strip('/')
-        os_path = self._get_os_path(name, path=path)
-        return self.filemanager.get(name, path)
+    def get_file(self, path='', content=True, **kwargs):
+        os_path = self._get_os_path(path=path)
+        return self.filemanager.get(path, content=content, **kwargs)
 
     def save_file(self, model, name='', path=''):
         """Save the notebook model and return the model with no content."""
@@ -144,14 +141,14 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         bundles = self.bundler.list_bundles(os_path)
         notebooks = []
         for name, bundle in bundles.items():
-            model = bundle.get_model(content=False)
+            model = bundle.get(content=False)
             # the model returned from BundleManager is absolute
             # set back to relative
             model['path'] = path
             notebooks.append(model)
 
         # also grab regular notebooks
-        dir_model = self.filemanager.get_model('', path=path, content=True)
+        dir_model = self.filemanager.get(path=path, content=True)
         for model in dir_model['content']:
             if model['type'] == 'notebook':
                 notebooks.append(model)
@@ -163,7 +160,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
         notebooks = []
 
         # also grab regular notebooks
-        dir_model = self.filemanager.get_model('', path=path, content=True)
+        dir_model = self.filemanager.get(path=path, content=True)
         for model in dir_model['content']:
             if model['type'] == 'file':
                 notebooks.append(model)
@@ -172,7 +169,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
 
 
     @notebook_type_proxy(alt=None)
-    def get_notebook(self, name, path='', content=True, file_content=False, **kwargs):
+    def get_notebook(self, path='', content=True, file_content=False, **kwargs):
         """ Takes a path and name for a notebook and returns its model
 
         Parameters
@@ -190,7 +187,7 @@ class BundleNotebookManager(BackwardsCompatMixin, NBXContentsManager):
             dict in the model as well.
         """
         path = path.strip('/')
-        if not self.notebook_exists(name=name, path=path):
+        if not self.notebook_exists(path=path):
             raise Exception('Notebook does not exist {name} {path}'.format(name=name,
                                                                            path=path))
         os_path = self._get_os_path(name=None, path=path)
