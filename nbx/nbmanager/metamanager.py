@@ -21,7 +21,6 @@ from .middleware import manager_hook
 from .root_manager import RootManager
 from ..handlers import enable_custom_handlers
 from .nbxmanager import NBXContentsManager
-from .filemanager import BackwardsFileContentsManager
 
 from .static_handler import patch_file_handler
 
@@ -117,17 +116,9 @@ class MetaManager(NBXContentsManager):
         #self.app = kwargs['parent']
 
         self.managers = {}
-        if self.enable_default_manager:
-            server_home = BackwardsFileContentsManager()
-            server_home.root_dir = self.root_dir
-            self.managers['server-home'] = server_home
 
         if self.enable_custom_handlers:
             enable_custom_handlers()
-
-        for alias, path in self.file_dirs.items():
-            fb = BackwardsFileContentsManager(root_dir=path)
-            self.managers[alias] = fb
 
         for alias, path in self.bundle_dirs.items():
             fb = BundleNotebookManager(root_dir=path, trash_dir=self.trash_dir)

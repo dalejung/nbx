@@ -15,7 +15,6 @@ from notebook.services.contents.filemanager import FileContentsManager
 from .manager import BundleManager
 from ..nbxmanager import NBXContentsManager
 from ..dispatch import DispatcherMixin
-from ..filemanager import BackwardsFileContentsManager
 from .. import shim
 
 def notebook_type_proxy(alt):
