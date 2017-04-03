@@ -3,9 +3,8 @@ Add this file to $(ipython locate)/nbextensions/gist.js
 And load it with:
 */
 define([
-    'notebook',
-], function (notebookApp) {
-    var IPython = notebookApp['base/js/namespace'];
+    'base/js/namespace',
+], function (IPython) {
     var token_name = "gist_github_token";
     // dialog to request GitHub OAuth token
     // I'm not sure it's possible to step through OAuth purely client side,
