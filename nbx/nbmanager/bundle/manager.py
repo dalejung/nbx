@@ -118,8 +118,6 @@ class BundleManager(object):
         except Exception as e:
             raise Exception(u'Unknown error renaming notebook: %s %s' % (bundle_path, e))
 
-        print(path)
-        print(new_path)
         # finally move the bundle folder
         try:
             os.rename(path, new_path)
@@ -147,8 +145,7 @@ class BundleManager(object):
             raise Exception("{path} is not a directory".format(path=path))
         root, dirs, files = next(os.walk(path))
         # remove dirs that are notebooks
-        bundles = (os.path.join(root, d) for d in dirs)
-        bundles = filter(lambda path: not is_notebook(path), bundles)
+        bundles = filter(lambda d: not is_notebook(os.path.join(root, d)), dirs)
         return bundles
 
     def copy_notebook_file(self, path, cp_path=None):

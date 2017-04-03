@@ -116,7 +116,7 @@ class BundleNotebookManager(NBXContentsManager):
     def list_dirs(self, path):
         os_path = self._get_os_path(path=path)
         dirs = self.bundler.list_dirs(os_path)
-        dirs = [self.get_dir_model(os.path.join(os_path, name)) for name in dirs]
+        dirs = [self.get_dir_model(path) for path in dirs]
         return dirs
 
     def list_notebooks(self, path):
