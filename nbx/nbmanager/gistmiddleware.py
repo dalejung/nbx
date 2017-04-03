@@ -36,24 +36,25 @@ class GistMiddleware(LoggingConfigurable):
             self.service.login(user, pw)
 
 
-    def post_save(self, nbm, local_path, model, name, path=_missing):
-        # HACK. So new calls save(model, path) which doens't go through
-        # the name shim. Either find a cleaner way to catch this earlier
-        # or remove once name is removed completely instead of shimmed
-        if path is _missing:
-            name, path = _path_split(name)
-
+    def post_save(self, nbm, local_path, model, path):
         if 'type' not in model:
             raise Exception(u"Model has no file type")
         model_type = model['type']
-        return dispatch_method(self, 'post_save', model_type, nbm, local_path, model,
-                               name, path)
+        return dispatch_method(
+            self,
+            'post_save',
+            model_type,
+            nbm,
+            local_path,
+            model,
+            path
+        )
 
-    def post_save_default(self, nbm, local_path, model, name, path):
+    def post_save_default(self, nbm, local_path, model, path):
         # for now just a no-op
         pass
 
-    def post_save_notebook(self, nbm, local_path, model, name, path):
+    def post_save_notebook(self, nbm, local_path, model, path):
         # for now only support bundlenbmanager
         if not isinstance(nbm, (BundleNotebookManager, FileContentsManager)):
             return
@@ -65,11 +66,13 @@ class GistMiddleware(LoggingConfigurable):
         if not self.service.is_owned(gist):
             return
 
+        name = path.rsplit('/', 1)[-1]
+
         try:
             # this is only applicable to bundles
-            model = nbm.get_model(name, local_path, content=True, file_content=True)
+            model = nbm.get(local_path, content=True, file_content=True)
         except:
-            model = nbm.get_model(name, local_path, content=True)
+            model = nbm.get(local_path, content=True)
 
         files = model_to_files(model)
         try:

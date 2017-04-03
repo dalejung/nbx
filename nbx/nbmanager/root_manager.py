@@ -19,17 +19,18 @@ class RootManager(ContentsManager):
     def is_hidden(self, path):
         return False
 
-    def path_exists(self, path):
-        return True
-
     def _list_nbm_dirs(self):
         dirs = []
         for name in self.managers:
-            model = self.get_dir_model(name)
+            model = self._get_dir_model(name)
             dirs.append(model)
         return dirs
 
-    def get_dir_model(self, name):
+    def get(self, path, content=True, type=None, format=None):
+        if type == 'directory':
+            return self.get_dir(path)
+
+    def _get_dir_model(self, name):
         model ={}
         model['name'] = name
         model['path'] = name
@@ -46,15 +47,18 @@ class RootManager(ContentsManager):
     def info_string(self):
         return ''
 
-    def file_exists(self, name, path):
+    def file_exists(self, path):
         return False
 
-    def _base_model(self, name, path=''):
+    def dir_exists(self, path):
+        return True
+
+    def _base_model(self, path=''):
         """Build the common base of a contents model"""
         # Create the base model.
         model = {}
-        model['name'] = name
         model['path'] = path
+        model['name'] = path.rsplit('/', 1)[-1]
         model['created'] = datetime.datetime.now()
         model['last_modified'] = datetime.datetime.now()
         model['content'] = None
@@ -63,9 +67,9 @@ class RootManager(ContentsManager):
         model['mimetype'] = None
         return model
 
-    def get_model(self, name, path='', content=True, **kwargs):
+    def get_dir(self, path='', content=True, **kwargs):
         """ retrofit to use old list_dirs. No notebooks """
-        model = self._base_model(name, path)
+        model = self._base_model(path)
         model['type'] = 'directory'
         dirs = self.list_dirs(path)
         model['content'] = dirs

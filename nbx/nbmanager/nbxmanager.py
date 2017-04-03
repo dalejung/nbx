@@ -18,15 +18,45 @@ def _path_split(path):
         path = bits[0]
     return name, path
 
-class BackwardsCompatMixin(object):
+class NBXContentsManager(DispatcherMixin, ContentsManager):
+    def __init__(self, *args, **kwargs):
+        super(NBXContentsManager, self).__init__(*args, **kwargs)
+
+    def is_dir(self, path):
+        raise NotImplementedError('must be implemented in a subclass')
+
+    def is_notebook(self, path):
+        return path.endswith('.ipynb')
+
+    def _base_model(self, path=''):
+        """Build the common base of a contents model"""
+        # Create the base model.
+        model = {}
+        model['name'] = path.rsplit('/', 1)[-1]
+        model['path'] = path
+        model['created'] = datetime.datetime.now()
+        model['last_modified'] = datetime.datetime.now()
+        model['content'] = None
+        model['format'] = None
+        model['writable'] = None
+        model['mimetype'] = None
+        return model
+
+    def get(self, path='', content=True, **kwargs):
+        """
+        backwards compat with get_model rename. fml.
+        Putting here instead of creating another mixin
+        """
+        return super().get(path=path, content=content, **kwargs)
+
     # shims to bridge Content service and older notebook apis
-    def get_model_dir(self, name, path='', content=True, **kwargs):
+    def get_dir(self, path='', content=True, **kwargs):
         """
         retrofit to use old list_dirs. No notebooks
         note that this requires the dispatcher mixin
         """
-        model = self._base_model(name, path)
-        fullpath = self.fullpath(name, path)
+        model = self._base_model(path)
+        fullpath = path
 
         model['type'] = 'directory'
         model['format'] = 'json'
@@ -40,65 +70,3 @@ class BackwardsCompatMixin(object):
         entries = list(dirs) + list(notebooks) + list(files)
         model['content'] = entries
         return model
-
-    def get_model_notebook(self, name, path='', content=True, **kwargs):
-        """
-        note that this requires the dispatcher mixin
-        """
-        return self.get_notebook(name, path, content=content, **kwargs)
-
-    def is_notebook(self, path):
-        """
-        Note that is_notebook is a nbx method, it's in BackwardsCompatMixin
-        because it uses old api
-
-        split path into name, path and use notebook_exists
-        """
-        path, name = os.path.split(path)
-        ret =  self.notebook_exists(name, path)
-        return ret
-
-    def is_dir(self, path):
-        """
-        nbx api method.
-        """
-        return self.path_exists(path) and not self.is_notebook(path)
-
-    def dir_exists(self, path):
-        return self.path_exists(path)
-
-class NBXContentsManager(DispatcherMixin, ContentsManager):
-    def __init__(self, *args, **kwargs):
-        super(NBXContentsManager, self).__init__(*args, **kwargs)
-
-    def is_dir(self, path):
-        raise NotImplementedError('must be implemented in a subclass')
-
-    def is_notebook(self, path):
-        return path.endswith('.ipynb')
-
-    def _base_model(self, name, path=''):
-        """Build the common base of a contents model"""
-        # Create the base model.
-        model = {}
-        model['name'] = name
-        model['path'] = self.fullpath(name, path)
-        model['created'] = datetime.datetime.now()
-        model['last_modified'] = datetime.datetime.now()
-        model['content'] = None
-        model['format'] = None
-        model['writable'] = None
-        model['mimetype'] = None
-        return model
-
-    def fullpath(self, name, path):
-        return _fullpath(name, path)
-
-    def get(self, name, path='', content=True, **kwargs):
-        """
-        backwards compat with get_model rename. fml.
-        Putting here instead of creating another mixin
-        """
-        if hasattr(self, 'get_model'):
-            return self.get_model(name, path=path, content=content, **kwargs)
-        return super().get(name, path=path, content=content, **kwargs)

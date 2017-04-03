@@ -4,10 +4,10 @@ from tornado import web
 
 import nbformat
 
-from ..nbxmanager import NBXContentsManager, BackwardsCompatMixin
+from ..nbxmanager import NBXContentsManager
 from .notebook_gisthub import parse_tags
 
-class GistNotebookManager(BackwardsCompatMixin, NBXContentsManager):
+class GistNotebookManager(NBXContentsManager):
     """
     """
     def __init__(self, *args, **kwargs):
