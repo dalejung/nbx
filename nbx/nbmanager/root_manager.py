@@ -28,7 +28,7 @@ class RootManager(ContentsManager):
 
     def get(self, path, content=True, type=None, format=None):
         if type == 'directory':
-            return self.get_model(path)
+            return self.get_dir(path)
 
     def _get_dir_model(self, name):
         model ={}
@@ -67,7 +67,7 @@ class RootManager(ContentsManager):
         model['mimetype'] = None
         return model
 
-    def get_model(self, path='', content=True, **kwargs):
+    def get_dir(self, path='', content=True, **kwargs):
         """ retrofit to use old list_dirs. No notebooks """
         model = self._base_model(path)
         model['type'] = 'directory'
