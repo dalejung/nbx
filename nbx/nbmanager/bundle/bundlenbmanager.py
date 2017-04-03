@@ -127,7 +127,7 @@ class BundleNotebookManager(NBXContentsManager):
             model = bundle.get_model(content=False)
             # the model returned from BundleManager is absolute
             # set back to relative
-            model['path'] = path
+            model['path'] = os.path.join(path, bundle.name)
             notebooks.append(model)
 
         # also grab regular notebooks
