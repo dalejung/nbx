@@ -19,9 +19,6 @@ class RootManager(ContentsManager):
     def is_hidden(self, path):
         return False
 
-    def path_exists(self, path):
-        return True
-
     def _list_nbm_dirs(self):
         dirs = []
         for name in self.managers:
@@ -52,6 +49,9 @@ class RootManager(ContentsManager):
 
     def file_exists(self, path):
         return False
+
+    def dir_exists(self, path):
+        return True
 
     def _base_model(self, path=''):
         """Build the common base of a contents model"""

@@ -6,10 +6,10 @@ from IPython.utils import tz
 
 
 class Bundle(object):
-    def __init__(self, name, path):
+    def __init__(self, path):
+        name = path.rsplit('/', 1)[-1]
         self.name = name
         self.path = path
-        self.bundle_path = os.path.join(path, name)
 
     def __repr__(self):
         cname = self.__class__.__name__
@@ -19,7 +19,7 @@ class Bundle(object):
     @property
     def files(self):
         try:
-            root, dirs, files = next(os.walk(self.bundle_path))
+            root, dirs, files = next(os.walk(self.path))
             # filter out compiled files
             files = filter(lambda x: not x.endswith('.pyc'), files)
             files = list(files)
@@ -31,7 +31,7 @@ class NotebookBundle(Bundle):
 
     @property
     def notebook_content(self):
-        filepath = os.path.join(self.bundle_path, self.name)
+        filepath = os.path.join(self.path, self.name)
         with io.open(filepath, 'r', encoding='utf-8') as f:
             try:
                 nb = nbformat.read(f, as_version=4)
@@ -48,7 +48,7 @@ class NotebookBundle(Bundle):
         return files
 
     def get_model(self, content=True, file_content=True):
-        os_path = os.path.join(self.bundle_path, self.name)
+        os_path = os.path.join(self.path, self.name)
         info = os.stat(os_path)
         last_modified = tz.utcfromtimestamp(info.st_mtime)
         created = tz.utcfromtimestamp(info.st_ctime)
@@ -65,7 +65,7 @@ class NotebookBundle(Bundle):
             model['content'] = self.notebook_content
         files = {}
         for fn in self.files:
-            with open(os.path.join(self.bundle_path, fn), 'rb') as f:
+            with open(os.path.join(self.path, fn), 'rb') as f:
                 data = None
                 if file_content:
                     try:

@@ -201,15 +201,9 @@ class MetaManager(NBXContentsManager):
         return val
 
     # ContentsManager API part 1
-    def path_exists(self, path):
-        nbm, meta = self._nbm_from_path(path)
-        if nbm is None:
-            return False
-        exists = nbm.path_exists(meta.path)
-        return exists
-
     def dir_exists(self, path):
-        return self.path_exists(path)
+        nbm, meta = self._nbm_from_path(path)
+        return nbm.dir_exists(meta.path)
 
     def is_hidden(self, path):
         nbm, meta = self._nbm_from_path(path)
@@ -235,10 +229,10 @@ class MetaManager(NBXContentsManager):
         if model['type'] == 'directory':
             content = model.get("content", [])
             for m in content:
-                m['path'] = os.path.join(meta.request_path, m['name'])
+                m['path'] = os.path.join(meta.request_path)
         # so the path needs to be the full request path.
         if model['type'] == 'notebook':
-            model['path'] = os.path.join(meta.nbm_path, model['path'], model['name'])
+            model['path'] = os.path.join(meta.nbm_path, model['path'])
         return model
 
     def new(self, model=None, path=''):
@@ -291,7 +285,7 @@ class MetaManager(NBXContentsManager):
         model =  nbm.update(model, meta.path)
         # so the path needs to be the full request path.
         if model['type'] == 'notebook':
-            model['path'] = os.path.join(meta.nbm_path, model['path'], model['name'])
+            model['path'] = os.path.join(meta.nbm_path, model['path'])
         return model
 
     def delete(self, path):

@@ -32,7 +32,7 @@ class NBXContentsManager(DispatcherMixin, ContentsManager):
         """Build the common base of a contents model"""
         # Create the base model.
         model = {}
-        # model['name'] = name
+        model['name'] = path.rsplit('/', 1)[-1]
         model['path'] = path
         model['created'] = datetime.datetime.now()
         model['last_modified'] = datetime.datetime.now()
