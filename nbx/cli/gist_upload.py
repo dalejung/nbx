@@ -1,12 +1,8 @@
 import os.path
-from traitlets.config.loader import (
-    KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound, JSONFileConfigLoader
-)
-from IPython.core.profiledir import ProfileDir
-from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
 
 from nbx.nbmanager.bundle.manager import BundleManager
 from nbx.nbmanager.gist import GistService, model_to_files
+from nbx.config import get_config
 
 def main():
     import argparse
@@ -54,12 +50,3 @@ def bundle_get_model(name, path):
 
     model = bundle.get_model(content=True, file_content=True)
     return model
-
-def get_config(profile_name='default'):
-    basefilename = 'nbx_config'
-
-    ipython_dir = get_ipython_dir()
-    profiledir = ProfileDir.find_profile_dir_by_name(ipython_dir, profile_name)
-    pyloader = PyFileConfigLoader(basefilename+'.py', path=profiledir.location)
-    config = pyloader.load_config()
-    return config

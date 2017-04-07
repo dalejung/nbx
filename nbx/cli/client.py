@@ -1,19 +1,17 @@
 import requests
 
 class IPythonService(object):
-    def __init__(self, host, port):
+    def __init__(self, host, port, token=None):
         self.host = host
         self.port = port
+        self.token = token
 
     def _get(self, path, **kwargs):
+        token = self.token
+        if token:
+            kwargs['headers'] = {'Authorization': f'token {token}'}
         url = 'http://{host}:{port}/{path}'.format(path=path, **self.__dict__)
-        print(url)
         r = requests.get(url, **kwargs)
-        return r.json()
-
-    def _post(self, path, **kwargs):
-        url = 'http://{host}:{port}/{path}'.format(path=path, **self.__dict__)
-        r = requests.post(url, **kwargs)
         return r.json()
 
     def sessions(self):
@@ -82,7 +80,7 @@ def attach_session(session, profile='default'):
     argv = ['console', '--existing', kernel, '--profile={0}'.format(profile)]
     return app.launch_new_instance(argv=argv)
 
-def client(host="127.0.0.1", port="8888"):
-    service = IPythonService(host, port)
+def client(host="127.0.0.1", port="8888", token=None):
+    service = IPythonService(host, port, token)
     client = IPythonClient(service)
     return client

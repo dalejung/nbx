@@ -20,6 +20,7 @@ def kernel_pwd(cl, target):
 def main():
     import argparse
     import os
+    from nbx.config import get_config
     parser = argparse.ArgumentParser(description="");
 
     parser.add_argument('action', nargs="?", action="store", default=None)
@@ -34,8 +35,10 @@ def main():
     target = args.target
     action = args.action
     cwd = os.getcwd()
+    config = get_config()
+    token = config['token']
 
-    cl = client.client(host, port)
+    cl = client.client(host, port, token)
 
     if not action and not target:
         action = 'list'
