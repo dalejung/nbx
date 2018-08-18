@@ -1,9 +1,11 @@
 from contextlib import contextmanager
 
 from IPython.utils.tempdir import TemporaryDirectory
+from notebook.services.contents.filemanager import FileContentsManager
+
+from nbx.tools import assert_items_equal
 
 from ..gist import model_to_files, GistService, Gister
-from ..filemanager import BackwardsFileContentsManager
 from nbx.nbmanager.tests.common import (
     login,
     password,
@@ -16,7 +18,7 @@ class TestGist:
 
     def test_model_to_files(self):
         with TemporaryDirectory() as td:
-            fm = BackwardsFileContentsManager(root_dir=td)
+            fm = FileContentsManager(root_dir=td)
             model = fm.new_untitled(type='notebook')
             model['path'] = ''
             # need content
@@ -30,7 +32,7 @@ class TestGist:
             model['__files'] = {'file1.txt': 'file1txt content'}
             files = model_to_files(model)
             assert_items_equal(files, [name, 'file1.txt'])
-            assert_equal(files['file1.txt'], 'file1txt content')
+            assert files['file1.txt'] == 'file1txt content'
 
 
 @contextmanager
@@ -55,20 +57,20 @@ class TestGistService:
         gs.login(login, password)
         gist_id = '6705707'
         gist = gs.get_gist(gist_id)
-        assert_equal(gist.owner.login, 'dalejung')
+        assert gist.owner.login == 'dalejung'
 
     @require_github
     def test_create_gist(self):
         with create_gist_context() as gist:
-            assert_equal(gist.public, True)
+            assert gist.public is True
 
         with create_gist_context(public=False) as gist:
-            assert_equal(gist.public, False)
+            assert gist.public is False
 
         with create_gist_context(public=False, description="nbx test") as gist:
-            assert_equal(gist.public, False)
-            assert_equal(gist.description, "nbx test")
-            assert_equal(gist.owner.login, login)
+            assert gist.public is False
+            assert gist.description == "nbx test"
+            assert gist.owner.login == login
 
         files = {'bob2.txt': 'bob2.txt content'}
         with create_gist_context(public=False, files=files) as gist:
@@ -81,34 +83,36 @@ class TestGistService:
             old_desc = gist.description
             # the following should not change the gist
             gist.edit()
-            assert_equal(gist.gist.updated_at, updated_at)
+            assert gist.gist.updated_at == updated_at
             gist.edit(old_desc)
-            assert_equal(gist.gist.updated_at, updated_at)
-            gist.edit(old_desc, files={'empty.txt':'empty file created by nbx'})
-            assert_equal(gist.gist.updated_at, updated_at)
+            assert gist.gist.updated_at == updated_at
+            gist.edit(old_desc, files={'empty.txt':
+                                       'empty file created by nbx'})
+            assert gist.gist.updated_at == updated_at
 
             # change desc
-            gist.edit('new desc', files={'empty.txt':'empty file created by nbx'})
-            assert_equals(gist.description, 'new desc')
-            assert_equals(len(gist.gist.history), 2)
+            gist.edit('new desc',
+                      files={'empty.txt': 'empty file created by nbx'})
+            assert gist.description == 'new desc'
+            assert len(gist.gist.history) == 2
 
             # add file
-            gist.edit('new desc', files={'new.txt':'new stuff'})
+            gist.edit('new desc', files={'new.txt': 'new stuff'})
             # TODO: Need to deepdive and see why the assert fails. #15
             assert_items_equal(gist.files, ['empty.txt', 'new.txt'])
-            assert_equals(len(gist.gist.history), 3)
+            assert len(gist.gist.history) == 3
 
             # don't modify the new txt. should be no change
-            gist.edit('new desc', files={'new.txt':'new stuff'})
-            assert_equals(len(gist.gist.history), 3)
+            gist.edit('new desc', files={'new.txt': 'new stuff'})
+            assert len(gist.gist.history) == 3
 
             # force a non change commit
-            gist.edit('new desc', files={'new.txt':'new stuff'}, force=True)
-            assert_equals(len(gist.gist.history), 4)
+            gist.edit('new desc', files={'new.txt': 'new stuff'}, force=True)
+            assert len(gist.gist.history) == 4
 
             # modify the new file
-            gist.edit('new desc', files={'new.txt':'new stuff222'})
-            assert_equals(len(gist.gist.history), 5)
+            gist.edit('new desc', files={'new.txt': 'new stuff222'})
+            assert len(gist.gist.history) == 5
 
     @require_github
     def test_is_owned(self):
@@ -118,22 +122,14 @@ class TestGistService:
         gist_id = '6705707'
         gist = gs.get_gist(gist_id)
         if login != 'dalejung':
-            assert_false(gs.is_owned(gist))
+            assert not gs.is_owned(gist)
         # note, until we do something that requires auth
         # it won't error
         gs.login('dalejung', 'fakepw')
-        assert_true(gs.is_owned(gist))
+        assert gs.is_owned(gist)
 
-class TestGister(unittest.TestCase):
 
-    def __init__(self, *args, **kwargs):
-        unittest.TestCase.__init__(self, *args, **kwargs)
-
-    def runTest(self):
-        pass
-
-    def setUp(self):
-        pass
+class TestGister:
 
     def test_save(self):
         gist = makeFakeGist()
@@ -141,27 +137,29 @@ class TestGister(unittest.TestCase):
 
         # delete all files
         gister.save(files=None)
-        assert_equal(gist.edit.call_count, 1)
+        assert gist.edit.call_count == 1
         description, files = gist.edit.call_args[0]
         for fn in files:
-            assert_is_none(files[fn])
+            assert files[fn] is None
 
         gist = makeFakeGist()
         gister = Gister(gist, None)
         # add a new file, edit a.ipynb
-        gister.save(files={'new.txt':'new.txt content', 'a.ipynb':'new content'})
+        gister.save(
+            files={'new.txt': 'new.txt content', 'a.ipynb': 'new content'}
+        )
         description, files = gist.edit.call_args[0]
-        assert_items_equal(files, ['new.txt', 'a.ipynb', 'b.ipynb', 'test.txt'])
+        assert_items_equal(files,
+                           ['new.txt', 'a.ipynb', 'b.ipynb', 'test.txt'])
 
         for fn in files:
             f = files[fn]
             if fn == 'new.txt':
-                assert_equal(f._InputFileContent__content, 'new.txt content')
+                assert f._InputFileContent__content == 'new.txt content'
             elif fn == 'a.ipynb':
-                assert_equal(f._InputFileContent__content, 'new content')
+                assert f._InputFileContent__content == 'new content'
             else:
-                assert_is_none(f)
-
+                assert f is None
 
     @require_github
     def test_save_gist_live(self):
@@ -179,16 +177,17 @@ class TestGister(unittest.TestCase):
         gister = Gister(gist, None)
 
         # change desc
-        assert_true(gister._is_dirty('changed desc', files={}))
+        assert gister._is_dirty('changed desc', files={})
 
         # no change
-        assert_false(gister._is_dirty(old_desc, files={}))
+        assert not gister._is_dirty(old_desc, files={})
 
         # new file
-        assert_true(gister._is_dirty(old_desc, files={'new file.txt': 'ewn'}))
+        assert gister._is_dirty(old_desc, files={'new file.txt': 'ewn'})
 
         # change existing
-        assert_true(gister._is_dirty(old_desc, files={'a.ipynb': 'ewn'}))
+        assert gister._is_dirty(old_desc, files={'a.ipynb': 'ewn'})
 
         # same as previous file content
-        assert_false(gister._is_dirty(old_desc, files={'a.ipynb': 'a.ipynb content'}))
+        assert not gister._is_dirty(old_desc,
+                                    files={'a.ipynb': 'a.ipynb content'})

@@ -1,5 +1,7 @@
 from mock import Mock
 
+from nbx.tools import assert_items_equal
+
 from ..gisthub import TaggedGist, GistHub
 from nbx.nbmanager.tests.common import hub, require_github, makeFakeGist
 
@@ -32,21 +34,21 @@ class TestTaggedGist:
         gist.description = "Dale Name #notebook #hello"
 
         tg = TaggedGist.from_gist(gist)
-        assert_equals(tg.name, "Dale Name")
+        assert tg.name == "Dale Name"
         assert_items_equal(tg.tags, ['#notebook', '#hello'])
-        assert_true(tg.active)
+        assert tg.active
 
         gist = Mock()
         gist.description = "Dale Name #notebook #inactive"
 
         tg = TaggedGist.from_gist(gist)
-        assert_equals(tg.name, "Dale Name")
+        assert tg.name == "Dale Name"
         assert_items_equal(tg.tags, ['#notebook'])
 
         # explicitly test system tags
-        assert_in('#inactive', TaggedGist.system_tags)
-        assert_not_in('#inactive', tg.tags)
-        assert_false(tg.active)
+        assert '#inactive' in TaggedGist.system_tags
+        assert '#inactive' not in tg.tags
+        assert not tg.active
 
     def test_files(self):
         gist = Mock()
@@ -54,7 +56,7 @@ class TestTaggedGist:
         gist.files = object()
 
         tg = TaggedGist.from_gist(gist)
-        assert_is(tg.files, gist.files)
+        assert tg.files is gist.files
 
     def test_revisions_for_file(self):
         # TODO not a huge fan of how I mock github.Gist objects
@@ -62,17 +64,17 @@ class TestTaggedGist:
         tg = TaggedGist.from_gist(gist)
         a_revs = tg.revisions_for_file('a.ipynb')
         # should only have 2 revisions for a.ipynb
-        assert_equal(len(a_revs), 2)
+        assert len(a_revs) == 2
         # make sure we got the right ones
         for state in a_revs:
-            assert_in('a.ipynb', state.raw_data['files'])
+            assert 'a.ipynb' in state.raw_data['files']
 
     def test_get_revision_file(self):
         gist = makeFakeGist()
         tg = TaggedGist.from_gist(gist)
         fo = tg.get_revision_file(0, 'a.ipynb')
         correct = "{fn}_{id}_revision_content".format(fn='a.ipynb', id=0)
-        assert_equal(fo['content'], correct)
+        assert fo['content'] == correct
 
 class TestGistHub:
 
@@ -89,7 +91,7 @@ class TestGistHub:
         gists = gh._tagged_gists.values()
         # None
         active = gh._filter_active(gists, None)
-        assert_equals(len(active), 5)
+        assert len(active) == 5
         test_names = [g.name for g in active]
         valid = ['Test gist', 'Frank bob number 2',
                 'bob twin', 'bob twin', 'bob inactive']
@@ -97,14 +99,14 @@ class TestGistHub:
 
         # True
         active = gh._filter_active(gists, True)
-        assert_equals(len(active), 4)
+        assert len(active) == 4
         test_names = [g.name for g in active]
         valid = ['Test gist', 'Frank bob number 2', 'bob twin', 'bob twin']
         assert_items_equal(test_names, valid)
 
         # false
         active = gh._filter_active(gists, False)
-        assert_equals(len(active), 1)
+        assert len(active) == 1
         test_names = [g.name for g in active]
         valid = ['bob inactive']
         assert_items_equal(test_names, valid)
@@ -122,7 +124,7 @@ class TestGistHub:
         gists = gh._tagged_gists.values()
 
         twins = gh._filter_tag(gists, 'twin')
-        assert_equals(len(twins), 2)
+        assert len(twins) == 2
         test_names = [g.name for g in twins]
         valid = ['bob twin', 'bob twin']
         assert_items_equal(test_names, valid)
@@ -141,16 +143,16 @@ class TestGistHub:
         # inactive
         test = gh.query(active=False)
         # will return both #inactive and #bob
-        assert_equals(len(list(test.keys())), 2)
-        assert_equals(len(test['#bob']), 1)
+        assert len(list(test.keys())) == 2
+        assert len(test['#bob']) == 1
         valid = ['bob inactive']
         test_names = [g.name for g in test['#bob']]
         assert_items_equal(test_names, valid)
 
         # filtering inactive with bob, which shoudl return same as above
         test = gh.query(active=False, filter_tag='bob', drop_filter=False)
-        assert_equals(len(list(test.keys())), 2)
-        assert_equals(len(test['#bob']), 1)
+        assert len(list(test.keys())) == 2
+        assert len(test['#bob']) == 1
         valid = ['bob inactive']
         test_names = [g.name for g in test['#bob']]
         assert_items_equal(test_names, valid)
@@ -169,4 +171,4 @@ class TestGistHub:
         test = gh.query(filter_tag='twin')
         assert_items_equal(list(test.keys()), ['#bob'])
         bobs = test['#bob']
-        assert_equal(len(bobs), 2)
+        assert len(bobs) == 2

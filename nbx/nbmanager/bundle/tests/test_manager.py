@@ -1,6 +1,8 @@
 import os
 import pytest
 
+from nbx.tools import assert_items_equal
+
 from .. import manager as mmod
 from .common import fake_file_system
 
@@ -25,7 +27,8 @@ class TestBundleManager:
         with fake_file_system() as td:
             bm = mmod.BundleManager()
             dirs = bm.list_dirs(td)
-            assert_items_equal(dirs, ['empty.ipynb', 'not_notebook', 'testing'])
+            assert_items_equal(dirs,
+                               ['empty.ipynb', 'not_notebook', 'testing'])
 
     def test_list_bundles(self):
         """
@@ -49,7 +52,7 @@ class TestBundleManager:
             second = bundles['second.ipynb']
             smodel = second.get_model()
             assert_items_equal(['data.py'], smodel['__files'])
-            assert_equal(smodel['__files']['data.py'], '# data.py')
+            assert smodel['__files']['data.py'] == '# data.py'
 
             test = bundles['test.ipynb']
             tmodel = test.get_model()
@@ -70,15 +73,15 @@ class TestBundleManager:
 
             # test directly against file system
             bundle_path = os.path.join(td, 'new-name.ipynb')
-            assert_true(os.path.isdir(bundle_path))
+            assert os.path.isdir(bundle_path)
             nb_path = os.path.join(bundle_path, 'new-name.ipynb')
-            assert_true(os.path.isfile(nb_path))
-            assert_true(os.path.isfile(os.path.join(bundle_path, 'test.txt')))
+            assert os.path.isfile(nb_path)
+            assert os.path.isfile(os.path.join(bundle_path, 'test.txt'))
             with open(os.path.join(bundle_path, 'test.txt')) as f:
-                assert_equal(f.read(), 'test.txt content')
-            assert_true(os.path.isfile(os.path.join(bundle_path, 'pandas.txt')))
+                assert f.read() == 'test.txt content'
+            assert os.path.isfile(os.path.join(bundle_path, 'pandas.txt'))
             with open(os.path.join(bundle_path, 'pandas.txt')) as f:
-                assert_equal(f.read(), 'pandas.txt content')
+                assert f.read() == 'pandas.txt content'
 
             # now test against the bundle
             bundles = bm.list_bundles(td)
@@ -91,7 +94,8 @@ class TestBundleManager:
             model['__files']['test2.txt'] = 'test2.txt content'
             bm.save_notebook(model, model['name'], model['path'])
             # assert that we don't delete previous file
-            assert_items_equal(['test2.txt', 'test.txt', 'pandas.txt'], bundle.files)
+            assert_items_equal(['test2.txt', 'test.txt', 'pandas.txt'],
+                               bundle.files)
 
     def test_rename_notebook(self):
         with fake_file_system() as td:
@@ -100,12 +104,21 @@ class TestBundleManager:
             assert_items_equal(['second.ipynb', 'test.ipynb'], notebooks)
             bm.rename_notebook('second.ipynb', td, 'second_changed.ipynb', td)
             notebooks_after = bm.list_bundles(td)
-            assert_items_equal(['second_changed.ipynb', 'test.ipynb'], notebooks_after)
+            assert_items_equal(['second_changed.ipynb', 'test.ipynb'],
+                               notebooks_after)
 
         # existing notebook error
         with fake_file_system() as td:
             bm = mmod.BundleManager()
-            test_func = lambda: bm.rename_notebook('second.ipynb', td, 'test.ipynb', td)
+
+            def test_func():
+                bm.rename_notebook(
+                    'second.ipynb',
+                    td,
+                    'test.ipynb',
+                    td
+                )
+
             with pytest.raises(Exception,
                                match="Notebook bundle already exists"):
                 test_func()
@@ -113,7 +126,14 @@ class TestBundleManager:
         # don't support moving errors
         with fake_file_system() as td:
             bm = mmod.BundleManager()
-            test_func = lambda: bm.rename_notebook('second.ipynb', td, 'second.ipynb', os.path.join(td, 'testing'))
+
+            def test_func():
+                bm.rename_notebook(
+                    'second.ipynb',
+                    td,
+                    'second.ipynb',
+                    os.path.join(td, 'testing')
+                )
             with pytest.raises(NotImplementedError,
                                match="Moving directories not"):
                 test_func()
@@ -124,9 +144,9 @@ class TestBundleManager:
             notebooks = bm.list_bundles(td)
             copy_path = os.path.join(td, 'bob.ipynb')
             bm.copy_notebook_file('second.ipynb', td, copy_path)
-            assert_true(os.path.isfile(copy_path))
+            assert os.path.isfile(copy_path)
             nb_path = os.path.join(td, 'second.ipynb', 'second.ipynb')
             with open(nb_path) as orig, open(copy_path) as cp:
                 orig_content = orig.read()
                 copy_content = cp.read()
-                assert_equal(orig_content, copy_content)
+                assert orig_content == copy_content

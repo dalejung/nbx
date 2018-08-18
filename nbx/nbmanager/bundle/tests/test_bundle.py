@@ -1,6 +1,8 @@
 from .. import bundle as bmod
 from .common import fake_file_system
 
+from nbx.tools import assert_items_equal
+
 
 def wrap_bundles(td, cls):
     bundles = ['second.ipynb', 'test.ipynb']
@@ -21,7 +23,7 @@ class TestBundle:
             correct_files['test.ipynb'] = ['test.ipynb']
 
             for name, b in bundles.items():
-                assert_false(isinstance(b, bmod.NotebookBundle))
+                assert not isinstance(b, bmod.NotebookBundle)
                 correct = correct_files[b.name]
                 assert_items_equal(list(b.files), correct)
 
@@ -49,4 +51,4 @@ class TestNotebookBundle:
             bundles = wrap_bundles(td, bmod.NotebookBundle)
             for name, b in bundles.items():
                 test = b.notebook_content['metadata']['filename']
-                assert_equal(test, b.name)
+                assert test == b.name
