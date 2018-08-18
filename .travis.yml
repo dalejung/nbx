@@ -1,0 +1,17 @@
+language: python
+
+python:
+  - "3.6"
+
+matrix:
+  include:
+    python: 3.7
+    dist: xenial
+    sudo: true
+
+# command to install dependencies
+install:
+  - ./ci_build.sh
+
+# command to run tests
+script: pytest
