@@ -20,9 +20,8 @@ class TestGist:
         with TemporaryDirectory() as td:
             fm = FileContentsManager(root_dir=td)
             model = fm.new_untitled(type='notebook')
-            model['path'] = ''
             # need content
-            model = fm.get_model(model['name'], model['path'])
+            model = fm.get(model['path'])
             files = model_to_files(model)
             name = model['name']
             # files should only contain one file
@@ -123,10 +122,6 @@ class TestGistService:
         gist = gs.get_gist(gist_id)
         if login != 'dalejung':
             assert not gs.is_owned(gist)
-        # note, until we do something that requires auth
-        # it won't error
-        gs.login('dalejung', 'fakepw')
-        assert gs.is_owned(gist)
 
 
 class TestGister:

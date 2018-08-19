@@ -8,6 +8,7 @@ import nbformat
 from nbformat import sign
 current = nbformat.v4
 
+
 def is_notebook(path):
     # checks if path follows bundle format
     if not path.endswith('.ipynb'):
@@ -18,12 +19,14 @@ def is_notebook(path):
     has_file = os.path.isfile(file_path)
     return has_file
 
+
 def _list_bundles(path):
     root, dirs, files = next(os.walk(path))
     bundles = (os.path.join(root, d) for d in dirs)
     bundles = filter(lambda path: is_notebook(path), bundles)
     bundles = list(bundles)
     return bundles
+
 
 class BundleManager(object):
     bundle_class = NotebookBundle
@@ -35,7 +38,7 @@ class BundleManager(object):
     def _new_notebook(self):
         model = {}
         model['type'] = 'notebook'
-        model['content'] = current.new_notebook(metadata={'name':u''})
+        model['content'] = current.new_notebook(metadata={'name': u''})
         return model
 
     def _get_bundle_path(self, path):
@@ -116,13 +119,17 @@ class BundleManager(object):
         try:
             os.rename(old_notebook_file, new_notebook_file)
         except Exception as e:
-            raise Exception(u'Unknown error renaming notebook: %s %s' % (bundle_path, e))
+            raise Exception(
+                u'Unknown error renaming notebook: %s %s' % (path, e)
+            )
 
         # finally move the bundle folder
         try:
             os.rename(path, new_path)
         except Exception as e:
-            raise Exception(u'Unknown error renaming notebook: %s %s' % (bundle_path, e))
+            raise Exception(
+                u'Unknown error renaming notebook: %s %s' % (path, e)
+            )
 
     def get_notebook(self, path):
         bundle = self.bundle_class(path)
@@ -137,6 +144,13 @@ class BundleManager(object):
         bundles = dict([(path, cls(path)) for path in bundles])
         return bundles
 
+    def list_bundles_by_name(self, path):
+        """
+        Get list of bundles in a certain path
+        """
+        bundles = self.list_bundles(path)
+        return {bundle.name: bundle for bundle in bundles.values()}
+
     def list_dirs(self, path):
         """
         Return list of dir names
@@ -145,7 +159,10 @@ class BundleManager(object):
             raise Exception("{path} is not a directory".format(path=path))
         root, dirs, files = next(os.walk(path))
         # remove dirs that are notebooks
-        bundles = filter(lambda d: not is_notebook(os.path.join(root, d)), dirs)
+        bundles = filter(
+            lambda d: not is_notebook(os.path.join(root, d)),
+            dirs
+        )
         return bundles
 
     def copy_notebook_file(self, path, cp_path=None):

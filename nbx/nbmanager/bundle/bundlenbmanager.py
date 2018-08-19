@@ -76,7 +76,7 @@ class BundleNotebookManager(NBXContentsManager):
         os_path = self._get_os_path(path=path)
         return os.path.isfile(os_path)
 
-    def get_file(self, path='', content=True, **kwargs):
+    def get_file(self, path, content=True, **kwargs):
         os_path = self._get_os_path(path=path)
         return self.filemanager.get(path, content=content, **kwargs)
 
@@ -234,12 +234,12 @@ class BundleNotebookManager(NBXContentsManager):
         shutil.move(bundle_path, trash_path)
 
     # Checkpoint-related utilities
-    def _get_checkpoint_dir(self, path=''):
+    def _get_checkpoint_dir(self, path):
         checkpoint_dir = os.path.join(path, '.ipynb_checkpoints')
         return checkpoint_dir
 
     @notebook_type_proxy(alt=None)
-    def get_checkpoint_path(self, checkpoint_id, path=''):
+    def get_checkpoint_path(self, checkpoint_id, path):
         """find the path to a checkpoint"""
         path = path.strip('/')
         checkpoint_dir = self._get_checkpoint_dir(path)
@@ -254,7 +254,7 @@ class BundleNotebookManager(NBXContentsManager):
         return cp_path
 
     @notebook_type_proxy(alt=None)
-    def get_checkpoint_model(self, checkpoint_id, path=''):
+    def get_checkpoint_model(self, checkpoint_id, path):
         """construct the info dict for a given checkpoint"""
         path = path.strip('/')
         cp_path = self.get_checkpoint_path(checkpoint_id, path)
@@ -269,7 +269,7 @@ class BundleNotebookManager(NBXContentsManager):
 
     # checkpoint stuff
     @notebook_type_proxy(alt=None)
-    def create_checkpoint(self, path=''):
+    def create_checkpoint(self, path):
         now = datetime.datetime.now()
         checkpoint_id = now.strftime("%Y-%m-%d %H:%M:%S")
         checkpoint_dir = self._get_checkpoint_dir(path)
@@ -286,7 +286,7 @@ class BundleNotebookManager(NBXContentsManager):
         return self.get_checkpoint_model(checkpoint_id, path)
 
     @notebook_type_proxy(alt=None)
-    def list_checkpoints(self, path=''):
+    def list_checkpoints(self, path):
         """Return a list of checkpoints for a given notebook"""
         path = path.strip('/')
 

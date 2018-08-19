@@ -1,3 +1,5 @@
+import os.path
+
 from .. import bundle as bmod
 from .common import fake_file_system
 
@@ -6,7 +8,8 @@ from nbx.tools import assert_items_equal
 
 def wrap_bundles(td, cls):
     bundles = ['second.ipynb', 'test.ipynb']
-    bundles = dict([(name, cls(name, td)) for name in bundles])
+    bundles = (cls(os.path.join(td, name)) for name in bundles)
+    bundles = {bundle.name: bundle for bundle in bundles}
     return bundles
 
 

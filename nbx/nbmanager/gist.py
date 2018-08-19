@@ -6,6 +6,7 @@ import nbx.compat as compat
 
 _missing = object()
 
+
 def model_to_files(model):
     """
     Converts a IPython notebook model to a github.Gist `files` dict.
@@ -26,11 +27,11 @@ def model_to_files(model):
     content = current.writes(model['content'])
     files[name] = content
 
-
     __files = model.get('__files', {})
     for fn, content in __files.items():
         files[fn] = content
     return files
+
 
 def _github_files(files):
     """ wrap basestring content into github.InputFilecontent """
@@ -40,6 +41,7 @@ def _github_files(files):
             content = github.InputFileContent(content)
         new_files[fn] = content
     return new_files
+
 
 class GistService(object):
     """
@@ -98,13 +100,14 @@ class GistService(object):
         gist = Gister(gist, self)
         return gist
 
-    def create_gist(self, description=None, files=None, public=True, login=None):
+    def create_gist(self, description=None, files=None, public=True,
+                    login=None):
         if login is None:
             login = self.default
         if description is None:
             description = "nbx created gist"
         if files is None:
-            files = {'empty.txt':'empty file created by nbx'}
+            files = {'empty.txt': 'empty file created by nbx'}
 
         hub = self.accounts[login]
         files = _github_files(files)
@@ -126,6 +129,7 @@ class GistService(object):
 
     def gist_deleted(self, gist):
         del self.gist_cache[gist.id]
+
 
 class Gister(object):
     """
@@ -209,7 +213,7 @@ class Gister(object):
 
         for fn, fobj in self.gist.files.items():
             if fn not in files:
-                files[fn] = None # mark for deletion
+                files[fn] = None  # mark for deletion
 
         self.edit(description, files=files, force=force)
 
