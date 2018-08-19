@@ -2,23 +2,30 @@ import github
 import pandas as pd
 from mock import Mock
 
-from nbx.nbmanager.tagged_gist.notebook_gisthub import NotebookGist, NotebookGistHub
+from nbx.nbmanager.tagged_gist.notebook_gisthub import (
+    NotebookGist,
+    NotebookGistHub
+)
 from nbx.nbmanager.tagged_gist.gisthub import TaggedGist
 
 hub = None
+login = None
+password = None
+
 try:
     import GithubCredentials
     login = GithubCredentials.login
     password = GithubCredentials.password
     hub = github.Github(login, password, user_agent="nbx")
-except:
-   #hub = Mock()
-   pass
+except Exception:
+    pass
+
 
 def require_github(func):
     if hub is None:
         return lambda s: None
     return func
+
 
 class TestGistHub(object):
     def refresh_gist(self, gist):
@@ -26,6 +33,7 @@ class TestGistHub(object):
 
     def update_gist(self, gist):
         pass
+
 
 def makeFakeGist():
     gist = Mock()
@@ -67,6 +75,7 @@ def makeFakeGist():
     gist.history = history
 
     return gist
+
 
 def make_notebookgist():
     gist = makeFakeGist()
