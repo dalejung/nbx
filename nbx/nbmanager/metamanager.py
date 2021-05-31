@@ -6,7 +6,6 @@ from traitlets import (
     DottedObjectName, TraitError, Tuple,
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.py3compat import getcwd
 from traitlets.config.configurable import LoggingConfigurable
 from notebook.services.contents.manager import ContentsManager
 from notebook.base.zmqhandlers import ZMQStreamHandler
@@ -108,7 +107,7 @@ class MetaManager(NBXContentsManager):
 
     enable_default_manager = Bool(True, config=True, help="Enable server-home manager")
 
-    root_dir = Unicode(getcwd())
+    root_dir = Unicode(os.getcwd())
     trash_dir = Unicode(config=True)
 
     def __init__(self, *args, **kwargs):
