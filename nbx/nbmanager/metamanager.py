@@ -169,6 +169,7 @@ class MetaManager(NBXContentsManager):
         if not path:
             meta.request_path = path
             meta.path = ''
+            meta.nbm_path = ''
             return self.root, meta
 
         bits = path.split(os.sep)
