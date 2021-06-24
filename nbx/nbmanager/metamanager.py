@@ -219,7 +219,8 @@ class MetaManager(NBXContentsManager):
         if model['type'] == 'directory':
             content = model.get("content", [])
             for m in content:
-                m['path'] = os.path.join(meta.request_path, m['path'])
+                m['path'] = os.path.join(meta.nbm_path, m['path'])
+
         # so the path needs to be the full request path.
         if model['type'] == 'notebook':
             model['path'] = os.path.join(meta.nbm_path, model['path'])
