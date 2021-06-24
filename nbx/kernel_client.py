@@ -1,4 +1,4 @@
-from IPython.lib.kernel import find_connection_file
+from jupyter_client import find_connection_file
 from jupyter_client.manager import KernelManager
 
 import time
