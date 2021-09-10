@@ -3,6 +3,7 @@ Currently `%run -m` will not bring back any variables if the module
 execution errors. This will replicate the normal run behavior which 
 acts like the code is executed in the IPython shell scope.
 """
+import sys
 from runpy import (_ModifiedArgv0, _TempModule,
                    _get_module_details, _run_code)
 
@@ -70,5 +71,5 @@ def safe_run_module(self, mod_name, where):
             if status.code:
                 raise
     except:
-        self.showtraceback()
+        self.showtraceback(tb_offset=3)
         warn('Unknown failure executing module: <%s>' % mod_name)
