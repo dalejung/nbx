@@ -8,6 +8,17 @@ from runpy import (_ModifiedArgv0, _TempModule,
                    _get_module_details, _run_code)
 
 from IPython.core.interactiveshell import warn
+from nbx import NBXInteract
+
+
+def get_f_locals_from_exception():
+    tb = sys.exc_info()[2]
+    while 1:
+        if not tb.tb_next:
+            break
+        tb = tb.tb_next
+    f = tb.tb_frame
+    return f.f_locals.copy()
 
 
 def _run_module_code(code, init_globals=None,
@@ -22,7 +33,11 @@ def _run_module_code(code, init_globals=None,
             _run_code(code, mod_globals, init_globals,
                       mod_name, mod_spec, pkg_name, script_name)
         except Exception as error:
-            mod_globals['__run_module_error__'] = error
+            if not isinstance(error, NBXInteract):
+                mod_globals['__run_module_error__'] = error
+            # TODO make this configurable.
+            f_locals = get_f_locals_from_exception()
+            mod_globals.update(f_locals)
     # Copy the globals of the temporary module, as they
     # may be cleared when the temporary module goes away
     return mod_globals.copy()
