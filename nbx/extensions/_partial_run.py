@@ -11,13 +11,16 @@ from IPython.core.interactiveshell import warn
 from nbx import NBXInteract
 
 
-def get_f_locals_from_exception():
+def get_f_locals_from_exception(frames_back=0):
     tb = sys.exc_info()[2]
     while 1:
         if not tb.tb_next:
             break
         tb = tb.tb_next
     f = tb.tb_frame
+    # TODO reliable to just skip based on tb.tb_frame.f_code.co_name ?
+    for x in range(frames_back):
+        f = f.f_back
     return f.f_locals.copy()
 
 
@@ -33,10 +36,13 @@ def _run_module_code(code, init_globals=None,
             _run_code(code, mod_globals, init_globals,
                       mod_name, mod_spec, pkg_name, script_name)
         except Exception as error:
-            if not isinstance(error, NBXInteract):
+            if isinstance(error, NBXInteract):
+                # assuming
+                f_locals = get_f_locals_from_exception(frames_back=1)
+            else:
                 mod_globals['__run_module_error__'] = error
-            # TODO make this configurable.
-            f_locals = get_f_locals_from_exception()
+                # TODO make this configurable.
+                f_locals = get_f_locals_from_exception()
             mod_globals.update(f_locals)
     # Copy the globals of the temporary module, as they
     # may be cleared when the temporary module goes away
