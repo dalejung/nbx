@@ -8,20 +8,41 @@ from runpy import (_ModifiedArgv0, _TempModule,
                    _get_module_details, _run_code)
 
 from IPython.core.interactiveshell import warn
-from nbx import NBXInteract
+from nbx import (
+    NBXInteract,
+    find_run_as_main,
+)
 
 
-def get_f_locals_from_exception(frames_back=0):
+def get_f_locals_from_exception(frames_back=None):
     tb = sys.exc_info()[2]
+    f = find_correct_frame(tb, frames_back)
+    return f.f_locals.copy()
+
+
+def find_correct_frame(tb, frames_back=None):
+    """
+    Logic to find the correct frame to globalize their local variables.
+    """
     while 1:
         if not tb.tb_next:
             break
         tb = tb.tb_next
     f = tb.tb_frame
-    # TODO reliable to just skip based on tb.tb_frame.f_code.co_name ?
-    for x in range(frames_back):
-        f = f.f_back
-    return f.f_locals.copy()
+    # TODO reliable to just skip based on tb.tb_frame.f_code.co_name to skp
+    # nbx_interact?
+    # TODO check RUN_AS_MAIN
+    if frames_back is not None:
+        for x in range(frames_back):
+            f = f.f_back
+    else:
+        # this is usually needed for real exception that occur deeper in the
+        # stack. we don't want to globalize locals *where* the exception
+        # occurs because that can be inside library code.
+        main_f = find_run_as_main(f)
+        if main_f:
+            f = main_f
+    return f
 
 
 def _run_module_code(code, init_globals=None,
