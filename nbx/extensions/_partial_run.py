@@ -15,9 +15,14 @@ from nbx import (
 
 
 def get_f_locals_from_exception(frames_back=None):
+    f = get_frame_from_exception(frames_back)
+    return f.f_locals.copy()
+
+
+def get_frame_from_exception(frames_back=None):
     tb = sys.exc_info()[2]
     f = find_correct_frame(tb, frames_back)
-    return f.f_locals.copy()
+    return f
 
 
 def find_correct_frame(tb, frames_back=None):
@@ -58,12 +63,14 @@ def _run_module_code(code, init_globals=None,
                       mod_name, mod_spec, pkg_name, script_name)
         except Exception as error:
             if isinstance(error, NBXInteract):
-                # assuming
-                f_locals = get_f_locals_from_exception(frames_back=1)
+                f = get_frame_from_exception(frames_back=1)
             else:
                 mod_globals['__run_module_error__'] = error
                 # TODO make this configurable.
-                f_locals = get_f_locals_from_exception()
+                # assuming
+                f = get_frame_from_exception()
+
+            f_locals = f.f_locals.copy()
             mod_globals.update(f_locals)
     # Copy the globals of the temporary module, as they
     # may be cleared when the temporary module goes away
@@ -112,6 +119,6 @@ def safe_run_module(self, mod_name, where):
         except SystemExit as status:
             if status.code:
                 raise
-    except:
+    except Exception:
         self.showtraceback(tb_offset=3)
         warn('Unknown failure executing module: <%s>' % mod_name)
