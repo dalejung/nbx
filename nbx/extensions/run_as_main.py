@@ -23,6 +23,11 @@ if return_early is True, I want d to be brought into global.
 
 Not 100% sure if there is some way to hook into the execution like via trace.
 or if it makes sense to just rewrite the wrapped function with ast.
+
+2021/12/14
+
+This currently doesn't do anything. run_as_main is supported by partial_run
+extension.
 """
 import sys
 import ast
@@ -32,18 +37,8 @@ from asttools import (
     ast_source,
 )
 
-from nbx import nbx_interact
-
-def run_as_main(func):
-    return func
-
-@run_as_main
-def main():
-    print('hi')
-
-
-def error():
-    dale = 1
-    nbx_interact()
-
-error()
+from nbx import (
+    nbx_interact,
+    RUN_AS_MAIN_CODES,
+    is_code_run_as_main
+)
