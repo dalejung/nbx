@@ -1,4 +1,4 @@
-import github
+from github import Auth, Github
 import pandas as pd
 from mock import Mock
 
@@ -7,18 +7,12 @@ from nbx.nbmanager.tagged_gist.notebook_gisthub import (
     NotebookGistHub
 )
 from nbx.nbmanager.tagged_gist.gisthub import TaggedGist
+from nbx.config import GITHUB_TOKEN
 
 hub = None
-login = None
-password = None
-
-try:
-    import GithubCredentials
-    login = GithubCredentials.login
-    password = GithubCredentials.password
-    hub = github.Github(login, password, user_agent="nbx")
-except Exception:
-    pass
+if GITHUB_TOKEN:
+    auth = Auth.Token(GITHUB_TOKEN)
+    hub = Github(auth=auth)
 
 
 def require_github(func):

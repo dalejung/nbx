@@ -58,8 +58,8 @@ class GistService(object):
         """
         return self.accounts[self.default]
 
-    def oauth_login(self, token):
-        hub = github.Github(token, user_agent="nbx")
+    def oauth_login(self, auth):
+        hub = github.Github(auth=auth, user_agent="nbx")
         self._save_login(hub)
 
     def login(self, login, password):

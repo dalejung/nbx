@@ -7,10 +7,9 @@ from nbx.tools import assert_items_equal
 
 from ..gist import model_to_files, GistService, Gister
 from nbx.nbmanager.tests.common import (
-    login,
-    password,
     require_github,
-    makeFakeGist
+    makeFakeGist,
+    hub,
 )
 
 
@@ -41,7 +40,7 @@ def create_gist_context(*args, **kwargs):
     """
     delete_after = kwargs.pop('delete_after', True)
     gs = GistService()
-    gs.login(login, password)
+    gs._save_login(hub)
     gist = gs.create_gist(*args, **kwargs)
     yield gist
     if delete_after:
@@ -53,7 +52,7 @@ class TestGistService:
     @require_github
     def test_get_gist(self):
         gs = GistService()
-        gs.login(login, password)
+        gs._save_login(hub)
         gist_id = '6705707'
         gist = gs.get_gist(gist_id)
         assert gist.owner.login == 'dalejung'
@@ -69,7 +68,7 @@ class TestGistService:
         with create_gist_context(public=False, description="nbx test") as gist:
             assert gist.public is False
             assert gist.description == "nbx test"
-            assert gist.owner.login == login
+            assert gist.owner.login == hub.get_user().login
 
         files = {'bob2.txt': 'bob2.txt content'}
         with create_gist_context(public=False, files=files) as gist:
@@ -117,10 +116,10 @@ class TestGistService:
     def test_is_owned(self):
         """ check whether gist is owned by local account """
         gs = GistService()
-        gs.login(login, password)
+        gs._save_login(hub)
         gist_id = '6705707'
         gist = gs.get_gist(gist_id)
-        if login != 'dalejung':
+        if hub.get_user().login != 'dalejung':
             assert not gs.is_owned(gist)
 
 
@@ -159,7 +158,7 @@ class TestGister:
     @require_github
     def test_save_gist_live(self):
         gs = GistService()
-        gs.login(login, password)
+        gs._save_login(hub)
         gist = gs.create_gist()
         try:
             pass
