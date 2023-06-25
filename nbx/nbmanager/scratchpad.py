@@ -5,7 +5,6 @@ from tornado import web
 from notebook.notebook.handlers import NotebookHandler
 
 from .bundle.bundlenbmanager import BundleNotebookManager
-from .path_translate import translate_path_shim
 
 
 """
@@ -152,7 +151,3 @@ class WorkareaManager(BundleNotebookManager):
 
     def list_dirs(self, path):
         return []
-
-
-
-
