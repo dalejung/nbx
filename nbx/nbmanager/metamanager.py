@@ -85,31 +85,35 @@ class MetaManager(NBXContentsManager):
     """
     debug = Bool(True)
 
-    file_dirs = Dict(config=True,
-                           help="Dict of alias, path")
-    bundle_dirs = Dict(config=True,
-                           help="BundleNBManager. Dict of alias, path")
-
-    workarea_dirs = Dict(config=True,
-                           help="BundleNBManager. Dict of alias, path")
-
-    github_accounts = List(Tuple, config=True,
-                           help="List of Tuple(github_account, github_password)")
-
-    manager_middleware = Dict(config=True,
-                           help="Dict of Middleware")
-
+    file_dirs = Dict(
+        config=True,
+        help="Dict of alias, path"
+    )
+    bundle_dirs = Dict(
+        config=True,
+        help="BundleNBManager. Dict of alias, path"
+    )
+    workarea_dirs = Dict(
+        config=True,
+        help="BundleNBManager. Dict of alias, path"
+    )
+    github_accounts = List(
+        Tuple,
+        config=True,
+        help="List of Tuple(github_account, github_password)"
+    )
+    manager_middleware = Dict(
+        config=True,
+        help="Dict of Middleware"
+    )
     # Not sure if this should be optional. For now, make it configurable
     enable_custom_handlers = Bool(True, config=True, help="Enable Custom Handlers")
-
     enable_default_manager = Bool(True, config=True, help="Enable server-home manager")
-
     root_dir = Unicode(os.getcwd())
     trash_dir = Unicode(config=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #self.app = kwargs['parent']
 
         self.managers = {}
 

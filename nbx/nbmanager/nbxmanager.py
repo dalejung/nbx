@@ -1,23 +1,9 @@
 import datetime
-import os.path
 
 from jupyter_server.services.contents.manager import ContentsManager
-from jupyter_server.utils import url_path_join
-from jupyter_core.paths import exists, is_file_hidden, is_hidden
 
 from .dispatch import DispatcherMixin
 
-def _fullpath(name, path):
-    fullpath = url_path_join(path, name)
-    return fullpath
-
-def _path_split(path):
-    bits = path.rsplit('/', 1)
-    path = ''
-    name = bits.pop()
-    if bits:
-        path = bits[0]
-    return name, path
 
 class NBXContentsManager(DispatcherMixin, ContentsManager):
     def __init__(self, *args, **kwargs):
