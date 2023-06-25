@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
-from IPython.utils.tempdir import TemporaryDirectory
-from notebook.services.contents.filemanager import FileContentsManager
+from tempfile import TemporaryDirectory
+from jupyter_server.services.contents.filemanager import FileContentsManager
 
 from nbx.tools import assert_items_equal
 

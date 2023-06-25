@@ -76,4 +76,3 @@ class RootManager(ContentsManager):
         model['content'] = dirs
         model['format'] = 'json'
         return model
-

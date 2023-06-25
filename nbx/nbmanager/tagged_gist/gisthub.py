@@ -6,8 +6,6 @@ gists and tagging.
 """
 import github
 
-import nbx.compat as compat
-
 def _hashtags(desc):
     if not desc:
         return []
@@ -96,6 +94,7 @@ class TaggedGist(object):
         out = "TaggedGist(name={name}, active={active}, public={public}, tags={tags})"
         return out.format(public=self.public, **self.__dict__)
 
+
 class GistHub(object):
     def __init__(self, hub):
         self.hub = hub
@@ -131,7 +130,7 @@ class GistHub(object):
     def _normalize_tag(self, tag):
         if tag is None:
             tag = []
-        if isinstance(tag, compat.string_types):
+        if isinstance(tag, str):
             tag = [tag]
 
         # allow tag in both hashtag and bare form

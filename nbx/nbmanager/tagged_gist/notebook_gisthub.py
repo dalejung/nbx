@@ -3,7 +3,6 @@ import github
 import nbformat
 
 from .gisthub import gisthub, _hashtags
-import nbx.compat as compat
 
 def parse_tags(desc):
     # real tags and not system-like tags
@@ -77,7 +76,7 @@ class NotebookGist(object):
 
     @notebook_content.setter
     def notebook_content(self, content):
-        if isinstance(content, compat.string_types):
+        if isinstance(content, str):
             self._notebook_content = content
             return
 

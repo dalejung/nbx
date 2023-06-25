@@ -2,8 +2,6 @@ from nbformat import v4 as current
 import github
 import time
 
-import nbx.compat as compat
-
 _missing = object()
 
 
@@ -37,7 +35,7 @@ def _github_files(files):
     """ wrap basestring content into github.InputFilecontent """
     new_files = {}
     for fn, content in files.items():
-        if isinstance(content, compat.string_types):
+        if isinstance(content, str):
             content = github.InputFileContent(content)
         new_files[fn] = content
     return new_files
