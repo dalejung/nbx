@@ -58,10 +58,10 @@ class RootManager(ContentsManager):
         """Build the common base of a contents model"""
         # Create the base model.
         model = {}
-        model['path'] = path
         model['name'] = path.rsplit('/', 1)[-1]
-        model['created'] = datetime.datetime.now()
+        model['path'] = path
         model['last_modified'] = datetime.datetime.now()
+        model['created'] = datetime.datetime.now()
         model['content'] = None
         model['format'] = None
         model['writable'] = None

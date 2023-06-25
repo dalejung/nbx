@@ -1,8 +1,11 @@
+import string
+import random
 import os.path
 import datetime
+import math
 
 from tornado import web
-from notebook.notebook.handlers import NotebookHandler
+from notebook.app import NotebookHandler
 
 from .bundle.bundlenbmanager import BundleNotebookManager
 
@@ -10,6 +13,8 @@ from .bundle.bundlenbmanager import BundleNotebookManager
 """
 monkey patch the notebook handler so we can redirect
 """
+
+
 @web.authenticated
 def get(self, path):
     cm = self.contents_manager
@@ -27,13 +32,14 @@ def get(self, path):
 
     return self._old_get(path)
 
+
 NotebookHandler._old_get = NotebookHandler.get
 NotebookHandler.get = get
 
-import string
-import random
+
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
+
 
 def notebook_walk_step(self, path):
     notebooks = self.list_notebooks(path)
@@ -47,12 +53,14 @@ def notebook_walk_step(self, path):
         subdirs.append(new_path)
     return notebooks, subdirs
 
+
 def notebook_walk(self, path):
     notebooks, subdirs = notebook_walk_step(self, path)
     if any([notebooks, subdirs]):
         yield path, notebooks, subdirs
     for dir in subdirs:
         yield from notebook_walk(self, dir)
+
 
 class WorkareaManager(BundleNotebookManager):
     def __init__(self, *args, **kwargs):
@@ -116,7 +124,6 @@ class WorkareaManager(BundleNotebookManager):
 
         all_notebooks.sort(key=lambda x: x['last_modified'], reverse=True)
 
-        import math
         digits = 0
         if all_notebooks:
             digits = int(math.log10(len(all_notebooks)))+1
