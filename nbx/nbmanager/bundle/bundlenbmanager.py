@@ -1,21 +1,18 @@
 import datetime
-import itertools
 import os
 import inspect
 import shutil
 from functools import wraps
 
-from tornado import web
 
 from traitlets import Unicode
 from IPython.utils import tz
-from notebook.utils import is_hidden, to_os_path, url_path_join
-from notebook.services.contents.filemanager import FileContentsManager
+from jupyter_server.utils import to_os_path
+from jupyter_server.services.contents.filemanager import FileContentsManager
 
 from .manager import BundleManager
 from ..nbxmanager import NBXContentsManager
-from ..dispatch import DispatcherMixin
-from .. import shim
+
 
 def notebook_type_proxy(alt):
     """
@@ -27,13 +24,13 @@ def notebook_type_proxy(alt):
         meth_name = meth.__name__
         if alt is None:
             alt = meth_name
-        argspec = inspect.getargspec(meth)
+        sig = inspect.signature(meth)
 
         @wraps(meth)
         def wrapper(self, *args, **kwargs):
             scope = kwargs.copy()
             # skip self in args
-            scope.update(zip(argspec.args[1:], args))
+            scope.update(zip(list(sig.parameters)[1:], args))
             path = scope.get('path', '')
 
             method = meth.__get__(self)
@@ -42,6 +39,7 @@ def notebook_type_proxy(alt):
             return method(*args, **kwargs)
         return wrapper
     return decorator
+
 
 class BundleNotebookManager(NBXContentsManager):
     """

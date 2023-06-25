@@ -1,8 +1,9 @@
 import datetime
 import os.path
 
-from notebook.services.contents.manager import ContentsManager
-from notebook.utils import url_path_join
+from jupyter_server.services.contents.manager import ContentsManager
+from jupyter_server.utils import url_path_join
+from jupyter_core.paths import exists, is_file_hidden, is_hidden
 
 from .dispatch import DispatcherMixin
 

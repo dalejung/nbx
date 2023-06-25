@@ -1,4 +1,4 @@
-from notebook.services.contents.manager import ContentsManager
+from jupyter_server.services.contents.manager import ContentsManager
 
 from .util import get_invoked_arg, set_invoked_arg, _path_split
 
@@ -6,6 +6,7 @@ API = ['save', 'update', 'delete', 'get', 'rename', 'file_exists', 'exists',
        'get_checkpoint_path', 'get_checkpoint_model', 'create_checkpoint',
        'list_checkpoints', 'restore_checkpoint', 'delete_checkpoint',
        'get_kernel_path']
+
 
 class ShimManager(ContentsManager):
     """
@@ -81,6 +82,7 @@ class ContentsNameApiShim(ShimManager):
         new_name, new_path = _path_split(new_path)
         old_name, old_path = _path_split(old_path)
         return self._manager.rename(old_name, old_path, new_name, new_path)
+
 
 def contents_api_name(cls):
     """ class decorator """

@@ -1,6 +1,7 @@
 import datetime
 
-from notebook.services.contents.manager import ContentsManager
+from jupyter_server.services.contents.manager import ContentsManager
+
 
 class RootManager(ContentsManager):
     """
@@ -31,7 +32,7 @@ class RootManager(ContentsManager):
             return self.get_dir(path)
 
     def _get_dir_model(self, name):
-        model ={}
+        model = {}
         model['name'] = name
         model['path'] = name
         model['type'] = 'directory'

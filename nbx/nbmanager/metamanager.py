@@ -6,10 +6,7 @@ from traitlets import (
     DottedObjectName, TraitError, Tuple,
 )
 from IPython.utils.importstring import import_item
-from traitlets.config.configurable import LoggingConfigurable
-from notebook.services.contents.manager import ContentsManager
-from notebook.base.zmqhandlers import ZMQStreamHandler
-from notebook.utils import is_hidden, to_os_path, url_path_join
+from jupyter_server.utils import to_os_path
 
 from nbx.nbmanager.tagged_gist.gistnbmanager import GistNotebookManager
 from nbx.nbmanager.tagged_gist.notebook_gisthub import notebook_gisthub
@@ -23,7 +20,8 @@ from .nbxmanager import NBXContentsManager
 
 from .static_handler import patch_file_handler
 
-from notebook.services.kernels.kernelmanager import MappingKernelManager
+from jupyter_server.services.kernels.kernelmanager import MappingKernelManager
+
 
 def cwd_for_path(self, path):
     """Turn API path into absolute OS path."""
@@ -37,11 +35,10 @@ def cwd_for_path(self, path):
         os_path = os.path.dirname(os_path)
     return os_path
 
+
 MappingKernelManager.cwd_for_path = cwd_for_path
 
 patch_file_handler()
-
-ZMQStreamHandler.same_origin = lambda self: True
 
 class ManagerMeta(object):
     """
