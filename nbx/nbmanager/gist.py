@@ -1,6 +1,6 @@
 from nbformat import v4 as current
-import github
 import time
+from github import Auth, Github, InputFileContent
 
 import nbx.compat as compat
 
@@ -38,7 +38,7 @@ def _github_files(files):
     new_files = {}
     for fn, content in files.items():
         if isinstance(content, compat.string_types):
-            content = github.InputFileContent(content)
+            content = InputFileContent(content)
         new_files[fn] = content
     return new_files
 
@@ -61,11 +61,8 @@ class GistService(object):
         return self.accounts[self.default]
 
     def oauth_login(self, token):
-        hub = github.Github(token, user_agent="nbx")
-        self._save_login(hub)
-
-    def login(self, login, password):
-        hub = github.Github(login, password, user_agent="nbx")
+        auth = Auth.Token(token)
+        hub = Github(auth=auth, user_agent="nbx")
         self._save_login(hub)
 
     def _save_login(self, hub):

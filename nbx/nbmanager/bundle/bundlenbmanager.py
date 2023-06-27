@@ -27,13 +27,13 @@ def notebook_type_proxy(alt):
         meth_name = meth.__name__
         if alt is None:
             alt = meth_name
-        argspec = inspect.getargspec(meth)
+        sig = inspect.signature(meth)
 
         @wraps(meth)
         def wrapper(self, *args, **kwargs):
             scope = kwargs.copy()
             # skip self in args
-            scope.update(zip(argspec.args[1:], args))
+            scope.update(zip(list(sig.parameters)[1:], args))
             path = scope.get('path', '')
 
             method = meth.__get__(self)

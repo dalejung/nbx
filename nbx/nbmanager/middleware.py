@@ -20,8 +20,8 @@ def manager_hook(func):
             pass
     """
     func_name = func.__name__
-    argspec = inspect.getargspec(func)
-    path_index = argspec.args.index('path') 
+    sig = inspect.signature(func)
+    path_index = list(sig.parameters).index('path') 
     path_index -= 1 # skip self
     @functools.wraps(func)
     def _wrapped(self, *args, **kwargs):
